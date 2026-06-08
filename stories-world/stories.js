@@ -30,7 +30,7 @@ const storiesData = [
   title: "Gunahon Ka Devta",
   desc: "धर्मवीर भारती के इस उपन्यास का प्रकाशन और इसके प्रति पाठको ...",
   file: "stories/Gunahon-Ka-Devta.txt"
-}
+},
 
 {
   id: 5,
