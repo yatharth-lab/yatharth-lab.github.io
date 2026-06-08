@@ -41,11 +41,35 @@ const storiesData = [
 },
 
 {
-  id: 5,
+  id: 6,
   category: "Akbar Birbal Stories",
   title: "महेश दास का भाग्य",
   desc: "जब महेश दास बड़े हुए तो उन्होंने बचाकर रखी थी...",
   file: "stories/महेश दास का भाग्य.txt"
 },
 
+{
+  id: 7,
+  category: "Akbar Birbal Stories",
+  title: "बीरबल की स्वर्ग यात्रा",
+  desc: "एक बार बादशाह अकबर ने मध्य...",
+  file: "stories/बीरबल की स्वर्ग यात्रा.txt"
+},
+
+{
+  id: 8,
+  category: "Akbar Birbal Stories",
+  title: "जो होता है अच्छा होता है",
+  desc: "एक बार बादशाह अकबर ने मध्य...",
+  file: "stories/जो होता है अच्छा होता है.txt"
+},
+
+{
+  id: 9,
+  category: "Akbar Birbal Stories",
+  title: "मूर्खों की सूची",
+  desc: "एक बार बादशाह अकबर ने मध्य...",
+  file: "stories/मूर्खों की सूची.txt"
+},
+  
 ];
