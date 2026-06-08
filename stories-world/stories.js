@@ -32,4 +32,12 @@ const storiesData = [
   file: "stories/Gunahon-Ka-Devta.txt"
 }
 
+{
+  id: 5,
+  category: "Akbar Birbal Stories",
+  title: "पहली मुलाकात",
+  desc: "एक बार बादशाह अकबर ने मध्य...",
+  file: "stories/पहली मुलाकात.txt"
+}
+
 ];
