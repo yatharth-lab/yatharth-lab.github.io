@@ -38,6 +38,14 @@ const storiesData = [
   title: "पहली मुलाकात",
   desc: "एक बार बादशाह अकबर ने मध्य...",
   file: "stories/पहली मुलाकात.txt"
-}
+},
+
+{
+  id: 5,
+  category: "Akbar Birbal Stories",
+  title: "महेश दास का भाग्य",
+  desc: "जब महेश दास बड़े हुए तो उन्होंने बचाकर रखी थी...",
+  file: "stories/महेश दास का भाग्य.txt"
+},
 
 ];
