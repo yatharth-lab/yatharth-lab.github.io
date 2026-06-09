@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦜 Talking Parrot</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+height:100vh;
+overflow:hidden;
+font-family:Arial;
+display:flex;
+justify-content:center;
+align-items:center;
+background:url("https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1600") center/cover no-repeat;
+}
+
+.overlay{
+position:absolute;
+inset:0;
+background:rgba(0,0,0,0.3);
+}
+
+.container{
+position:relative;
+z-index:2;
+text-align:center;
+}
+
+#parrot{
+width:300px;
+animation:float 3s infinite ease-in-out;
+}
+
+@keyframes float{
+0%{transform:translateY(0);}
+50%{transform:translateY(-15px);}
+100%{transform:translateY(0);}
+}
+
+.talking{
+animation:shake 0.15s infinite alternate;
+}
+
+@keyframes shake{
+0%{transform:rotate(-4deg);}
+100%{transform:rotate(4deg);}
+}
+
+h1{
+color:white;
+text-shadow:2px 2px 5px black;
+margin-top:10px;
+}
+
+#status{
+color:white;
+margin-top:15px;
+font-size:20px;
+min-height:40px;
+text-shadow:2px 2px 5px black;
+}
+
+button{
+margin-top:20px;
+padding:14px 25px;
+font-size:18px;
+border:none;
+border-radius:30px;
+background:#00c853;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+transform:scale(1.05);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="container">
+
+<img id="parrot" src="parrot-closed.png">
+
+<h1>🦜 Talking Parrot</h1>
+
+<div id="status">🎤 Mic dabao aur bolo</div>
+
+<button onclick="startTalking()">Speak 🎤</button>
+
+</div>
+
+<script>
+
+const parrot = document.getElementById("parrot");
+const status = document.getElementById("status");
+
+function startTalking(){
+
+const SpeechRecognition =
+window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+status.innerText = "❌ Tumhara browser mic support nahi karta";
+return;
+}
+
+let recognition = new SpeechRecognition();
+recognition.lang = "hi-IN";
+recognition.continuous = false;
+recognition.interimResults = false;
+
+status.innerText = "🎧 Permission maangi ja rahi hai...";
+
+try {
+recognition.start();
+} catch(e){
+status.innerText = "⚠️ Mic already active hai";
+return;
+}
+
+recognition.onstart = ()=>{
+status.innerText = "🎤 Sun raha hoon...";
+};
+
+recognition.onerror = (event)=>{
+status.innerText = "❌ Mic error: " + event.error;
+};
+
+recognition.onresult = (event)=>{
+
+let text = event.results[0][0].transcript;
+
+status.innerText = "🗣️ " + text;
+
+let speech = new SpeechSynthesisUtterance(text);
+speech.lang = "hi-IN";
+speech.rate = 1.1;
+speech.pitch = 1.6;
+
+speechSynthesis.cancel();
+
+speech.onstart = ()=>{
+parrot.classList.add("talking");
+
+setInterval(()=>{
+parrot.src =
+parrot.src.includes("closed")
+? "parrot-open.png"
+: "parrot-closed.png";
+},120);
+};
+
+speech.onend = ()=>{
+parrot.classList.remove("talking");
+parrot.src = "parrot-closed.png";
+status.innerText = "😂 Fir se bolo!";
+};
+
+speechSynthesis.speak(speech);
+
+};
+
+}
+
+</script>
+
+</body>
+</html>
