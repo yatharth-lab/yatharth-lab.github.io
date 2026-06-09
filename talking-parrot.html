@@ -145,10 +145,24 @@ let text = event.results[0][0].transcript;
 
 status.innerText = "🗣️ " + text;
 
-let speech = new SpeechSynthesisUtterance(text);
+const speech = new SpeechSynthesisUtterance(userText);
+
 speech.lang = "hi-IN";
-speech.rate = 1.1;
-speech.pitch = 1.6;
+
+// 🦜 Cartoon parrot voice
+speech.rate = 1.25;   // fast + funny
+speech.pitch = 2.0;   // high = patli chipmunk voice
+speech.volume = 1;
+
+// best voice select
+let voices = speechSynthesis.getVoices();
+speech.voice =
+  voices.find(v =>
+    v.lang.includes("en") || v.lang.includes("hi")
+  ) || voices[0];
+
+speechSynthesis.cancel();
+speechSynthesis.speak(speech);
 
 speechSynthesis.cancel();
 
