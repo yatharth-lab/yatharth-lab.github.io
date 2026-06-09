@@ -19,11 +19,14 @@ justify-content:center;
 align-items:center;
 flex-direction:column;
 font-family:Arial;
+overflow:hidden;
+
+/* 🌴 Background */
 background:url("https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1600")
 center/cover no-repeat;
-overflow:hidden;
 }
 
+/* dark overlay */
 .overlay{
 position:absolute;
 inset:0;
@@ -36,11 +39,16 @@ z-index:2;
 text-align:center;
 }
 
+/* 🦜 PARROT FIX */
 #parrot{
 width:300px;
 max-width:80vw;
 animation:float 3s infinite ease-in-out;
 transition:0.1s;
+
+/* 🔥 REMOVE IMAGE BG FEEL */
+background:transparent;
+mix-blend-mode:multiply;
 }
 
 @keyframes float{
@@ -50,12 +58,12 @@ transition:0.1s;
 }
 
 .talking{
-animation:shake 0.1s infinite alternate;
+animation:shake 0.12s infinite alternate;
 }
 
 @keyframes shake{
-0%{transform:rotate(-6deg) scale(1.05);}
-100%{transform:rotate(6deg) scale(1.1);}
+0%{transform:rotate(-5deg) scale(1.05);}
+100%{transform:rotate(5deg) scale(1.08);}
 }
 
 h1{
@@ -115,6 +123,9 @@ const recognition = new SpeechRecognition();
 recognition.lang = "hi-IN";
 recognition.interimResults = false;
 
+parrot.src = "parrot-closed.png";
+speechSynthesis.cancel();
+
 speakBtn.style.display = "none";
 
 recognition.onerror = (e)=>{
@@ -130,9 +141,9 @@ const speech = new SpeechSynthesisUtterance(text);
 
 speech.lang = "hi-IN";
 
-// 🔥 Cartoon sharp voice
-speech.rate = 1.3;
-speech.pitch = 2.2;
+/* 🔥 SLOW + CARTOON + SHARP VOICE */
+speech.rate = 0.85;
+speech.pitch = 2.1;
 speech.volume = 1;
 
 speechSynthesis.cancel();
@@ -140,16 +151,13 @@ speechSynthesis.cancel();
 speech.onstart = ()=>{
 
 parrot.classList.add("talking");
-
 parrot.src = "parrot-open.png";
 };
 
 speech.onend = ()=>{
 
 parrot.classList.remove("talking");
-
 parrot.src = "parrot-closed.png";
-
 speakBtn.style.display = "block";
 };
 
