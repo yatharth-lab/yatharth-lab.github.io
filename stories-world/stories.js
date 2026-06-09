@@ -71,5 +71,37 @@ const storiesData = [
   desc: "एक बार बादशाह अकबर ने मध्य...",
   file: "stories/मूर्खों की सूची.txt"
 },
+
+{
+  id: 10 ,
+  category: "Akbar Birbal Stories",
+  title: "गहनों की चोरी",
+  desc: "एक बार बादशाह अकबर ने मध्य...",
+  file: "stories/गहनों की चोरी.txt"
+},
+
+{
+  id: 11 ,
+  category: "Akbar Birbal Stories",
+  title: "धार्मिक ग्रंथ",
+  desc: "एक बार बादशाह अकबर ने मध्य...",
+  file: "stories/धार्मिक ग्रंथ.txt"
+},
+
+{
+  id: 12 ,
+  category: "Akbar Birbal Stories",
+  title: "सही गलत का अंतर",
+  desc: "एक बार बादशाह अकबर ने मध्य...",
+  file: "stories/सही गलत का अंतर.txt"
+},
+
+{
+  id: 13 ,
+  category: "Akbar Birbal Stories",
+  title: "टेढ़ी गरदन",
+  desc: "एक बार बादशाह अकबर ने मध्य...",
+  file: "stories/टेढ़ी गरदन.txt"
+},
   
 ];
