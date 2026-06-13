@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpaceChat</title>
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div id="stars"></div>
+
+<!-- LOGIN SCREEN -->
+<div id="authScreen" class="screen">
+
+    <div class="auth-box">
+
+        <h1>🌌 SpaceChat</h1>
+        <p>Realtime Firebase Chat</p>
+
+        <input
+            type="email"
+            id="email"
+            placeholder="Email">
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Password">
+
+        <button id="signupBtn">
+            Create Account
+        </button>
+
+        <button id="loginBtn">
+            Login
+        </button>
+
+        <button id="googleBtn" class="google-btn">
+            Sign in with Google
+        </button>
+
+    </div>
+
+</div>
+
+<!-- CHAT SCREEN -->
+<div id="chatScreen" class="hidden">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+        <div class="sidebar-top">
+
+            <div class="profile-section">
+
+                <img
+                    id="userPhoto"
+                    src="https://ui-avatars.com/api/?name=User"
+                    alt="profile">
+
+                <div>
+
+                    <h3 id="userName">
+                        User
+                    </h3>
+
+                    <p id="userEmail">
+                        email
+                    </p>
+
+                </div>
+
+            </div>
+
+            <button id="logoutBtn">
+                Logout
+            </button>
+
+        </div>
+
+        <div class="users-title">
+            Users
+        </div>
+
+        <div id="usersList">
+        </div>
+
+    </div>
+
+    <!-- CHAT AREA -->
+    <div class="chat-area">
+
+        <div class="chat-header">
+
+            <div>
+
+                <h2 id="chatUserName">
+                    Select User
+                </h2>
+
+                <span id="chatStatus">
+                    Offline
+                </span>
+
+            </div>
+
+        </div>
+
+        <div id="messages" class="messages">
+
+        </div>
+
+        <div class="message-box">
+
+            <input
+                id="messageInput"
+                type="text"
+                placeholder="Type message...">
+
+            <button id="sendBtn">
+                Send
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- FIREBASE -->
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import { getAuth }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { getFirestore }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAKetSN1IQxYi-nOkD_SZWK7eAxu2_Ku7Q",
+  authDomain: "yatharthchat-20b0f.firebaseapp.com",
+  projectId: "yatharthchat-20b0f",
+  storageBucket: "yatharthchat-20b0f.firebasestorage.app",
+  messagingSenderId: "867005975273",
+  appId: "1:867005975273:web:137f7d7b151537617c3e78",
+  measurementId: "G-76SGKRF2FT"
+};
+
+const app = initializeApp(firebaseConfig);
+
+window.auth = getAuth(app);
+window.db = getFirestore(app);
+
+</script>
+
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
