@@ -2,67 +2,76 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SpaceChat</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>SpaceChat Pro</title>
 
 <link rel="stylesheet" href="style.css">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-<div id="stars"></div>
+<div class="galaxy-bg"></div>
 
-<!-- LOGIN SCREEN -->
-<div id="authScreen" class="screen">
+<!-- LOGIN PAGE -->
 
-    <div class="auth-box">
+<div id="authScreen" class="auth-screen">
 
-        <h1>🌌 SpaceChat</h1>
-        <p>Realtime Firebase Chat</p>
+    <div class="auth-card">
+
+        <div class="logo">
+            🌌
+        </div>
+
+        <h1>SpaceChat Pro</h1>
+
+        <p>
+            Futuristic WhatsApp Style Messenger
+        </p>
 
         <input
-            type="email"
-            id="email"
-            placeholder="Email">
+        type="email"
+        id="email"
+        placeholder="Email Address">
 
         <input
-            type="password"
-            id="password"
-            placeholder="Password">
+        type="password"
+        id="password"
+        placeholder="Password">
 
-        <button id="signupBtn">
-            Create Account
-        </button>
-
-        <button id="loginBtn">
+        <button id="loginBtn" class="primary-btn">
             Login
         </button>
 
+        <button id="signupBtn" class="secondary-btn">
+            Create Account
+        </button>
+
         <button id="googleBtn" class="google-btn">
-            Sign in with Google
+            Continue with Google
         </button>
 
     </div>
 
 </div>
 
-<!-- CHAT SCREEN -->
-<div id="chatScreen" class="hidden">
+<!-- CHAT APP -->
+
+<div id="chatScreen" class="chat-app hidden">
 
     <!-- SIDEBAR -->
-    <div class="sidebar">
 
-        <div class="sidebar-top">
+    <aside class="sidebar">
 
-            <div class="profile-section">
+        <div class="sidebar-header">
+
+            <div class="profile">
 
                 <img
-                    id="userPhoto"
-                    src="https://ui-avatars.com/api/?name=User"
-                    alt="profile">
+                id="userPhoto"
+                src="https://ui-avatars.com/api/?name=User">
 
                 <div>
 
@@ -71,7 +80,7 @@
                     </h3>
 
                     <p id="userEmail">
-                        email
+                        Email
                     </p>
 
                 </div>
@@ -84,29 +93,45 @@
 
         </div>
 
+        <div class="search-box">
+
+            <input
+            type="text"
+            id="searchUser"
+            placeholder="Search users...">
+
+        </div>
+
         <div class="users-title">
-            Users
+            Chats
         </div>
 
-        <div id="usersList">
+        <div id="usersList" class="users-list">
         </div>
 
-    </div>
+    </aside>
 
-    <!-- CHAT AREA -->
-    <div class="chat-area">
+    <!-- CHAT SECTION -->
+
+    <main class="chat-section">
 
         <div class="chat-header">
 
-            <div>
+            <div class="chat-user">
 
-                <h2 id="chatUserName">
-                    Select User
-                </h2>
+                <div class="online-dot"></div>
 
-                <span id="chatStatus">
-                    Offline
-                </span>
+                <div>
+
+                    <h2 id="chatUserName">
+                        Select User
+                    </h2>
+
+                    <span id="chatStatus">
+                        Offline
+                    </span>
+
+                </div>
 
             </div>
 
@@ -114,22 +139,35 @@
 
         <div id="messages" class="messages">
 
+            <div class="empty-chat">
+
+                🌠
+
+                <h2>
+                    Welcome To SpaceChat
+                </h2>
+
+                <p>
+                    Select a user to start chatting
+                </p>
+
+            </div>
+
         </div>
 
-        <div class="message-box">
+        <div class="message-bar">
 
             <input
-                id="messageInput"
-                type="text"
-                placeholder="Type message...">
+            id="messageInput"
+            placeholder="Type a message...">
 
             <button id="sendBtn">
-                Send
+                ➤
             </button>
 
         </div>
 
-    </div>
+    </main>
 
 </div>
 
