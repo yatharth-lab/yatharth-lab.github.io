@@ -72,38 +72,25 @@
     <div id="loading-screen" class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black transition-opacity duration-500">
         <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-700 h-12 w-12 mb-4"></div>
         <p class="text-gray-300 font-semibold animate-pulse">Fetching Feed...</p>
+        <p id="error-text" class="text-red-500 mt-2 text-sm hidden px-6 text-center">API Key failed. Loading Fallback content.</p>
     </div>
 
     <div class="feed-container" id="feed"></div>
 
     <script>
+        // ✅ YEHHI PEHLA WALA API KEY AUR CHANNELS
         const API_KEY = "AIzaSyCHp00zE-ccExkdRODTnyY8mYV_jAYUyaI"; 
-
+        
         const CHANNELS = [
-            "UC-lHJZR3Gqxm24_Vd_AJ5Yw", "UCXgGY0wkgOzynnHvSEVmE3A",
-            "UC9CYT9gSN4X7d7I1xL1MYfA", "UC2t5bjwNC1VoD4cphC-dq9A",
-            "UCvD3F2u6Coo2Q-CgZr5R3LA", "UCFzquvC1IGs6F-d5l0gqL7A",
-            "UCF8aces9K4RzIv9I4RhE3QA", "UCzN-P1E3l0pD_q-p3KfJ5bA",
-            "UCp55IdqYfD1VE5CUn5W5k0A", "UCwV8BbXl-1Mp8stEAd9Q8DA",
-            "UCK_6tJ1q-0lEiC6E5c2u0cA", "UCNN3bX2N0t7pHxL0R3b7k0A",
-            "UCY3M59JQwyY5O7MBlu2T1lw", "UCOO5OU3M141z1A2eWqG0vA",
-            "UCW7RbTiPmUd5j3E7aM0d5cw", "UCfzlCWbYy5V3Ix7E_T5j0tw",
-            "UCl8E1y8n4r7o6n5h0t4wA", "UCpD8s9n5T8zP8h0w2v3x9A"
-        ];
-
-        const SEARCH_QUERIES = [
-            "funny moments", "prank", "challenge", "gaming", "vlog",
-            "reaction", "roast", "dance", "singing", "comedy",
-            "amazing tricks", "magic", "sports", "food", "travel"
+            "UCC6gbNO098rkQKCU0ZaLITQ",
+            "UCexXxAXCo36y-IU7rkI2h6A"
         ];
 
         const FALLBACK_VIDEOS = [
             { id: "J---aiyznGQ", channel: "MrBeast", title: "Would You Fly To Paris For A Baguette?" },
             { id: "hT_nvWreIhg", channel: "Marques Brownlee", title: "The Best Smartphone in the World!" },
             { id: "3K0RzZcGzP4", channel: "Zach King", title: "Jedi Illusion Magic Trick" },
-            { id: "dQw4w9WgXcQ", channel: "Rick Astley", title: "Never Gonna Give You Up" },
-            { id: "jNQXAC9IVRw", channel: "Me at the zoo", title: "First Ever YouTube Video" },
-            { id: "9bZkp7q19f0", channel: "PSY", title: "Gangnam Style" }
+            { id: "dQw4w9WgXcQ", channel: "Rick Astley", title: "Never Gonna Give You Up" }
         ];
 
         const seenVideos = new Set();
@@ -117,6 +104,7 @@
 
         const feedEl = document.getElementById("feed");
         const loadingScreen = document.getElementById("loading-screen");
+        const errorText = document.getElementById("error-text");
 
         function shuffle(arr){
             for(let i = arr.length - 1; i > 0; i--){
@@ -127,35 +115,11 @@
         }
 
         function refreshActiveChannels(){
-            activeChannels = shuffle([...CHANNELS]).slice(0, 12);
-        }
-
-        function getRandomQuery(){
-            return shuffle([...SEARCH_QUERIES])[0];
-        }
-
-        async function fetchVideosBySearch(){
-            const query = getRandomQuery();
-            let url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&part=snippet,id&q=${query}&type=video&maxResults=15&videoDuration=short`;
-            
-            try {
-                const res = await fetch(url, { referrerPolicy: "no-referrer" });
-                const data = await res.json();
-                if(data.error || !data.items) return [];
-                
-                return data.items
-                    .filter(v => v.id.videoId && v.snippet.channelTitle)
-                    .map(v => ({
-                        id: v.id.videoId,
-                        title: v.snippet.title,
-                        channel: v.snippet.channelTitle,
-                        time: new Date(v.snippet.publishedAt).getTime()
-                    }));
-            } catch(e) { return []; }
+            activeChannels = shuffle([...CHANNELS]).slice(0, 5);
         }
 
         async function fetchChannelVideos(channel){
-            let url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channel}&part=snippet,id&order=date&maxResults=3&type=video&videoDuration=short`;
+            let url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channel}&part=snippet,id&order=date&maxResults=5&type=video&videoDuration=short`;
             if(channelToken[channel]) url += `&pageToken=${channelToken[channel]}`;
 
             try {
@@ -181,24 +145,16 @@
             }
 
             let results = [];
-            
-            if(Math.random() > 0.4){
-                const searchVids = await fetchVideosBySearch();
-                results.push(...searchVids);
-            }
-
             refreshActiveChannels();
-            for(let c of activeChannels.slice(0, 8)){
+            for(let c of activeChannels){
                 const vids = await fetchChannelVideos(c);
                 results.push(...vids);
             }
 
-            if(results.length < 5 && !useFallback) { 
+            if(results.length === 0 && !useFallback) { 
                 useFallback = true; 
                 return shuffle([...FALLBACK_VIDEOS]); 
             }
-
-            results = shuffle(results);
 
             results = results.filter(v => { 
                 if(seenVideos.has(v.id)) return false; 
@@ -206,19 +162,18 @@
                 return true; 
             });
 
-            results.sort((a, b) => Math.random() - 0.5);
-            
+            results.sort((a, b) => (b.time - a.time) + (Math.random() * 3600000)); 
             return results;
         }
 
         function addToPool(videos){
             videoPool.push(...videos);
-            if(videoPool.length > 100) videoPool = videoPool.slice(-100);
+            if(videoPool.length > 80) videoPool = videoPool.slice(-80);
         }
 
         function cleanup(){
-            if(videoPool.length > 100) videoPool = videoPool.slice(-100);
-            if(seenVideos.size > 2000) seenVideos.clear();
+            if(videoPool.length > 80) videoPool = videoPool.slice(-80);
+            if(seenVideos.size > 1500) seenVideos.clear();
         }
 
         function addReels(videos){
@@ -301,6 +256,7 @@
 
         async function loadInitial(){
             const vids = await fetchVideos();
+            if(useFallback) errorText.classList.remove('hidden');
             if(vids.length > 0) { addToPool(vids); addReels(vids); }
             setTimeout(() => loadingScreen.classList.add('opacity-0', 'pointer-events-none'), 500);
         }
