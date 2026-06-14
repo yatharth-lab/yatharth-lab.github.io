@@ -78,14 +78,32 @@
 
     <script>
         const API_KEY = "AIzaSyCHp00zE-ccExkdRODTnyY8mYV_jAYUyaI"; 
-        
-        const CHANNELS = ["UCC6gbNO098rkQKCU0ZaLITQ", "UCexXxAXCo36y-IU7rkI2h6A"];
+
+        const CHANNELS = [
+            "UC-lHJZR3Gqxm24_Vd_AJ5Yw", "UCXgGY0wkgOzynnHvSEVmE3A",
+            "UC9CYT9gSN4X7d7I1xL1MYfA", "UC2t5bjwNC1VoD4cphC-dq9A",
+            "UCvD3F2u6Coo2Q-CgZr5R3LA", "UCFzquvC1IGs6F-d5l0gqL7A",
+            "UCF8aces9K4RzIv9I4RhE3QA", "UCzN-P1E3l0pD_q-p3KfJ5bA",
+            "UCp55IdqYfD1VE5CUn5W5k0A", "UCwV8BbXl-1Mp8stEAd9Q8DA",
+            "UCK_6tJ1q-0lEiC6E5c2u0cA", "UCNN3bX2N0t7pHxL0R3b7k0A",
+            "UCY3M59JQwyY5O7MBlu2T1lw", "UCOO5OU3M141z1A2eWqG0vA",
+            "UCW7RbTiPmUd5j3E7aM0d5cw", "UCfzlCWbYy5V3Ix7E_T5j0tw",
+            "UCl8E1y8n4r7o6n5h0t4wA", "UCpD8s9n5T8zP8h0w2v3x9A"
+        ];
+
+        const SEARCH_QUERIES = [
+            "funny moments", "prank", "challenge", "gaming", "vlog",
+            "reaction", "roast", "dance", "singing", "comedy",
+            "amazing tricks", "magic", "sports", "food", "travel"
+        ];
 
         const FALLBACK_VIDEOS = [
             { id: "J---aiyznGQ", channel: "MrBeast", title: "Would You Fly To Paris For A Baguette?" },
             { id: "hT_nvWreIhg", channel: "Marques Brownlee", title: "The Best Smartphone in the World!" },
             { id: "3K0RzZcGzP4", channel: "Zach King", title: "Jedi Illusion Magic Trick" },
-            { id: "dQw4w9WgXcQ", channel: "Rick Astley", title: "Never Gonna Give You Up" }
+            { id: "dQw4w9WgXcQ", channel: "Rick Astley", title: "Never Gonna Give You Up" },
+            { id: "jNQXAC9IVRw", channel: "Me at the zoo", title: "First Ever YouTube Video" },
+            { id: "9bZkp7q19f0", channel: "PSY", title: "Gangnam Style" }
         ];
 
         const seenVideos = new Set();
@@ -109,11 +127,35 @@
         }
 
         function refreshActiveChannels(){
-            activeChannels = shuffle([...CHANNELS]).slice(0, 5);
+            activeChannels = shuffle([...CHANNELS]).slice(0, 12);
+        }
+
+        function getRandomQuery(){
+            return shuffle([...SEARCH_QUERIES])[0];
+        }
+
+        async function fetchVideosBySearch(){
+            const query = getRandomQuery();
+            let url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&part=snippet,id&q=${query}&type=video&maxResults=15&videoDuration=short`;
+            
+            try {
+                const res = await fetch(url, { referrerPolicy: "no-referrer" });
+                const data = await res.json();
+                if(data.error || !data.items) return [];
+                
+                return data.items
+                    .filter(v => v.id.videoId && v.snippet.channelTitle)
+                    .map(v => ({
+                        id: v.id.videoId,
+                        title: v.snippet.title,
+                        channel: v.snippet.channelTitle,
+                        time: new Date(v.snippet.publishedAt).getTime()
+                    }));
+            } catch(e) { return []; }
         }
 
         async function fetchChannelVideos(channel){
-            let url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channel}&part=snippet,id&order=date&maxResults=5&type=video&videoDuration=short`;
+            let url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channel}&part=snippet,id&order=date&maxResults=3&type=video&videoDuration=short`;
             if(channelToken[channel]) url += `&pageToken=${channelToken[channel]}`;
 
             try {
@@ -133,29 +175,50 @@
         }
 
         async function fetchVideos(){
-            if(useFallback) { await new Promise(resolve => setTimeout(resolve, 800)); return shuffle([...FALLBACK_VIDEOS]); }
+            if(useFallback) { 
+                await new Promise(resolve => setTimeout(resolve, 800)); 
+                return shuffle([...FALLBACK_VIDEOS]); 
+            }
 
-            let results = []; refreshActiveChannels();
-            for(let c of activeChannels){
+            let results = [];
+            
+            if(Math.random() > 0.4){
+                const searchVids = await fetchVideosBySearch();
+                results.push(...searchVids);
+            }
+
+            refreshActiveChannels();
+            for(let c of activeChannels.slice(0, 8)){
                 const vids = await fetchChannelVideos(c);
                 results.push(...vids);
             }
 
-            if(results.length === 0 && !useFallback) { useFallback = true; return shuffle([...FALLBACK_VIDEOS]); }
+            if(results.length < 5 && !useFallback) { 
+                useFallback = true; 
+                return shuffle([...FALLBACK_VIDEOS]); 
+            }
 
-            results = results.filter(v => { if(seenVideos.has(v.id)) return false; seenVideos.add(v.id); return true; });
-            results.sort((a, b) => (b.time - a.time) + (Math.random() * 3600000)); 
+            results = shuffle(results);
+
+            results = results.filter(v => { 
+                if(seenVideos.has(v.id)) return false; 
+                seenVideos.add(v.id); 
+                return true; 
+            });
+
+            results.sort((a, b) => Math.random() - 0.5);
+            
             return results;
         }
 
         function addToPool(videos){
             videoPool.push(...videos);
-            if(videoPool.length > 80) videoPool = videoPool.slice(-80);
+            if(videoPool.length > 100) videoPool = videoPool.slice(-100);
         }
 
         function cleanup(){
-            if(videoPool.length > 80) videoPool = videoPool.slice(-80);
-            if(seenVideos.size > 1500) seenVideos.clear();
+            if(videoPool.length > 100) videoPool = videoPool.slice(-100);
+            if(seenVideos.size > 2000) seenVideos.clear();
         }
 
         function addReels(videos){
@@ -227,7 +290,6 @@
                         if(isLoaded) {
                             iframe.src = "";
                             iframe.setAttribute("data-loaded", "false");
-                            // Restore src for next time
                             setTimeout(() => iframe.setAttribute("data-src", originalSrc), 100);
                         }
                     }
