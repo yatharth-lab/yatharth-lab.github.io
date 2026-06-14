@@ -77,6 +77,12 @@
 </head>
 <body class="text-white bg-black">
 
+<div id="soundPrompt" style="position:fixed;inset:0;background:#000;z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+<h2 style="color:white;margin-bottom:20px">🔊 Tap To Enable Sound</h2>
+<button id="startBtn" style="padding:15px 35px;font-size:18px;border:none;border-radius:12px;background:#ff0000;color:white;font-weight:bold;">START REELS</button>
+</div>
+
+
     
     <!-- Top Bar -->
     <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-50 pointer-events-none">
@@ -239,7 +245,7 @@
 
                 // 🔥 Fix: Using 'data-loaded' attribute to properly track iframe injection
                 // 🔥 Added loop=1&playlist=${v.id} to ensure shorts don't just stop after 15 seconds
-                const iframeSrc = `https://www.youtube.com/embed/${v.id}?autoplay=1&mute=1&playsinline=1&rel=0&controls=0`;
+                const iframeSrc = `https://www.youtube.com/embed/${v.id}?autoplay=1&mute=0&playsinline=1&rel=0&controls=1&enablejsapi=1`;
 
                 div.innerHTML = `
                     <iframe data-src="${iframeSrc}" data-loaded="false" allow="autoplay; fullscreen"></iframe>
@@ -376,6 +382,15 @@
             }
         }, 180000);
 
-    </script>
+    
+document.addEventListener("DOMContentLoaded",()=>{
+ const btn=document.getElementById("startBtn");
+ if(btn){
+   btn.addEventListener("click",()=>{
+      document.getElementById("soundPrompt")?.remove();
+   });
+ }
+});
+</script>
 </body>
 </html>
