@@ -10,36 +10,21 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         
-        body {
-            margin: 0;
-            background: #000;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Prevent body scroll */
-        }
+        body { margin: 0; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* Feed Container with Scroll Snapping */
         .feed-container {
-            height: 100vh;
-            height: 100dvh; /* Better mobile support */
+            height: 100vh; height: 100dvh;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
         }
 
-        /* Hide scrollbars for a clean app-like look */
-        .feed-container::-webkit-scrollbar {
-            display: none;
-        }
-        .feed-container {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .feed-container::-webkit-scrollbar { display: none; }
+        .feed-container { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Individual Reel Item */
         .reel-item {
-            height: 100vh;
-            height: 100dvh;
+            height: 100vh; height: 100dvh;
             width: 100%;
             position: relative;
             scroll-snap-align: start;
@@ -51,28 +36,21 @@
         }
 
         .reel-item iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            pointer-events: auto;
+            width: 100%; height: 100%;
+            border: none; pointer-events: auto;
         }
 
-        /* Text shadow for better readability over videos */
         .text-outline {
             text-shadow: 0px 2px 4px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.6);
         }
 
-        /* Loader Animation */
         .loader {
-            border-top-color: #ef4444; /* Tailwind red-500 */
+            border-top-color: #ef4444;
             -webkit-animation: spinner 1.5s linear infinite;
             animation: spinner 1.5s linear infinite;
         }
 
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="text-white bg-black">
@@ -83,7 +61,6 @@
 </div>
 
     
-    <!-- Top Bar -->
     <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-50 pointer-events-none">
         <h1 class="text-xl font-bold text-outline tracking-wider">Reels<span class="text-red-500">Pro</span></h1>
         <div class="flex gap-4 text-outline">
@@ -92,38 +69,25 @@
         </div>
     </div>
 
-    <!-- Loading Screen -->
     <div id="loading-screen" class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black transition-opacity duration-500">
         <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-700 h-12 w-12 mb-4"></div>
         <p class="text-gray-300 font-semibold animate-pulse">Fetching Feed...</p>
-        <p id="error-text" class="text-red-500 mt-2 text-sm hidden px-6 text-center">API Key failed. Loading Fallback content.</p>
     </div>
 
-    <!-- Feed Container -->
-    <div class="feed-container" id="feed">
-        <!-- Reels will be injected here via JS -->
-    </div>
+    <div class="feed-container" id="feed"></div>
 
     <script>
-        
-        // Configuration
         const API_KEY = "AIzaSyCHp00zE-ccExkdRODTnyY8mYV_jAYUyaI"; 
         
-        const CHANNELS = [
-            "UCC6gbNO098rkQKCU0ZaLITQ",
-            "UCexXxAXCo36y-IU7rkI2h6A"
-        ];
+        const CHANNELS = ["UCC6gbNO098rkQKCU0ZaLITQ", "UCexXxAXCo36y-IU7rkI2h6A"];
 
-        // 🔥 FALLBACK DATA: Agar API Key kaam nahi karti, to ye load hoga blank screen ki jagah!
         const FALLBACK_VIDEOS = [
             { id: "J---aiyznGQ", channel: "MrBeast", title: "Would You Fly To Paris For A Baguette?" },
             { id: "hT_nvWreIhg", channel: "Marques Brownlee", title: "The Best Smartphone in the World!" },
             { id: "3K0RzZcGzP4", channel: "Zach King", title: "Jedi Illusion Magic Trick" },
-            { id: "ZXsQAXx_ao0", channel: "Dude Perfect", title: "Insane Trick Shots!" },
             { id: "dQw4w9WgXcQ", channel: "Rick Astley", title: "Never Gonna Give You Up" }
         ];
 
-        // State Management
         const seenVideos = new Set();
         let videoPool = [];
         let channelToken = {};
@@ -135,9 +99,7 @@
 
         const feedEl = document.getElementById("feed");
         const loadingScreen = document.getElementById("loading-screen");
-        const errorText = document.getElementById("error-text");
 
-        
         function shuffle(arr){
             for(let i = arr.length - 1; i > 0; i--){
                 const j = Math.floor(Math.random() * (i + 1));
@@ -150,86 +112,45 @@
             activeChannels = shuffle([...CHANNELS]).slice(0, 5);
         }
 
-        
         async function fetchChannelVideos(channel){
             let url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channel}&part=snippet,id&order=date&maxResults=5&type=video&videoDuration=short`;
-
-            if(channelToken[channel]){
-                url += `&pageToken=${channelToken[channel]}`;
-            }
+            if(channelToken[channel]) url += `&pageToken=${channelToken[channel]}`;
 
             try {
                 const res = await fetch(url, { referrerPolicy: "no-referrer" });
                 const data = await res.json();
-
-                // If API Quota exceeds or API is invalid
-                if(data.error) {
-                    console.warn("YouTube API Warning (Switching to Fallbacks):", data.error.message);
-                    useFallback = true;
-                    return [];
-                }
-
+                if(data.error) { useFallback = true; return []; }
                 if(!data.items) return [];
-
                 channelToken[channel] = data.nextPageToken || null;
 
-                return data.items
-                    .filter(v => v.id.videoId)
-                    .map(v => ({
-                        id: v.id.videoId,
-                        title: v.snippet.title,
-                        channel: v.snippet.channelTitle,
-                        time: new Date(v.snippet.publishedAt).getTime()
-                    }));
-            } catch(e) {
-                console.error("Network/Fetch Error:", e);
-                useFallback = true;
-                return [];
-            }
+                return data.items.filter(v => v.id.videoId).map(v => ({
+                    id: v.id.videoId,
+                    title: v.snippet.title,
+                    channel: v.snippet.channelTitle,
+                    time: new Date(v.snippet.publishedAt).getTime()
+                }));
+            } catch(e) { useFallback = true; return []; }
         }
 
         async function fetchVideos(){
-            if(useFallback) {
-                // If API is broken, simulate network delay and return fallbacks
-                await new Promise(resolve => setTimeout(resolve, 800));
-                return shuffle([...FALLBACK_VIDEOS]);
-            }
+            if(useFallback) { await new Promise(resolve => setTimeout(resolve, 800)); return shuffle([...FALLBACK_VIDEOS]); }
 
-            let results = [];
-            refreshActiveChannels();
-
+            let results = []; refreshActiveChannels();
             for(let c of activeChannels){
                 const vids = await fetchChannelVideos(c);
                 results.push(...vids);
             }
 
-            // Fallback injection if API returned literally nothing but no standard error
-            if(results.length === 0 && !useFallback) {
-                 useFallback = true;
-                 return shuffle([...FALLBACK_VIDEOS]);
-            }
+            if(results.length === 0 && !useFallback) { useFallback = true; return shuffle([...FALLBACK_VIDEOS]); }
 
-            // Deduplication
-            results = results.filter(v => {
-                if(seenVideos.has(v.id)) return false;
-                seenVideos.add(v.id);
-                return true;
-            });
-
-            // Ranking mix (Recent + Random variance)
-            results.sort((a, b) => {
-                return (b.time - a.time) + (Math.random() * 3600000); 
-            });
-
+            results = results.filter(v => { if(seenVideos.has(v.id)) return false; seenVideos.add(v.id); return true; });
+            results.sort((a, b) => (b.time - a.time) + (Math.random() * 3600000)); 
             return results;
         }
 
-
         function addToPool(videos){
             videoPool.push(...videos);
-            if(videoPool.length > 80) {
-                videoPool = videoPool.slice(-80);
-            }
+            if(videoPool.length > 80) videoPool = videoPool.slice(-80);
         }
 
         function cleanup(){
@@ -241,15 +162,11 @@
             videos.forEach(v => {
                 const div = document.createElement("div");
                 div.className = "reel-item";
-
-                // 🔥 Fix: Using 'data-loaded' attribute to properly track iframe injection
-                // 🔥 Added loop=1&playlist=${v.id} to ensure shorts don't just stop after 15 seconds
                 const iframeSrc = `https://www.youtube.com/embed/${v.id}?autoplay=1&mute=0&playsinline=1&rel=0&controls=1&enablejsapi=1`;
 
                 div.innerHTML = `
                     <iframe data-src="${iframeSrc}" data-loaded="false" allow="autoplay; fullscreen"></iframe>
                     
-                    <!-- Content Info Overlay -->
                     <div class="absolute bottom-6 left-4 right-16 z-20 pointer-events-none text-outline flex flex-col gap-2">
                         <div class="flex items-center gap-2">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-400 to-pink-600 p-[2px]">
@@ -263,7 +180,6 @@
                         <p class="text-sm leading-tight text-gray-100 line-clamp-2">${v.title}</p>
                     </div>
 
-                    <!-- Side Interaction Buttons -->
                     <div class="absolute bottom-6 right-2 z-20 flex flex-col gap-6 items-center pointer-events-auto">
                         <div class="flex flex-col items-center gap-1 cursor-pointer hover:scale-110 transition-transform">
                             <div class="w-12 h-12 bg-black/40 rounded-full flex items-center justify-center backdrop-blur-sm">
@@ -285,40 +201,76 @@
                         </div>
                     </div>
                 `;
-
                 feedEl.appendChild(div);
             });
-
             observeReels();
         }
 
-        
         let observer;
-
         function observeReels(){
             if(observer) observer.disconnect();
-
             const reels = document.querySelectorAll(".reel-item");
 
             observer = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
                     const iframe = entry.target.querySelector("iframe");
                     if(!iframe) return;
-
                     const isLoaded = iframe.getAttribute("data-loaded") === "true";
                     const originalSrc = iframe.getAttribute("data-src");
 
-                    // 🔥 FIX APPLIED HERE:
-                    // 1. Jab video screen pe aaye (isIntersecting) -> Play karein
-                    // 2. Jab video screen se jaaye (!isIntersecting) -> Band karein (src hata dein) taaki audio na aaye
-
                     if(entry.isIntersecting) {
-                        if (!isLoaded && originalSrc) {
-                            // Sirf tab src set karein jab pehle set na ho
+                        if(!isLoaded && originalSrc) {
                             iframe.src = originalSrc;
                             iframe.setAttribute("data-loaded", "true");
                         }
                     } else {
-                        // Agar video view se bahar hai, to src hata dein taaki audio aur video playback ruk jaye
-                        if (isLoaded) {
-                           // simple trick: src ko khaali karne se video stop ho jata hai
+                        if(isLoaded) {
+                            iframe.src = "";
+                            iframe.setAttribute("data-loaded", "false");
+                            // Restore src for next time
+                            setTimeout(() => iframe.setAttribute("data-src", originalSrc), 100);
+                        }
+                    }
+                });
+            }, { threshold: 0.6 });
+
+            reels.forEach(r => observer.observe(r));
+        }
+
+        async function loadInitial(){
+            const vids = await fetchVideos();
+            if(vids.length > 0) { addToPool(vids); addReels(vids); }
+            setTimeout(() => loadingScreen.classList.add('opacity-0', 'pointer-events-none'), 500);
+        }
+
+        async function loadMore(){
+            if(loading) return; loading = true;
+            const vids = await fetchVideos();
+            if(vids.length) { addToPool(vids); addReels(vids); }
+            cleanup(); loading = false;
+        }
+
+        let scrollLock = false;
+        feedEl.addEventListener("scroll", () => {
+            if(scrollLock) return; scrollLock = true;
+            setTimeout(() => {
+                scrollLock = false;
+                if(feedEl.scrollTop + feedEl.clientHeight >= feedEl.scrollHeight - (window.innerHeight * 1.5)){
+                    loadMore();
+                }
+            }, 150);
+        });
+
+        loadInitial();
+        
+        setInterval(() => {
+            if(!useFallback) { refreshActiveChannels(); loadMore(); }
+        }, 180000);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const btn = document.getElementById("startBtn");
+            if(btn) btn.addEventListener("click", () => document.getElementById("soundPrompt")?.remove());
+        });
+    </script>
+</body>
+</html>
