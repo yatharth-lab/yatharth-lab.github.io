@@ -78,10 +78,9 @@
 <body class="text-white bg-black">
 
 <div id="soundPrompt" style="position:fixed;inset:0;background:#000;z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;">
-<h2 style="color:white;margin-bottom:20px">🔊 Tap To Enable Sound</h2>
-<button id="startBtn" style="padding:15px 35px;font-size:18px;border:none;border-radius:12px;background:#ff0000;color:white;font-weight:bold;">START REELS</button>
+    <h2 style="color:white;margin-bottom:20px">🔊 Tap To Enable Sound</h2>
+    <button id="startBtn" style="padding:15px 35px;font-size:18px;border:none;border-radius:12px;background:#ff0000;color:white;font-weight:bold;">START REELS</button>
 </div>
-
 
     
     <!-- Top Bar -->
@@ -297,100 +296,29 @@
         let observer;
 
         function observeReels(){
-    if(observer) observer.disconnect();
+            if(observer) observer.disconnect();
 
-    const reels = document.querySelectorAll(".reel-item");
+            const reels = document.querySelectorAll(".reel-item");
 
-    observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
+            observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const iframe = entry.target.querySelector("iframe");
+                    if(!iframe) return;
 
-            const iframe = entry.target.querySelector("iframe");
-            if(!iframe) return;
+                    const isLoaded = iframe.getAttribute("data-loaded") === "true";
+                    const originalSrc = iframe.getAttribute("data-src");
 
-            const isLoaded =
-                iframe.getAttribute("data-loaded") === "true";
+                    // 🔥 FIX APPLIED HERE:
+                    // 1. Jab video screen pe aaye (isIntersecting) -> Play karein
+                    // 2. Jab video screen se jaaye (!isIntersecting) -> Band karein (src hata dein) taaki audio na aaye
 
-            if(entry.isIntersecting && !isLoaded){
-                iframe.src = iframe.getAttribute("data-src");
-                iframe.setAttribute("data-loaded", "true");
-            }
-
-        });
-    }, { threshold: 0.6 });
-
-    reels.forEach(r => observer.observe(r));
-}
-
-        
-        async function loadInitial(){
-            const vids = await fetchVideos();
-            
-            if(useFallback) {
-                errorText.classList.remove('hidden');
-            }
-
-            if(vids.length > 0) {
-                addToPool(vids);
-                addReels(vids);
-            }
-
-            // Hide loading screen after first batch is loaded
-            setTimeout(() => {
-                loadingScreen.classList.add('opacity-0', 'pointer-events-none');
-            }, 500);
-        }
-
-        async function loadMore(){
-            if(loading) return;
-            loading = true;
-
-            const vids = await fetchVideos();
-
-            if(vids.length){
-                addToPool(vids);
-                addReels(vids);
-            }
-
-            cleanup();
-            loading = false;
-        }
-
-        // Scroll detection for infinite loading
-        let scrollLock = false;
-
-        feedEl.addEventListener("scroll", () => {
-            if(scrollLock) return;
-            scrollLock = true;
-
-            setTimeout(() => {
-                scrollLock = false;
-                // Buffer dynamic spacing calculation
-                if(feedEl.scrollTop + feedEl.clientHeight >= feedEl.scrollHeight - (window.innerHeight * 1.5)){
-                    loadMore();
-                }
-            }, 150);
-        });
-
-        // Start App
-        loadInitial();
-
-        // Smart refresh active channels every 3 mins
-        setInterval(() => {
-            if(!useFallback) {
-                refreshActiveChannels();
-                loadMore();
-            }
-        }, 180000);
-
-    
-document.addEventListener("DOMContentLoaded",()=>{
- const btn=document.getElementById("startBtn");
- if(btn){
-   btn.addEventListener("click",()=>{
-      document.getElementById("soundPrompt")?.remove();
-   });
- }
-});
-</script>
-</body>
-</html>
+                    if(entry.isIntersecting) {
+                        if (!isLoaded && originalSrc) {
+                            // Sirf tab src set karein jab pehle set na ho
+                            iframe.src = originalSrc;
+                            iframe.setAttribute("data-loaded", "true");
+                        }
+                    } else {
+                        // Agar video view se bahar hai, to src hata dein taaki audio aur video playback ruk jaye
+                        if (isLoaded) {
+                           // simple trick: src ko khaali karne se video stop ho jata hai
