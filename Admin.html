@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stories World - Live Publisher</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg,#050816,#091428,#0f172a); color: white; min-height: 100vh; padding: 30px 15px; }
+        .form-box { max-width: 550px; margin: auto; background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 25px rgba(0,0,0,0.25); }
+        h2 { font-size: 28px; margin-bottom: 20px; text-align: center; background: linear-gradient(to right,#ff00ff,#00f7ff,#00ff99); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+        .section-title { font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; margin: 15px 0 10px; opacity: 0.8; }
+        label { font-size: 14px; color: #cbd5e1; display: block; margin-bottom: 5px; }
+        input, textarea { width: 100%; padding: 12px 16px; margin-bottom: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(5,8,22,0.6); color: white; font-size: 15px; transition: 0.25s; }
+        input:focus, textarea:focus { outline: none; border-color: #00f7ff; box-shadow: 0 0 10px rgba(0,247,255,0.2); }
+        input[type="file"] { border: 2px dashed rgba(255,255,255,0.15); background: transparent; padding: 20px; text-align: center; cursor: pointer; }
+        .remember-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; margin-top: -10px; font-size: 14px; color: #94a3b8; }
+        .remember-wrap input { width: auto; margin: 0; cursor: pointer; }
+        button { background: linear-gradient(to right, #00f7ff, #00ff99); color: #001018; border: none; padding: 14px; font-weight: 700; width: 100%; border-radius: 14px; cursor: pointer; font-size: 16px; transition: 0.25s; margin-top: 10px; }
+        button:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,247,255,0.3); }
+        button:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+        .status { margin-top: 20px; text-align: center; font-weight: bold; color: #00ff99; font-size: 14px; line-height: 1.5; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="form-box">
+        <h2>Publish to Stories World</h2>
+        <form id="githubForm">
+            <div class="section-title">GitHub Authentication</div>
+            <label>Personal Access Token (PAT)</label>
+            <input type="password" id="ghToken" placeholder="github_pat_..." required>
+            <label>GitHub Username</label>
+            <input type="text" id="ghUser" placeholder="e.g., yatharth-dev" required>
+            <label>Repository Name</label>
+            <input type="text" id="ghRepo" placeholder="e.g., stories-world" required>
+            <div class="remember-wrap">
+                <input type="checkbox" id="rememberMe" checked>
+                <label for="rememberMe">Remember GitHub credentials securely</label>
+            </div>
+            <div class="section-title" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;">Story Upload Details</div>
+            <label>Select Story File (.txt)</label>
+            <input type="file" id="storyFile" accept=".txt" required>
+            <label>Category</label>
+            <input type="text" id="category" placeholder="e.g., Akbar Birbal Stories" required>
+            <label>Story Title</label>
+            <input type="text" id="title" placeholder="e.g., बीरबल की स्वर्ग यात्रा" required>
+            <label>Short Description (for Home/List Page)</label>
+            <textarea id="desc" rows="2" placeholder="Ek dilchasp kahani..." required></textarea>
+            <button type="submit" id="submitBtn">Upload & Publish Live</button>
+            <div class="status" id="statusMsg"></div>
+        </form>
+    </div>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('gh_remember') === 'true') {
+                document.getElementById('ghToken').value = localStorage.getItem('gh_token') || '';
+                document.getElementById('ghUser').value = localStorage.getItem('gh_user') || '';
+                document.getElementById('ghRepo').value = localStorage.getItem('gh_repo') || '';
+                document.getElementById('rememberMe').checked = true;
+            }
+        });
+
+        const readTxtFile = (file) => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file, "UTF-8");
+            });
+        };
+
+        document.getElementById('githubForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const status = document.getElementById('statusMsg');
+            
+            btn.disabled = true;
+            status.style.display = "block";
+            status.style.color = "#00f7ff";
+            status.innerText = "Reading file content...";
+
+            const token = document.getElementById('ghToken').value.trim();
+            const user = document.getElementById('ghUser').value.trim();
+            const repo = document.getElementById('ghRepo').value.trim();
+            const category = document.getElementById('category').value.trim();
+            const title = document.getElementById('title').value.trim();
+            const desc = document.getElementById('desc').value.trim();
+            const fileInput = document.getElementById('storyFile');
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            if (rememberMe) {
+                localStorage.setItem('gh_remember', 'true');
+                localStorage.setItem('gh_token', token);
+                localStorage.setItem('gh_user', user);
+                localStorage.setItem('gh_repo', repo);
+            } else {
+                localStorage.clear();
+            }
+
+            if (fileInput.files.length === 0) {
+                alert("Please select a .txt file!");
+                btn.disabled = false;
+                return;
+            }
+
+            const selectedFile = fileInput.files[0];
+
+            try {
+                const content = await readTxtFile(selectedFile);
+                const fileName = selectedFile.name;
+                
+                // अब 'stories-world/stories/' फ़ोल्डर का सटीक पाथ इस्तेमाल होगा
+                const fileUrlPath = `stories-world/stories/${fileName}`;
+
+                status.innerText = `Uploading '${fileName}' to stories-world/stories folder...`;
+                const targetUrl = `https://api.github.com/repos/${user}/${repo}/contents/${fileUrlPath}`;
+                
+                const uploadTxt = await fetch(targetUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `Upload story: ${fileName}`,
+                        content: btoa(unescape(encodeURIComponent(content)))
+                    })
+                });
+
+                if(!uploadTxt.ok) {
+                    const errData = await uploadTxt.json();
+                    throw new Error(`Text file upload failed: ${errData.message}`);
+                }
+
+                status.innerText = "Connecting & fetching stories.js from stories-world...";
+                
+                // 'stories-world' फ़ोल्डर के अंदर मौजूद stories.js का सटीक पाथ
+                const jsUrl = `https://api.github.com/repos/${user}/${repo}/contents/stories-world/stories.js`;
+                const getJs = await fetch(jsUrl, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if(!getJs.ok) throw new Error("Could not find or fetch stories.js from 'stories-world' folder.");
+                const jsData = await getJs.json();
+                const currentSha = jsData.sha;
+                let jsText = decodeURIComponent(escape(atob(jsData.content)));
+
+                const arrayRegex = /const\s+storiesData\s*=\s*\[([\s\S]*?)\];/;
+                const match = jsText.match(arrayRegex);
+
+                if (!match) throw new Error("Could not find 'const storiesData = [...];' format in stories.js");
+
+                let insideArray = String(match).replace('const storiesData = [', '').replace('];', '').trim();
+
+                
+                const idMatches = insideArray.match(/id:\s*(\d+)/g);
+                let nextId = 1;
+                if(idMatches) {
+                    const ids = idMatches.map(m => parseInt(m.replace(/[^\d]/g, '')));
+                    nextId = Math.max(...ids) + 1;
+                }
+
+                const newStoryObj = `{\n  id: ${nextId},\n  category: "${category}",\n  title: "${title}",\n  desc: "${desc}",\n  file: "stories/${fileName}"\n}`;
+                
+                if (insideArray.length > 0) {
+                    if (insideArray.endsWith(',')) {
+                        insideArray += `\n\n  ${newStoryObj}`;
+                    } else {
+                        insideArray += `,\n\n  ${newStoryObj}`;
+                    }
+                } else {
+                    insideArray = `  ${newStoryObj}`;
+                }
+
+                jsText = jsText.replace(arrayRegex, `const storiesData = [\n${insideArray}\n];`);
+
+                status.innerText = `Injecting details for ID ${nextId} into stories.js...`;
+                const updateJs = await fetch(jsUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `Auto-add story details for ID ${nextId}: ${title}`,
+                        content: btoa(unescape(encodeURIComponent(jsText))),
+                        sha: currentSha
+                    })
+                });
+
+                if(updateJs.ok) {
+                    status.style.color = "#00ff99";
+                    status.innerHTML = `🎉 Success!<br>'${fileName}' uploaded to 'stories-world/stories' & registered as ID: ${nextId}.<br><small>GitHub will refresh your live site in 1-2 minutes.</small>`;
+                    
+                    fileInput.value = '';
+                    document.getElementById('category').value = '';
+                    document.getElementById('title').value = '';
+                    document.getElementById('desc').value = '';
+                } else {
+                    throw new Error("Failed to write updates back to stories.js");
+                }
+
+            } catch (err) {
+                status.style.color = "#ff4757";
+                status.innerText = "Error: " + err.message;
+            } finally {
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
+
