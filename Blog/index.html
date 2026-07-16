@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GlassBlog - Home</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        /* Hero Section */
+        .hero {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .hero-content {
+            padding: 50px 40px;
+            text-align: center;
+            color: #fff;
+        }
+        .hero-content h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+        .hero-content p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .blog-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+        }
+        .section-title {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .blog-count {
+            font-size: 14px;
+            opacity: 0.6;
+            font-weight: normal;
+        }
+        
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+        
+        .no-results {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #fff;
+            opacity: 0.7;
+        }
+        .no-results i {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        .loading-spinner {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 60px;
+            color: #fff;
+        }
+        .loading-spinner i {
+            font-size: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-crown"></i>
+                <span>GlassBlog</span>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search blogs..." />
+            </div>
+            <div>
+                <a href="admin.html" class="admin-btn">
+                    <i class="fas fa-user-shield"></i> Admin
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content glass">
+            <h1>✨ Welcome to GlassBlog</h1>
+            <p>Discover amazing stories & insights from our community</p>
+        </div>
+    </section>
+
+    <section class="blog-section">
+        <div class="container">
+            <h2 class="section-title">
+                📝 Latest Blogs
+                <span class="blog-count" id="blogCount">0 posts</span>
+            </h2>
+            <div class="blog-grid" id="blogGrid">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner"></i>
+                    <p>Loading blogs...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="blog.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
