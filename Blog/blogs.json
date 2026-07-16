@@ -1,0 +1,18 @@
+[
+  {
+    "id": "abc123",
+    "title": "Mera Pehla Blog",
+    "description": "Ye mera pehla blog hai. Isme maine bahut kuch likha hai. Glassmorphism design bahut stylish hai!",
+    "image": "https://via.placeholder.com/400x250/764ba2/ffffff?text=Mera+Pehla+Blog",
+    "date": "2026-07-16T10:30:00.000Z",
+    "views": 0
+  },
+  {
+    "id": "def456",
+    "title": "Doosra Blog",
+    "description": "Ye doosra blog hai. Isme aur bhi content hai. Search functionality bhi kaam kar rahi hai!",
+    "image": "https://via.placeholder.com/400x250/667eea/ffffff?text=Doosra+Blog",
+    "date": "2026-07-16T11:00:00.000Z",
+    "views": 5
+  }
+]
