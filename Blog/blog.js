@@ -1,28 +1,43 @@
 // ===== BLOG DATA =====
-// Yeh data GitHub se aayega aur yahan store hoga
-let blogs = [];
+// Check if blogs array is already defined by admin.js, otherwise initialize
+if (typeof blogs === 'undefined') {
+    var blogs = [];
+}
 
 // ===== GITHUB CONFIG =====
-// Yeh values admin panel se set hongi
-let GITHUB_CONFIG = {
-    token: '',
-    username: '',
-    repo: '',
-    filePath: 'blogs.json'  // Data store karne ke liye
-};
+// Existing object parameters configuration safely checked
+if (typeof GITHUB_CONFIG === 'undefined') {
+    var GITHUB_CONFIG = {
+        token: '',
+        username: '',
+        repo: '',
+        filePath: 'blogs.json'
+    };
+} else if (!GITHUB_CONFIG.filePath) {
+    // Agar admin.js se default object mil gaya toh filePath inject karenge
+    GITHUB_CONFIG.filePath = 'blogs.json';
+}
 
 // ===== BLOG OPERATIONS =====
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
 
+// FIXED NAME: admin.js ke sath sync karne ke liye alias function banaya
+async function fetchBlogsFromGitHub() {
+    return await loadBlogsFromGitHub();
+}
+
 // GitHub se data load karein
 async function loadBlogsFromGitHub() {
     try {
-        // Pehle config load karein localStorage se
+        // Config load karein localStorage se
         const savedConfig = localStorage.getItem('githubConfig');
         if (savedConfig) {
-            GITHUB_CONFIG = JSON.parse(savedConfig);
+            const parsed = JSON.parse(savedConfig);
+            GITHUB_CONFIG.token = parsed.token || GITHUB_CONFIG.token;
+            GITHUB_CONFIG.username = parsed.username || GITHUB_CONFIG.username;
+            GITHUB_CONFIG.repo = parsed.repo || GITHUB_CONFIG.repo;
         } else {
             console.log('⚠️ GitHub config not found. Please set in admin panel.');
             return [];
@@ -54,13 +69,14 @@ async function loadBlogsFromGitHub() {
         }
 
         const data = await response.json();
-        const content = atob(data.content);
+        // UTF-8 base64 handling for non-english text characters compatibility
+        const content = decodeURIComponent(escape(atob(data.content)));
         blogs = JSON.parse(content);
         return blogs;
         
     } catch (error) {
         console.error('Error loading blogs:', error);
-        // Agar error aata hai toh localStorage se load karein
+        // Error par local storage recovery array deploy karein
         const localData = localStorage.getItem('blogsBackup');
         if (localData) {
             blogs = JSON.parse(localData);
@@ -79,7 +95,6 @@ async function saveBlogsToGitHub(blogsData) {
             throw new Error('GitHub config not set');
         }
 
-        // Pehle file ki current SHA get karein (update ke liye)
         const url = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
         
         let sha = '';
@@ -96,10 +111,10 @@ async function saveBlogsToGitHub(blogsData) {
                 sha = data.sha;
             }
         } catch (e) {
-            // File exists nahi hai - new file create karenge
+            // File exists nahi hai - ignore error for automatic creation
         }
 
-        // Content ko Base64 mein encode karein
+        // Content ko Base64 mein encode karein flawlessly
         const content = btoa(unescape(encodeURIComponent(JSON.stringify(blogsData, null, 2))));
 
         const body = {
@@ -127,12 +142,10 @@ async function saveBlogsToGitHub(blogsData) {
             throw new Error(`GitHub API error: ${error.message || response.status}`);
         }
 
-        // Success - update blogs array
         blogs = blogsData;
         
-        // Local backup
+        // Backup localized arrays tracking data
         localStorage.setItem('blogsBackup', JSON.stringify(blogsData));
-        
         return true;
         
     } catch (error) {
@@ -142,13 +155,13 @@ async function saveBlogsToGitHub(blogsData) {
     }
 }
 
-// Naya blog add karein
+// Naya blog add karein (If triggered separately)
 async function addBlog(title, description, imageData) {
     const newBlog = {
         id: generateId(),
         title: title,
         description: description,
-        image: imageData, // Base64 image
+        image: imageData,
         date: new Date().toISOString(),
         views: 0
     };
@@ -159,7 +172,6 @@ async function addBlog(title, description, imageData) {
     if (saved) {
         return newBlog;
     } else {
-        // Save fail - remove from array
         blogs.shift();
         return null;
     }
@@ -167,10 +179,10 @@ async function addBlog(title, description, imageData) {
 
 // Get single blog by ID
 function getBlogById(id) {
-    return blogs.find(blog => blog.id === id);
+    return blogs.find(blog => blog.id == id || blog.id === id);
 }
 
-// Format date
+// Format date utility code
 function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -180,8 +192,8 @@ function formatDate(dateString) {
     });
 }
 
-// Truncate text
+// Truncate text layout limits
 function truncateText(text, maxLength = 120) {
-    if (text.length <= maxLength) return text;
+    if (!text || text.length <= maxLength) return text;
     return text.substr(0, maxLength) + '...';
 }
