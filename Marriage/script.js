@@ -276,31 +276,34 @@ function displayProfiles(arr, containerId) {
     }
     
     container.innerHTML = arr.map(p => `
-        <div class="profile-card fade-in">
-            <div class="profile-img-container" onclick="viewFullImage('${p.image || ''}')">
-                ${p.image 
-                    ? `<img src="${p.image}" alt="${p.name}" loading="lazy">`
-                    : `<div class="profile-img-placeholder">${p.gender === 'Bride' ? '👰' : '🤵'}</div>`
-                }
-                <div class="profile-img-overlay">🔍 View</div>
-            </div>
-            <div class="profile-info">
-                <h4>${p.name}, ${p.age} <span class="badge">${p.gender === 'Bride' ? '👰' : '🤵'} ${p.gender}</span></h4>
-                ${p.height ? `<div class="detail-row">📏 ${p.height}</div>` : ''}
-                ${p.weight ? `<div class="detail-row">⚖️ ${p.weight}</div>` : ''}
-                ${p.maritalStatus ? `<div class="detail-row">💍 ${p.maritalStatus}</div>` : ''}
-                ${p.gotra ? `<div class="detail-row">🕉️ ${p.gotra}</div>` : ''}
-                ${p.profession ? `<div class="detail-row">💼 ${p.profession}</div>` : ''}
-                ${p.location ? `<div class="detail-row">📍 ${p.location}</div>` : ''}
-                ${p.community ? `<div class="detail-row">👥 ${p.community}</div>` : ''}
-                ${p.mobile ? `<div class="detail-row">📞 ${p.mobile}</div>` : ''}
-                <div class="profile-actions">
-                    <button class="btn-share" onclick="event.stopPropagation(); shareProfile(${p.id})">📤 Share</button>
-                    <button class="btn-delete" onclick="event.stopPropagation(); deleteProfile(${p.id})">🗑️</button>
-                </div>
+    <div class="profile-card fade-in">
+        <div class="profile-img-container" onclick="viewFullImage('${p.image || ''}')">
+            ${p.image 
+                ? `<img src="${p.image}" alt="${p.name}" loading="lazy">`
+                : `<div class="profile-img-placeholder">${p.gender === 'Bride' ? '👰' : '🤵'}</div>`
+            }
+            <div class="profile-img-overlay">🔍 View</div>
+        </div>
+        <div class="profile-info">
+            <h4>${p.name}, ${p.age} <span class="badge">${p.gender === 'Bride' ? '👰' : '🤵'} ${p.gender}</span></h4>
+            ${p.height ? `<div class="detail-row">📏 Height: ${p.height}</div>` : ''}
+            ${p.weight ? `<div class="detail-row">⚖️ Weight: ${p.weight}</div>` : ''}
+            ${p.maritalStatus ? `<div class="detail-row">💍 Status: ${p.maritalStatus}</div>` : ''}
+            ${p.gotra ? `<div class="detail-row">🕉️ Gotra: ${p.gotra}</div>` : ''}
+            ${p.profession ? `<div class="detail-row">💼 ${p.profession}</div>` : ''}
+            ${p.location ? `<div class="detail-row">📍 ${p.location}</div>` : ''}
+            ${p.community ? `<div class="detail-row">👥 ${p.community}</div>` : ''}
+            ${p.mobile ? `<div class="detail-row">📞 ${p.mobile}</div>` : ''}
+            ${p.education ? `<div class="detail-row">🎓 ${p.education}</div>` : ''}
+            ${p.income ? `<div class="detail-row">💰 ${p.income}</div>` : ''}
+            ${p.about && p.about !== 'No description' ? `<div class="detail-row">📝 ${p.about.substring(0, 50)}...</div>` : ''}
+            <div class="profile-actions">
+                <button class="btn-share" onclick="event.stopPropagation(); shareProfile(${p.id})">📤 Share</button>
+                <button class="btn-delete" onclick="event.stopPropagation(); deleteProfile(${p.id})">🗑️</button>
             </div>
         </div>
-    `).join('');
+    </div>
+`).join('');
 }
 
 function viewAllProfiles() {
