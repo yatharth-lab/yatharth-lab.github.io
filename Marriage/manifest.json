@@ -2,7 +2,7 @@
     "name": "Vivah Sutra - Matrimony",
     "short_name": "Vivah Sutra",
     "description": "Personal matrimony profile manager",
-    "start_url": "/",
+    "start_url": "/Marriage/",
     "display": "standalone",
     "background_color": "#fffdf5",
     "theme_color": "#FF8C00",
