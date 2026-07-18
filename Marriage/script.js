@@ -476,11 +476,13 @@ async function shareProfile(id) {
 
 // ============ SEARCH ============
 function searchProfiles() {
+    const name = document.getElementById('searchName')?.value?.toLowerCase()?.trim() || '';
     const gender = document.getElementById('searchGender')?.value || '';
     const ageRange = document.getElementById('searchAge')?.value || '';
     const community = document.getElementById('searchCommunity')?.value?.toLowerCase()?.trim() || '';
     
     let filtered = [...profiles];
+    if (name) filtered = filtered.filter(p => p.name?.toLowerCase()?.includes(name));
     if (gender) filtered = filtered.filter(p => p.gender === gender);
     if (ageRange) {
         const [min, max] = ageRange.split('-');
