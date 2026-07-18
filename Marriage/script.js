@@ -66,7 +66,45 @@ async function bulkSaveProfiles(arr) {
         tx.onerror = (e) => reject(e.target.error);
     });
 }
-
+// ============ PAGE NAVIGATION ============
+function showPage(page) {
+    // Hide all pages
+    document.getElementById('page-home').style.display = 'none';
+    document.getElementById('page-add').style.display = 'none';
+    document.getElementById('page-backup').style.display = 'none';
+    
+    // Remove active from all nav buttons
+    document.getElementById('nav-home').style.background = 'white';
+    document.getElementById('nav-home').style.color = '#555';
+    document.getElementById('nav-home').style.border = '1px solid #ddd';
+    
+    document.getElementById('nav-add').style.background = 'white';
+    document.getElementById('nav-add').style.color = '#555';
+    document.getElementById('nav-add').style.border = '1px solid #ddd';
+    
+    document.getElementById('nav-backup').style.background = 'white';
+    document.getElementById('nav-backup').style.color = '#555';
+    document.getElementById('nav-backup').style.border = '1px solid #ddd';
+    
+    // Show selected page
+    if (page === 'home') {
+        document.getElementById('page-home').style.display = 'block';
+        document.getElementById('nav-home').style.background = '#fff3e0';
+        document.getElementById('nav-home').style.color = '#FF6F00';
+        document.getElementById('nav-home').style.border = 'none';
+        viewAllProfiles();
+    } else if (page === 'add') {
+        document.getElementById('page-add').style.display = 'block';
+        document.getElementById('nav-add').style.background = '#fff3e0';
+        document.getElementById('nav-add').style.color = '#FF6F00';
+        document.getElementById('nav-add').style.border = 'none';
+    } else if (page === 'backup') {
+        document.getElementById('page-backup').style.display = 'block';
+        document.getElementById('nav-backup').style.background = '#fff3e0';
+        document.getElementById('nav-backup').style.color = '#FF6F00';
+        document.getElementById('nav-backup').style.border = 'none';
+    }
+}
 // ============ GLOBAL VARS ============
 let profiles = [];
 let cropper = null;
@@ -266,7 +304,7 @@ function displayProfiles(arr, containerId) {
 }
 
 function viewAllProfiles() {
-    displayProfiles(profiles, 'allProfilesDisplay');
+    displayProfiles(profiles, 'homeProfiles');
 }
 
 // ============ SHARE AS CARD IMAGE ============
