@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#FF8C00">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vivah Sutra">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' rx='40' fill='%23FF8C00'/><text x='100' y='130' font-size='110' text-anchor='middle'>💑</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <title>Vivah Sutra 💑</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splashScreen" style="position:fixed;top:0;left:0;right:0;bottom:0;background:white;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.5s;">
+        <div style="font-size:5rem;">💑</div>
+        <h2 style="color:#FF8C00;margin-top:15px;font-family:sans-serif;">Vivah Sutra</h2>
+        <p style="color:#888;font-family:sans-serif;">Loading...</p>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav style="background:white;box-shadow:0 2px 15px rgba(255,140,0,0.1);position:sticky;top:0;z-index:100;border-bottom:2px solid #FFB300;padding:10px 15px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;max-width:600px;margin:0 auto;">
+            <div style="font-size:1.3rem;font-weight:700;color:#FF6F00;">💑 Vivah Sutra</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a href="#home" style="text-decoration:none;padding:8px 10px;background:#fff3e0;color:#FF6F00;border-radius:20px;font-size:0.75rem;font-weight:600;">🏠</a>
+                <a href="#search" style="text-decoration:none;padding:8px 10px;color:#555;border-radius:20px;font-size:0.75rem;font-weight:600;">🔍</a>
+                <a href="#add" style="text-decoration:none;padding:8px 10px;color:#555;border-radius:20px;font-size:0.75rem;font-weight:600;">➕</a>
+                <a href="#backup" style="text-decoration:none;padding:8px 10px;color:#555;border-radius:20px;font-size:0.75rem;font-weight:600;">💾</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div style="max-width:600px;margin:0 auto;padding:15px;">
+
+        <!-- HOME -->
+        <section id="home" style="background:linear-gradient(135deg,#fff7e0,#ffffff);padding:25px 15px;border-radius:20px;margin-bottom:20px;text-align:center;">
+            <h1 style="font-size:1.6rem;font-family:sans-serif;">Find Your <span style="color:#FF6F00;">Perfect Match</span> 💍</h1>
+            <p style="color:#666;margin:8px 0;">Personal Matrimony Manager</p>
+            <div style="display:flex;gap:8px;margin-top:15px;">
+                <div style="flex:1;background:white;padding:12px;border-radius:15px;border:1px solid #FFC107;">
+                    <div style="font-size:1.5rem;font-weight:800;color:#FF6F00;" id="totalProfiles">0</div>
+                    <div style="font-size:0.7rem;">Total</div>
+                </div>
+                <div style="flex:1;background:white;padding:12px;border-radius:15px;border:1px solid #FFC107;">
+                    <div style="font-size:1.5rem;font-weight:800;color:#FF6F00;" id="groomCount">0</div>
+                    <div style="font-size:0.7rem;">🤵 Groom</div>
+                </div>
+                <div style="flex:1;background:white;padding:12px;border-radius:15px;border:1px solid #FFC107;">
+                    <div style="font-size:1.5rem;font-weight:800;color:#FF6F00;" id="brideCount">0</div>
+                    <div style="font-size:0.7rem;">👰 Bride</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEARCH -->
+        <section id="search" style="margin-bottom:25px;">
+            <h2 style="text-align:center;color:#333;font-size:1.3rem;margin-bottom:10px;">🔍 Search Profiles</h2>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;background:white;padding:12px;border-radius:15px;box-shadow:0 5px 15px rgba(255,140,0,0.08);">
+                <select id="searchGender" style="flex:1;min-width:70px;padding:10px;border:1px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.85rem;">
+                    <option value="">All</option>
+                    <option value="Groom">🤵 Groom</option>
+                    <option value="Bride">👰 Bride</option>
+                </select>
+                <select id="searchAge" style="flex:1;min-width:70px;padding:10px;border:1px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.85rem;">
+                    <option value="">Age</option>
+                    <option value="18-25">18-25</option>
+                    <option value="25-30">25-30</option>
+                    <option value="30-35">30-35</option>
+                    <option value="35+">35+</option>
+                </select>
+                <input type="text" id="searchCommunity" placeholder="Community" style="flex:1;min-width:70px;padding:10px;border:1px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.85rem;">
+                <button onclick="searchProfiles()" style="background:#FF8C00;color:white;border:none;padding:10px 16px;border-radius:10px;font-weight:700;font-size:0.9rem;">🔍</button>
+            </div>
+            <div id="searchResults" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;"></div>
+        </section>
+
+        <!-- ADD PROFILE -->
+        <section id="add" style="margin-bottom:25px;">
+            <h2 style="text-align:center;color:#333;font-size:1.3rem;margin-bottom:10px;">➕ Add New Profile</h2>
+            <form id="profileForm" onsubmit="addProfile(event)" style="background:white;padding:18px;border-radius:18px;box-shadow:0 5px 20px rgba(255,140,0,0.08);border:1px solid #FFB300;">
+                
+                <!-- IMAGE UPLOAD -->
+                <div style="margin-bottom:15px;text-align:center;">
+                    <label style="font-weight:600;color:#FF6F00;display:block;margin-bottom:5px;font-size:0.9rem;">📸 Profile Photo (Tap to view full)</label>
+                    <div id="imagePreview" onclick="viewFullImage()" style="width:100%;aspect-ratio:9/16;max-height:280px;background:#fff7e0;border:2px dashed #FFB300;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;">
+                        <span style="font-size:3rem;">📷</span>
+                        <span style="color:#888;font-size:0.85rem;">Tap to add photo</span>
+                    </div>
+                    <input type="file" id="imageInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageSelect(event)">
+                    <button type="button" id="cropBtn" onclick="openCropper()" style="display:none;margin-top:8px;background:#FF8C00;color:white;border:none;padding:8px 16px;border-radius:10px;font-size:0.85rem;">✂️ Crop Image</button>
+                </div>
+
+                <!-- FORM FIELDS -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">👤 Full Name *</label>
+                        <input type="text" id="name" required placeholder="Full name" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">⚧ Gender *</label>
+                        <select id="gender" required style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                            <option value="">Select</option>
+                            <option value="Groom">🤵 Groom</option>
+                            <option value="Bride">👰 Bride</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">🎂 Age *</label>
+                        <input type="number" id="age" required min="18" max="60" placeholder="Age" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">📏 Height</label>
+                        <input type="text" id="height" placeholder="5'8''" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">⚖️ Weight</label>
+                        <input type="text" id="weight" placeholder="70 kg" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">💍 Marital Status</label>
+                        <select id="maritalStatus" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                            <option value="">Select</option>
+                            <option value="Never Married">Never Married</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Widowed">Widowed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">🕉️ Gotra</label>
+                        <input type="text" id="gotra" placeholder="Kashyap" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">💼 Profession *</label>
+                        <input type="text" id="profession" required placeholder="Profession" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">📍 Location *</label>
+                        <input type="text" id="location" required placeholder="City" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">👥 Community *</label>
+                        <input type="text" id="community" required placeholder="Community" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">📞 Mobile</label>
+                        <input type="tel" id="mobile" placeholder="9876543210" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">🎓 Education</label>
+                        <input type="text" id="education" placeholder="B.Tech" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">💰 Income</label>
+                        <input type="text" id="income" placeholder="10 LPA" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;">
+                    </div>
+                    <div style="grid-column:1/-1;">
+                        <label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">📝 About</label>
+                        <textarea id="about" rows="2" placeholder="Brief description..." style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.9rem;"></textarea>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:15px;">
+                    <button type="submit" style="flex:1;padding:14px;background:linear-gradient(135deg,#FF8C00,#FFB300);color:white;border:none;border-radius:12px;font-weight:700;font-size:0.95rem;">💾 Save</button>
+                    <button type="button" onclick="resetForm()" style="flex:1;padding:14px;background:white;border:2px solid #FFB300;color:#FF6F00;border-radius:12px;font-weight:700;font-size:0.95rem;">🔄 Reset</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- BACKUP & RESTORE -->
+        <section id="backup" style="margin-bottom:25px;">
+            <h2 style="text-align:center;color:#333;font-size:1.3rem;margin-bottom:10px;">💾 Backup & Restore</h2>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                <div onclick="downloadBackup()" style="background:white;padding:18px;border-radius:15px;border:2px solid #FFB300;text-align:center;cursor:pointer;">
+                    <div style="font-size:2.5rem;">📥</div>
+                    <h4 style="color:#FF6F00;font-size:0.9rem;">Download Backup</h4>
+                    <p style="font-size:0.7rem;color:#666;">Save all data + images</p>
+                </div>
+                <div onclick="document.getElementById('restoreFileInput').click()" style="background:white;padding:18px;border-radius:15px;border:2px solid #FFB300;text-align:center;cursor:pointer;">
+                    <div style="font-size:2.5rem;">📤</div>
+                    <h4 style="color:#FF6F00;font-size:0.9rem;">Restore Backup</h4>
+                    <p style="font-size:0.7rem;color:#666;">Upload backup file</p>
+                    <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="restoreBackup(event)">
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button onclick="viewAllProfiles()" style="flex:1;padding:12px;background:white;border:2px solid #FFB300;color:#FF6F00;border-radius:12px;font-weight:600;font-size:0.85rem;">📋 View All</button>
+                <button onclick="clearAllData()" style="flex:1;padding:12px;background:#dc3545;color:white;border:none;border-radius:12px;font-weight:600;font-size:0.85rem;">🗑️ Clear All</button>
+            </div>
+            <div id="allProfilesDisplay" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;"></div>
+        </section>
+
+    </div>
+
+    <!-- FULL IMAGE VIEWER MODAL -->
+    <div id="imageViewer" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:300;align-items:center;justify-content:center;" onclick="closeImageViewer()">
+        <img id="fullImage" style="max-width:95%;max-height:90%;object-fit:contain;border-radius:10px;" onclick="event.stopPropagation();">
+        <button onclick="closeImageViewer()" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.2);color:white;border:none;padding:10px 15px;border-radius:20px;font-size:1.2rem;">✕ Close</button>
+    </div>
+
+    <!-- CROP MODAL -->
+    <div id="cropModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:200;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:20px;padding:20px;width:95%;max-width:400px;">
+            <h3 style="color:#FF6F00;text-align:center;margin-bottom:10px;">✂️ Crop Image (9:16)</h3>
+            <div style="max-height:55vh;overflow:hidden;">
+                <img id="cropImage" style="max-width:100%;">
+            </div>
+            <div style="display:flex;gap:10px;margin-top:15px;">
+                <button onclick="cropImage()" style="flex:1;padding:12px;background:#28a745;color:white;border:none;border-radius:10px;font-weight:700;">✅ Done</button>
+                <button onclick="closeCropper()" style="flex:1;padding:12px;background:#dc3545;color:white;border:none;border-radius:10px;font-weight:700;">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSTALL PROMPT -->
+    <div id="installPrompt" style="display:none;position:fixed;bottom:0;left:0;right:0;background:white;padding:15px;box-shadow:0 -5px 20px rgba(0,0,0,0.2);z-index:150;text-align:center;">
+        <p style="margin-bottom:8px;">📱 Install this app</p>
+        <button onclick="installApp()" style="background:#FF8C00;color:white;border:none;padding:10px 20px;border-radius:10px;margin:3px;">Install</button>
+        <button onclick="document.getElementById('installPrompt').style.display='none'" style="background:#ddd;border:none;padding:10px 20px;border-radius:10px;margin:3px;">Later</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
