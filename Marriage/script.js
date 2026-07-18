@@ -1,106 +1,306 @@
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-body { font-family:'Segoe UI',Roboto,sans-serif; background:#fffdf5; color:#333; overscroll-behavior:none; }
+// ============ DATABASE ============
+let db;
+const DB_NAME='VivahDB', DB_VER=1;
 
-/* SPLASH */
-#splashScreen { position:fixed; top:0; left:0; right:0; bottom:0; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; transition:opacity 0.5s; }
-.splash-icon { font-size:5rem; }
-#splashScreen h2 { color:#FF8C00; margin-top:10px; }
+function openDB(){
+    return new Promise((ok,no)=>{
+        const r=indexedDB.open(DB_NAME,DB_VER);
+        r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains('profiles'))e.target.result.createObjectStore('profiles',{keyPath:'id'});};
+        r.onsuccess=e=>{db=e.target.result;ok();};
+        r.onerror=e=>no(e);
+    });
+}
+async function allProfiles(){
+    return new Promise((ok,no)=>{
+        const tx=db.transaction('profiles','readonly');
+        const r=tx.objectStore('profiles').getAll();
+        r.onsuccess=()=>ok(r.result);
+        r.onerror=e=>no(e);
+    });
+}
+async function save(p){
+    return new Promise((ok,no)=>{
+        const tx=db.transaction('profiles','readwrite');
+        tx.objectStore('profiles').put(p);
+        tx.oncomplete=()=>ok();
+        tx.onerror=e=>no(e);
+    });
+}
+async function del(id){
+    return new Promise((ok,no)=>{
+        const tx=db.transaction('profiles','readwrite');
+        tx.objectStore('profiles').delete(id);
+        tx.oncomplete=()=>ok();
+    });
+}
+async function clearAll(){
+    return new Promise((ok,no)=>{
+        const tx=db.transaction('profiles','readwrite');
+        tx.objectStore('profiles').clear();
+        tx.oncomplete=()=>ok();
+    });
+}
+async function bulkAdd(arr){
+    return new Promise((ok,no)=>{
+        const tx=db.transaction('profiles','readwrite');
+        const s=tx.objectStore('profiles');
+        arr.forEach(p=>s.put(p));
+        tx.oncomplete=()=>ok();
+    });
+}
 
-/* TOP NAV */
-#topNav { background:#fff; box-shadow:0 2px 15px rgba(255,140,0,0.1); position:sticky; top:0; z-index:100; border-bottom:2px solid #FFB300; }
-.nav-inner { display:flex; align-items:center; justify-content:space-between; max-width:800px; margin:0 auto; padding:10px 15px; }
-.nav-logo { font-size:1.2rem; font-weight:700; color:#FF6F00; }
-.nav-btns { display:flex; gap:6px; }
-.nav-btn { padding:8px 12px; border:1px solid #ddd; border-radius:20px; background:#fff; color:#555; font-weight:600; font-size:0.8rem; cursor:pointer; }
-.nav-btn.active { background:#fff3e0; color:#FF6F00; border-color:#FFB300; }
+// ============ STATE ============
+let profiles=[], cropper=null, deferredPrompt=null, currentPhotoData=null;
 
-/* MAIN */
-.main-content { max-width:800px; margin:0 auto; padding:15px; }
-.page { display:none; }
-.page.active-page { display:block; }
+// ============ INIT ============
+(async function(){
+    await openDB();
+    profiles=await allProfiles();
+    updateStats();
+    renderGrid(profiles);
+    setTimeout(()=>{
+        const s=document.getElementById('splashScreen');
+        if(s){s.style.opacity='0';setTimeout(()=>s.remove(),500);}
+    },800);
+    
+    window.addEventListener('beforeinstallprompt',e=>{
+        e.preventDefault();deferredPrompt=e;
+        setTimeout(()=>document.getElementById('installBanner').style.display='block',3000);
+    });
+})();
 
-/* STATS */
-.stats-row { display:flex; gap:10px; margin-bottom:15px; }
-.stat-box { flex:1; background:#fff; padding:12px; border-radius:15px; border:1px solid #FFC107; text-align:center; font-size:0.75rem; }
-.stat-box span { font-size:1.5rem; font-weight:800; color:#FF6F00; display:block; }
+function installApp(){
+    if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;}
+    document.getElementById('installBanner').style.display='none';
+}
 
-/* SEARCH */
-.search-bar { margin-bottom:8px; }
-.search-bar input { width:100%; padding:12px 15px; border:2px solid #ffe0b2; border-radius:12px; font-size:0.95rem; background:#fff; }
-.filter-row { display:flex; gap:8px; margin-bottom:15px; }
-.filter-row select { flex:1; padding:10px; border:2px solid #ffe0b2; border-radius:10px; background:#fff; font-size:0.85rem; }
-.clear-btn { padding:10px 15px; background:#ff4444; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
+// ============ NAVIGATION ============
+function showPage(page){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active-page'));
+    document.getElementById('page-'+page).classList.add('active-page');
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('nav-'+page).classList.add('active');
+    if(page==='home') renderGrid(profiles);
+}
 
-/* PROFILE GRID */
-.profile-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:10px; }
-.profile-card { background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 5px 15px rgba(255,140,0,0.1); border:1px solid #ffe6b3; cursor:pointer; transition:0.2s; }
-.profile-card:active { transform:scale(0.97); }
-.card-img { width:100%; aspect-ratio:4/5; background:linear-gradient(145deg,#FFC107,#FFB300); display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
-.card-img img { width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; }
-.card-img-placeholder { font-size:3rem; }
-.card-info { padding:10px; }
-.card-info h4 { font-size:0.9rem; margin-bottom:3px; }
-.card-info .info-line { font-size:0.7rem; color:#666; margin:2px 0; }
-.card-btns { display:flex; gap:4px; margin-top:8px; }
-.card-btns button { flex:1; padding:8px; border:none; border-radius:8px; font-weight:700; font-size:0.75rem; cursor:pointer; }
-.btn-card-share { background:#25D366; color:#fff; }
-.btn-card-delete { background:#ff4444; color:#fff; }
+// ============ STATS ============
+function updateStats(){
+    document.getElementById('totalProfiles').textContent=profiles.length;
+    document.getElementById('groomCount').textContent=profiles.filter(p=>p.gender==='Groom').length;
+    document.getElementById('brideCount').textContent=profiles.filter(p=>p.gender==='Bride').length;
+}
 
-/* ADD FORM */
-.page-title { text-align:center; color:#FF6F00; margin-bottom:15px; }
-.add-form { background:#fff; padding:20px; border-radius:18px; border:1px solid #FFB300; }
-.photo-section { text-align:center; margin-bottom:15px; }
-.photo-section label { font-weight:600; color:#FF6F00; display:block; margin-bottom:5px; }
-#photoPreview { width:100%; aspect-ratio:9/16; max-height:250px; background:#fff7e0; border:2px dashed #FFB300; border-radius:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; }
-#photoPreview img { width:100%; height:100%; object-fit:cover; }
-#photoPreview span { font-size:2rem; color:#888; }
-.crop-btn { margin-top:8px; background:#FF8C00; color:#fff; border:none; padding:8px 16px; border-radius:10px; cursor:pointer; }
-.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.fg { display:flex; flex-direction:column; }
-.fg.full { grid-column:1/-1; }
-.fg label { font-weight:600; font-size:0.75rem; color:#FF6F00; margin-bottom:3px; }
-.fg input, .fg select, .fg textarea { padding:10px; border:2px solid #ffe0b2; border-radius:10px; font-size:0.9rem; background:#fffdf7; }
-.form-actions { display:flex; gap:10px; margin-top:15px; }
-.btn-save { flex:1; padding:14px; background:linear-gradient(135deg,#FF8C00,#FFB300); color:#fff; border:none; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer; }
-.btn-reset { flex:1; padding:14px; background:#fff; border:2px solid #FFB300; color:#FF6F00; border-radius:12px; font-weight:700; cursor:pointer; }
+// ============ SEARCH (REAL-TIME) ============
+function doSearch(){
+    const q=document.getElementById('searchInput')?.value?.toLowerCase()?.trim()||'';
+    const g=document.getElementById('filterGender')?.value||'';
+    
+    let filtered=profiles;
+    if(q) filtered=filtered.filter(p=>p.name?.toLowerCase()?.includes(q)||p.community?.toLowerCase()?.includes(q)||p.location?.toLowerCase()?.includes(q)||p.profession?.toLowerCase()?.includes(q));
+    if(g) filtered=filtered.filter(p=>p.gender===g);
+    renderGrid(filtered);
+}
+function clearSearch(){
+    document.getElementById('searchInput').value='';
+    document.getElementById('filterGender').value='';
+    renderGrid(profiles);
+}
 
-/* BACKUP */
-.backup-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:15px; }
-.b-card { background:#fff; padding:20px; border-radius:15px; border:2px solid #FFB300; text-align:center; cursor:pointer; }
-.b-icon { font-size:2.5rem; }
-.b-card h3 { color:#FF6F00; font-size:0.9rem; }
-.b-card p { font-size:0.7rem; color:#666; }
-.btn-danger-full { width:100%; padding:14px; background:#dc3545; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer; }
+// ============ RENDER CARDS ============
+function renderGrid(arr){
+    const grid=document.getElementById('profileGrid');
+    if(!arr?.length){grid.innerHTML='<p style="text-align:center;padding:30px;color:#888;grid-column:1/-1;">📭 No profiles found</p>';return;}
+    grid.innerHTML=arr.map(p=>`
+        <div class="profile-card" onclick="openDetail(${p.id})">
+            <div class="card-img">
+                ${p.image?`<img src="${p.image}" alt="${p.name}">`:`<span class="card-img-placeholder">${p.gender==='Bride'?'👰':'🤵'}</span>`}
+            </div>
+            <div class="card-info">
+                <h4>${p.name}, ${p.age}</h4>
+                <div class="info-line">${p.gender==='Bride'?'👰':'🤵'} ${p.gender}</div>
+                ${p.profession?`<div class="info-line">💼 ${p.profession}</div>`:''}
+                ${p.location?`<div class="info-line">📍 ${p.location}</div>`:''}
+                <div class="card-btns">
+                    <button class="btn-card-share" onclick="event.stopPropagation();shareCard(${p.id})">📤</button>
+                    <button class="btn-card-delete" onclick="event.stopPropagation();deleteProfile(${p.id})">🗑️</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
 
-/* IMAGE VIEWER */
-#imageViewer { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:300; align-items:center; justify-content:center; }
-#imageViewer.show { display:flex; }
-#imageViewer img { max-width:95%; max-height:90%; object-fit:contain; }
-.close-viewer { position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.2); color:#fff; border:none; padding:10px 15px; border-radius:20px; font-size:1.2rem; cursor:pointer; }
+// ============ DETAIL MODAL ============
+function openDetail(id){
+    const p=profiles.find(x=>x.id===id);
+    if(!p)return;
+    const modal=document.getElementById('detailModal');
+    modal.innerHTML=`
+        <button class="detail-close" onclick="closeDetail()">✕</button>
+        <div class="detail-content">
+            ${p.image?`<img src="${p.image}">`:`<div style="width:100%;height:300px;background:#FFC107;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:5rem;">${p.gender==='Bride'?'👰':'🤵'}</div>`}
+            <h2>${p.name}, ${p.age} yrs</h2>
+            <span style="background:#FF8C00;color:#fff;padding:4px 12px;border-radius:12px;font-size:0.85rem;">${p.gender==='Bride'?'👰 Bride':'🤵 Groom'}</span>
+            <div style="margin-top:15px;">
+                ${dl('📏 Height',p.height)}
+                ${dl('⚖️ Weight',p.weight)}
+                ${dl('💍 Status',p.maritalStatus)}
+                ${dl('🕉️ Gotra',p.gotra)}
+                ${dl('👨 Father',p.fatherName)}
+                ${dl('👩 Mother',p.motherName)}
+                ${dl('💼 Profession',p.profession)}
+                ${dl('📍 Location',p.location)}
+                ${dl('👥 Community',p.community)}
+                ${dl('📞 Mobile',p.mobile)}
+                ${dl('🎓 Education',p.education)}
+                ${dl('💰 Income',p.income)}
+                ${p.about&&p.about!=='No description'?`<div style="margin-top:10px;background:#fff7e0;padding:12px;border-radius:10px;"><strong>📝 About:</strong><br>${p.about}</div>`:''}
+            </div>
+            <div class="detail-actions">
+                <button style="background:#25D366;color:#fff;" onclick="shareCard(${p.id})">📤 Share</button>
+                <button style="background:#ff4444;color:#fff;" onclick="deleteProfile(${p.id});closeDetail();">🗑️ Delete</button>
+            </div>
+        </div>
+    `;
+    modal.classList.add('show');
+}
+function closeDetail(){document.getElementById('detailModal').classList.remove('show');}
+function dl(label,value){if(!value||value==='Not specified')return'';return`<div class="detail-row"><span>${label}</span><strong>${value}</strong></div>`;}
 
-/* CROP MODAL */
-#cropModal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:200; align-items:center; justify-content:center; }
-#cropModal.show { display:flex; }
-.crop-inner { background:#fff; border-radius:20px; padding:20px; width:95%; max-width:400px; }
-.crop-inner h3 { color:#FF6F00; text-align:center; margin-bottom:10px; }
-.crop-box { max-height:55vh; overflow:hidden; }
-.crop-box img { max-width:100%; }
-.crop-btns { display:flex; gap:10px; margin-top:15px; }
-.btn-crop-done { flex:1; padding:12px; background:#28a745; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
-.btn-crop-cancel { flex:1; padding:12px; background:#dc3545; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
+// ============ PHOTO ============
+function handlePhoto(e){
+    const f=e.target.files[0];
+    if(!f)return;
+    if(f.size>10*1024*1024){alert('Max 10MB');e.target.value='';return;}
+    const reader=new FileReader();
+    reader.onload=ev=>{
+        document.getElementById('cropImage').src=ev.target.result;
+        document.getElementById('cropModal').classList.add('show');
+        setTimeout(()=>{
+            if(cropper)cropper.destroy();
+            cropper=new Cropper(document.getElementById('cropImage'),{aspectRatio:9/16,viewMode:1,autoCropArea:1,responsive:true,background:false});
+        },200);
+    };
+    reader.readAsDataURL(f);
+    e.target.value='';
+}
+function openCrop(){document.getElementById('cropModal').classList.add('show');}
+function doCrop(){
+    if(!cropper)return;
+    const c=cropper.getCroppedCanvas({width:600,height:1067});
+    if(!c){alert('Error');return;}
+    const data=c.toDataURL('image/jpeg',0.85);
+    const prev=document.getElementById('photoPreview');
+    prev.innerHTML=`<img src="${data}">`;
+    currentPhotoData=data;
+    document.getElementById('cropBtn').style.display='inline-block';
+    closeCrop();
+}
+function closeCrop(){
+    if(cropper){cropper.destroy();cropper=null;}
+    document.getElementById('cropModal').classList.remove('show');
+}
 
-/* DETAIL MODAL */
-#detailModal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#fff; z-index:250; overflow-y:auto; }
-#detailModal.show { display:block; }
-.detail-close { position:fixed; top:15px; right:15px; background:#ff4444; color:#fff; border:none; width:40px; height:40px; border-radius:50%; font-size:1.3rem; z-index:251; cursor:pointer; }
-.detail-content { max-width:500px; margin:0 auto; padding:50px 20px 30px; }
-.detail-content img { width:100%; max-height:450px; object-fit:contain; border-radius:20px; margin-bottom:20px; display:block; }
-.detail-content h2 { color:#FF6F00; }
-.detail-row { display:flex; justify-content:space-between; padding:10px; background:#f9f9f9; border-radius:10px; margin:5px 0; font-size:0.9rem; }
-.detail-actions { display:flex; gap:10px; margin-top:20px; }
-.detail-actions button { flex:1; padding:14px; border:none; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer; }
+// ============ SAVE PROFILE ============
+async function saveProfile(){
+    const get=v=>document.getElementById(v)?.value?.trim()||'';
+    const p={
+        id:Date.now(),
+        name:get('fName'),gender:get('fGender'),age:parseInt(get('fAge'))||0,
+        height:get('fHeight'),weight:get('fWeight'),maritalStatus:get('fMarital'),
+        gotra:get('fGotra'),fatherName:get('fFather'),motherName:get('fMother'),
+        profession:get('fProfession'),location:get('fLocation'),community:get('fCommunity'),
+        mobile:get('fMobile'),education:get('fEducation'),income:get('fIncome'),
+        about:get('fAbout'),image:currentPhotoData,createdAt:new Date().toISOString()
+    };
+    if(!p.name||!p.gender||!p.age||!p.profession||!p.location||!p.community){alert('Fill required fields (*)');return;}
+    await save(p);
+    profiles=await allProfiles();
+    updateStats();renderGrid(profiles);resetForm();
+    alert('✅ Saved!');
+    showPage('home');
+}
+function resetForm(){
+    document.getElementById('profileForm').reset();
+    document.getElementById('photoPreview').innerHTML='<span>📷 Tap to select</span>';
+    currentPhotoData=null;
+    document.getElementById('cropBtn').style.display='none';
+    if(cropper){cropper.destroy();cropper=null;}
+}
 
-/* INSTALL */
-#installBanner { display:none; position:fixed; bottom:0; left:0; right:0; background:#fff; padding:15px; box-shadow:0 -5px 20px rgba(0,0,0,0.2); z-index:150; text-align:center; }
-#installBanner button { padding:8px 15px; border-radius:10px; margin:3px; cursor:pointer; border:none; }
-#installBanner button:first-of-type { background:#FF8C00; color:#fff; }
+// ============ DELETE ============
+async function deleteProfile(id){
+    if(!confirm('Delete?'))return;
+    await del(id);
+    profiles=await allProfiles();
+    updateStats();renderGrid(profiles);
+}
+
+// ============ SHARE CARD ============
+async function shareCard(id){
+    const p=profiles.find(x=>x.id===id);
+    if(!p)return;
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
+    canvas.width=1080;canvas.height=1920;
+    const grad=ctx.createLinearGradient(0,0,0,1920);
+    grad.addColorStop(0,'#FF8C00');grad.addColorStop(0.35,'#FFB300');grad.addColorStop(1,'#FFFFFF');
+    ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1920);
+    ctx.fillStyle='#FFF';ctx.shadowColor='rgba(0,0,0,0.1)';ctx.shadowBlur=30;
+    ctx.beginPath();ctx.roundRect(50,350,980,1420,50);ctx.fill();
+    ctx.shadowColor='transparent';ctx.shadowBlur=0;
+    ctx.fillStyle='#FF8C00';ctx.font='bold 50px Arial';ctx.textAlign='center';ctx.fillText('💑 VIVAH SUTRA',540,100);
+    if(p.image){const img=new Image();img.src=p.image;await new Promise(r=>{img.onload=r;});ctx.save();ctx.beginPath();ctx.arc(540,280,130,0,Math.PI*2);ctx.clip();ctx.drawImage(img,410,150,260,260);ctx.restore();}
+    else{ctx.fillStyle='#FFC107';ctx.beginPath();ctx.arc(540,280,130,0,Math.PI*2);ctx.fill();ctx.fillStyle='#FFF';ctx.font='80px Arial';ctx.fillText(p.gender==='Bride'?'👰':'🤵',540,310);}
+    ctx.fillStyle='#333';ctx.font='bold 55px Arial';ctx.fillText(`${p.name}, ${p.age} yrs`,540,460);
+    ctx.fillStyle='#FF8C00';ctx.font='35px Arial';ctx.fillText(p.gender==='Bride'?'👰 Bride':'🤵 Groom',540,520);
+    let y=640;
+    [['📏 Height',p.height],['⚖️ Weight',p.weight],['💍 Status',p.maritalStatus],['🕉️ Gotra',p.gotra],['👨 Father',p.fatherName],['👩 Mother',p.motherName],['💼 Profession',p.profession],['📍 Location',p.location],['👥 Community',p.community],['📞 Contact',p.mobile],['🎓 Education',p.education],['💰 Income',p.income]].forEach(([l,v])=>{
+        if(v&&v!=='Not specified'){ctx.fillStyle='#FFF3E0';ctx.beginPath();ctx.roundRect(120,y-25,840,55,15);ctx.fill();ctx.fillStyle='#333';ctx.font='bold 30px Arial';ctx.textAlign='left';ctx.fillText(l+':',140,y+12);ctx.fillStyle='#555';ctx.font='30px Arial';ctx.fillText(v,500,y+12);y+=80;}
+    });
+    ctx.fillStyle='#FF8C00';ctx.font='bold 35px Arial';ctx.textAlign='center';ctx.fillText('💑 Vivah Sutra App',540,1820);
+    const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.9));
+    const file=new File([blob],`${p.name}_Profile.jpg`,{type:'image/jpeg'});
+    if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({title:`${p.name}`,files:[file]});}
+    else{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${p.name}_Profile.jpg`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);alert('📥 Downloaded!');}
+}
+
+// ============ IMAGE VIEWER ============
+function viewFull(src){if(src){document.getElementById('fullImage').src=src;document.getElementById('imageViewer').classList.add('show');}}
+function closeImageViewer(){document.getElementById('imageViewer').classList.remove('show');}
+
+// ============ BACKUP ============
+async function downloadBackup(){
+    const all=await allProfiles();
+    const data={version:"7.0",timestamp:new Date().toISOString(),total:all.length,profiles:all};
+    const str=JSON.stringify(data);
+    const blob=new Blob([str],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`vivah-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    alert(`✅ Backup done! ${all.length} profiles`);
+}
+async function restoreBackup(e){
+    const f=e.target.files[0];if(!f)return;
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+        try{
+            const data=JSON.parse(ev.target.result);
+            if(!data.profiles?.length)throw new Error('Empty');
+            if(confirm(`Restore ${data.profiles.length} profiles?`)){
+                await clearAll();await bulkAdd(data.profiles);
+                profiles=await allProfiles();updateStats();renderGrid(profiles);
+                alert('✅ Restored!');
+            }
+        }catch(err){alert('❌ Invalid file');}
+    };
+    reader.readAsText(f);e.target.value='';
+}
+async function clearAllData(){
+    if(!confirm('Delete ALL?'))return;
+    await clearAll();
+    profiles=[];updateStats();renderGrid(profiles);
+    alert('✅ Cleared');
+}
+
+// ============ SW ============
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
