@@ -1,577 +1,106 @@
-// ============ INDEXEDDB SETUP ============
-const DB_NAME = 'VivahSutraDB';
-const DB_VERSION = 1;
-let db;
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:'Segoe UI',Roboto,sans-serif; background:#fffdf5; color:#333; overscroll-behavior:none; }
 
-function openDB() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        
-        request.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('profiles')) {
-                const store = db.createObjectStore('profiles', { keyPath: 'id' });
-                store.createIndex('gender', 'gender', { unique: false });
-                store.createIndex('age', 'age', { unique: false });
-            }
-        };
-        
-        request.onsuccess = (e) => { db = e.target.result; resolve(db); };
-        request.onerror = (e) => reject(e.target.error);
-    });
-}
+/* SPLASH */
+#splashScreen { position:fixed; top:0; left:0; right:0; bottom:0; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; transition:opacity 0.5s; }
+.splash-icon { font-size:5rem; }
+#splashScreen h2 { color:#FF8C00; margin-top:10px; }
 
-async function saveProfile(profile) {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction('profiles', 'readwrite');
-        tx.objectStore('profiles').put(profile);
-        tx.oncomplete = () => resolve();
-        tx.onerror = (e) => reject(e.target.error);
-    });
-}
+/* TOP NAV */
+#topNav { background:#fff; box-shadow:0 2px 15px rgba(255,140,0,0.1); position:sticky; top:0; z-index:100; border-bottom:2px solid #FFB300; }
+.nav-inner { display:flex; align-items:center; justify-content:space-between; max-width:800px; margin:0 auto; padding:10px 15px; }
+.nav-logo { font-size:1.2rem; font-weight:700; color:#FF6F00; }
+.nav-btns { display:flex; gap:6px; }
+.nav-btn { padding:8px 12px; border:1px solid #ddd; border-radius:20px; background:#fff; color:#555; font-weight:600; font-size:0.8rem; cursor:pointer; }
+.nav-btn.active { background:#fff3e0; color:#FF6F00; border-color:#FFB300; }
 
-async function getAllProfiles() {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction('profiles', 'readonly');
-        const request = tx.objectStore('profiles').getAll();
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = (e) => reject(e.target.error);
-    });
-}
+/* MAIN */
+.main-content { max-width:800px; margin:0 auto; padding:15px; }
+.page { display:none; }
+.page.active-page { display:block; }
 
-async function deleteProfileFromDB(id) {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction('profiles', 'readwrite');
-        tx.objectStore('profiles').delete(id);
-        tx.oncomplete = () => resolve();
-        tx.onerror = (e) => reject(e.target.error);
-    });
-}
+/* STATS */
+.stats-row { display:flex; gap:10px; margin-bottom:15px; }
+.stat-box { flex:1; background:#fff; padding:12px; border-radius:15px; border:1px solid #FFC107; text-align:center; font-size:0.75rem; }
+.stat-box span { font-size:1.5rem; font-weight:800; color:#FF6F00; display:block; }
 
-async function clearAllProfilesDB() {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction('profiles', 'readwrite');
-        tx.objectStore('profiles').clear();
-        tx.oncomplete = () => resolve();
-        tx.onerror = (e) => reject(e.target.error);
-    });
-}
+/* SEARCH */
+.search-bar { margin-bottom:8px; }
+.search-bar input { width:100%; padding:12px 15px; border:2px solid #ffe0b2; border-radius:12px; font-size:0.95rem; background:#fff; }
+.filter-row { display:flex; gap:8px; margin-bottom:15px; }
+.filter-row select { flex:1; padding:10px; border:2px solid #ffe0b2; border-radius:10px; background:#fff; font-size:0.85rem; }
+.clear-btn { padding:10px 15px; background:#ff4444; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
 
-async function bulkSaveProfiles(arr) {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction('profiles', 'readwrite');
-        const store = tx.objectStore('profiles');
-        arr.forEach(p => store.put(p));
-        tx.oncomplete = () => resolve();
-        tx.onerror = (e) => reject(e.target.error);
-    });
-}
-// ============ PAGE NAVIGATION ============
-function showPage(page) {
-    // Hide all pages
-    document.getElementById('page-home').style.display = 'none';
-    document.getElementById('page-add').style.display = 'none';
-    document.getElementById('page-backup').style.display = 'none';
-    
-    // Remove active from all nav buttons
-    document.getElementById('nav-home').style.background = 'white';
-    document.getElementById('nav-home').style.color = '#555';
-    document.getElementById('nav-home').style.border = '1px solid #ddd';
-    
-    document.getElementById('nav-add').style.background = 'white';
-    document.getElementById('nav-add').style.color = '#555';
-    document.getElementById('nav-add').style.border = '1px solid #ddd';
-    
-    document.getElementById('nav-backup').style.background = 'white';
-    document.getElementById('nav-backup').style.color = '#555';
-    document.getElementById('nav-backup').style.border = '1px solid #ddd';
-    
-    // Show selected page
-    if (page === 'home') {
-        document.getElementById('page-home').style.display = 'block';
-        document.getElementById('nav-home').style.background = '#fff3e0';
-        document.getElementById('nav-home').style.color = '#FF6F00';
-        document.getElementById('nav-home').style.border = 'none';
-        viewAllProfiles();
-    } else if (page === 'add') {
-        document.getElementById('page-add').style.display = 'block';
-        document.getElementById('nav-add').style.background = '#fff3e0';
-        document.getElementById('nav-add').style.color = '#FF6F00';
-        document.getElementById('nav-add').style.border = 'none';
-    } else if (page === 'backup') {
-        document.getElementById('page-backup').style.display = 'block';
-        document.getElementById('nav-backup').style.background = '#fff3e0';
-        document.getElementById('nav-backup').style.color = '#FF6F00';
-        document.getElementById('nav-backup').style.border = 'none';
-    }
-}
-// ============ GLOBAL VARS ============
-let profiles = [];
-let cropper = null;
-let deferredPrompt = null;
+/* PROFILE GRID */
+.profile-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:10px; }
+.profile-card { background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 5px 15px rgba(255,140,0,0.1); border:1px solid #ffe6b3; cursor:pointer; transition:0.2s; }
+.profile-card:active { transform:scale(0.97); }
+.card-img { width:100%; aspect-ratio:4/5; background:linear-gradient(145deg,#FFC107,#FFB300); display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+.card-img img { width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; }
+.card-img-placeholder { font-size:3rem; }
+.card-info { padding:10px; }
+.card-info h4 { font-size:0.9rem; margin-bottom:3px; }
+.card-info .info-line { font-size:0.7rem; color:#666; margin:2px 0; }
+.card-btns { display:flex; gap:4px; margin-top:8px; }
+.card-btns button { flex:1; padding:8px; border:none; border-radius:8px; font-weight:700; font-size:0.75rem; cursor:pointer; }
+.btn-card-share { background:#25D366; color:#fff; }
+.btn-card-delete { background:#ff4444; color:#fff; }
 
-// ============ SPLASH ============
-setTimeout(() => {
-    const splash = document.getElementById('splashScreen');
-    if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.remove(), 500); }
-}, 1200);
+/* ADD FORM */
+.page-title { text-align:center; color:#FF6F00; margin-bottom:15px; }
+.add-form { background:#fff; padding:20px; border-radius:18px; border:1px solid #FFB300; }
+.photo-section { text-align:center; margin-bottom:15px; }
+.photo-section label { font-weight:600; color:#FF6F00; display:block; margin-bottom:5px; }
+#photoPreview { width:100%; aspect-ratio:9/16; max-height:250px; background:#fff7e0; border:2px dashed #FFB300; border-radius:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; }
+#photoPreview img { width:100%; height:100%; object-fit:cover; }
+#photoPreview span { font-size:2rem; color:#888; }
+.crop-btn { margin-top:8px; background:#FF8C00; color:#fff; border:none; padding:8px 16px; border-radius:10px; cursor:pointer; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.fg { display:flex; flex-direction:column; }
+.fg.full { grid-column:1/-1; }
+.fg label { font-weight:600; font-size:0.75rem; color:#FF6F00; margin-bottom:3px; }
+.fg input, .fg select, .fg textarea { padding:10px; border:2px solid #ffe0b2; border-radius:10px; font-size:0.9rem; background:#fffdf7; }
+.form-actions { display:flex; gap:10px; margin-top:15px; }
+.btn-save { flex:1; padding:14px; background:linear-gradient(135deg,#FF8C00,#FFB300); color:#fff; border:none; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer; }
+.btn-reset { flex:1; padding:14px; background:#fff; border:2px solid #FFB300; color:#FF6F00; border-radius:12px; font-weight:700; cursor:pointer; }
 
-// ============ INIT ============
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        await openDB();
-        profiles = await getAllProfiles();
-        updateStats();
-        viewAllProfiles();
-    } catch (e) { console.error('DB Error:', e); }
-    
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        setTimeout(() => {
-            const p = document.getElementById('installPrompt');
-            if (p) p.style.display = 'block';
-        }, 3000);
-    });
-    
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-        a.addEventListener('click', function(e) {
-            e.preventDefault();
-            const t = document.querySelector(this.getAttribute('href'));
-            if (t) t.scrollIntoView({ behavior: 'smooth' });
-        });
-    });
-});
+/* BACKUP */
+.backup-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:15px; }
+.b-card { background:#fff; padding:20px; border-radius:15px; border:2px solid #FFB300; text-align:center; cursor:pointer; }
+.b-icon { font-size:2.5rem; }
+.b-card h3 { color:#FF6F00; font-size:0.9rem; }
+.b-card p { font-size:0.7rem; color:#666; }
+.btn-danger-full { width:100%; padding:14px; background:#dc3545; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer; }
 
-function installApp() {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
-    }
-    document.getElementById('installPrompt').style.display = 'none';
-}
+/* IMAGE VIEWER */
+#imageViewer { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:300; align-items:center; justify-content:center; }
+#imageViewer.show { display:flex; }
+#imageViewer img { max-width:95%; max-height:90%; object-fit:contain; }
+.close-viewer { position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.2); color:#fff; border:none; padding:10px 15px; border-radius:20px; font-size:1.2rem; cursor:pointer; }
 
-// ============ STATS ============
-function updateStats() {
-    const t = document.getElementById('totalProfiles');
-    const g = document.getElementById('groomCount');
-    const b = document.getElementById('brideCount');
-    if (t) t.textContent = profiles.length;
-    if (g) g.textContent = profiles.filter(p => p.gender === 'Groom').length;
-    if (b) b.textContent = profiles.filter(p => p.gender === 'Bride').length;
-}
+/* CROP MODAL */
+#cropModal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:200; align-items:center; justify-content:center; }
+#cropModal.show { display:flex; }
+.crop-inner { background:#fff; border-radius:20px; padding:20px; width:95%; max-width:400px; }
+.crop-inner h3 { color:#FF6F00; text-align:center; margin-bottom:10px; }
+.crop-box { max-height:55vh; overflow:hidden; }
+.crop-box img { max-width:100%; }
+.crop-btns { display:flex; gap:10px; margin-top:15px; }
+.btn-crop-done { flex:1; padding:12px; background:#28a745; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
+.btn-crop-cancel { flex:1; padding:12px; background:#dc3545; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
 
-// ============ IMAGE VIEWER ============
-function viewFullImage(imageSrc) {
-    if (imageSrc) {
-        document.getElementById('fullImage').src = imageSrc;
-        document.getElementById('imageViewer').style.display = 'flex';
-    }
-}
+/* DETAIL MODAL */
+#detailModal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#fff; z-index:250; overflow-y:auto; }
+#detailModal.show { display:block; }
+.detail-close { position:fixed; top:15px; right:15px; background:#ff4444; color:#fff; border:none; width:40px; height:40px; border-radius:50%; font-size:1.3rem; z-index:251; cursor:pointer; }
+.detail-content { max-width:500px; margin:0 auto; padding:50px 20px 30px; }
+.detail-content img { width:100%; max-height:450px; object-fit:contain; border-radius:20px; margin-bottom:20px; display:block; }
+.detail-content h2 { color:#FF6F00; }
+.detail-row { display:flex; justify-content:space-between; padding:10px; background:#f9f9f9; border-radius:10px; margin:5px 0; font-size:0.9rem; }
+.detail-actions { display:flex; gap:10px; margin-top:20px; }
+.detail-actions button { flex:1; padding:14px; border:none; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer; }
 
-function closeImageViewer() {
-    document.getElementById('imageViewer').style.display = 'none';
-}
-
-// ============ IMAGE UPLOAD & CROP ============
-function handleImageSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { alert('❌ Max 10MB'); event.target.value = ''; return; }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        document.getElementById('cropImage').src = e.target.result;
-        document.getElementById('cropModal').style.display = 'flex';
-        setTimeout(() => {
-            if (cropper) cropper.destroy();
-            const img = document.getElementById('cropImage');
-            if (img) {
-                cropper = new Cropper(img, {
-                    aspectRatio: 9 / 16,
-                    viewMode: 1,
-                    autoCropArea: 1,
-                    responsive: true,
-                    background: false
-                });
-            }
-        }, 200);
-    };
-    reader.readAsDataURL(file);
-    event.target.value = '';
-}
-
-function openCropper() { document.getElementById('cropModal').style.display = 'flex'; }
-
-function cropImage() {
-    if (!cropper) return;
-    const canvas = cropper.getCroppedCanvas({ width: 600, height: 1067 });
-    if (!canvas) { alert('❌ Error'); return; }
-    
-    const imageData = canvas.toDataURL('image/jpeg', 0.85);
-    
-    const preview = document.getElementById('imagePreview');
-    const cropBtn = document.getElementById('cropBtn');
-    
-    if (preview) {
-        preview.innerHTML = `<img src="${imageData}" style="width:100%;height:100%;object-fit:cover;">`;
-        preview.dataset.imageData = imageData;
-        preview.classList.add('has-image');
-    }
-    if (cropBtn) cropBtn.style.display = 'inline-block';
-    closeCropper();
-}
-
-function closeCropper() {
-    if (cropper) { cropper.destroy(); cropper = null; }
-    document.getElementById('cropModal').style.display = 'none';
-}
-
-// ============ ADD PROFILE ============
-async function addProfile(event) {
-    event.preventDefault();
-    
-    const preview = document.getElementById('imagePreview');
-    const imageData = preview?.dataset?.imageData || null;
-    
-    const profile = {
-        id: Date.now(),
-        name: document.getElementById('name')?.value?.trim() || '',
-        gender: document.getElementById('gender')?.value || '',
-        age: parseInt(document.getElementById('age')?.value) || 0,
-        height: document.getElementById('height')?.value?.trim() || '',
-        weight: document.getElementById('weight')?.value?.trim() || '',
-        maritalStatus: document.getElementById('maritalStatus')?.value || '',
-        gotra: document.getElementById('gotra')?.value?.trim() || '',
-        profession: document.getElementById('profession')?.value?.trim() || '',
-        location: document.getElementById('location')?.value?.trim() || '',
-        community: document.getElementById('community')?.value?.trim() || '',
-        mobile: document.getElementById('mobile')?.value?.trim() || '',
-        education: document.getElementById('education')?.value?.trim() || '',
-        income: document.getElementById('income')?.value?.trim() || '',
-        about: document.getElementById('about')?.value?.trim() || '',
-        image: imageData,
-        createdAt: new Date().toISOString()
-    };
-    
-    try {
-        await saveProfile(profile);
-        profiles = await getAllProfiles();
-        updateStats();
-        alert('✅ Profile saved!');
-        resetForm();
-        viewAllProfiles();
-        document.getElementById('backup')?.scrollIntoView({ behavior: 'smooth' });
-    } catch (e) { alert('❌ Error: ' + e.message); }
-}
-
-// ============ DISPLAY PROFILES ============
-function displayProfiles(arr, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    if (!arr?.length) {
-        container.innerHTML = '<p style="text-align:center;padding:25px;color:#888;grid-column:1/-1;">📭 No profiles</p>';
-        return;
-    }
-    
-    container.innerHTML = arr.map(p => `
-    <div class="profile-card fade-in">
-        <div class="profile-img-container" onclick="viewFullImage('${p.image || ''}')">
-            ${p.image 
-                ? `<img src="${p.image}" alt="${p.name}" loading="lazy">`
-                : `<div class="profile-img-placeholder">${p.gender === 'Bride' ? '👰' : '🤵'}</div>`
-            }
-            <div class="profile-img-overlay">🔍 View</div>
-        </div>
-        <div class="profile-info">
-            <h4>${p.name}, ${p.age} <span class="badge">${p.gender === 'Bride' ? '👰' : '🤵'} ${p.gender}</span></h4>
-            ${p.height ? `<div class="detail-row">📏 Height: ${p.height}</div>` : ''}
-            ${p.weight ? `<div class="detail-row">⚖️ Weight: ${p.weight}</div>` : ''}
-            ${p.maritalStatus ? `<div class="detail-row">💍 Status: ${p.maritalStatus}</div>` : ''}
-            ${p.gotra ? `<div class="detail-row">🕉️ Gotra: ${p.gotra}</div>` : ''}
-            ${p.profession ? `<div class="detail-row">💼 ${p.profession}</div>` : ''}
-            ${p.location ? `<div class="detail-row">📍 ${p.location}</div>` : ''}
-            ${p.community ? `<div class="detail-row">👥 ${p.community}</div>` : ''}
-            ${p.mobile ? `<div class="detail-row">📞 ${p.mobile}</div>` : ''}
-            ${p.education ? `<div class="detail-row">🎓 ${p.education}</div>` : ''}
-            ${p.income ? `<div class="detail-row">💰 ${p.income}</div>` : ''}
-            ${p.about && p.about !== 'No description' ? `<div class="detail-row">📝 ${p.about.substring(0, 50)}...</div>` : ''}
-            <div class="profile-actions">
-                <button class="btn-share" onclick="event.stopPropagation(); shareProfile(${p.id})">📤 Share</button>
-                <button class="btn-delete" onclick="event.stopPropagation(); deleteProfile(${p.id})">🗑️</button>
-            </div>
-        </div>
-    </div>
-`).join('');
-}
-
-function viewAllProfiles() {
-    displayProfiles(profiles, 'homeProfiles');
-}
-
-// ============ SHARE AS CARD IMAGE ============
-async function shareProfile(id) {
-    const p = profiles.find(x => x.id === id);
-    if (!p) return;
-    
-    // Loading indicator
-    const loadingMsg = document.createElement('div');
-    loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:white;padding:20px 30px;border-radius:15px;z-index:999;font-size:1.2rem;text-align:center;';
-    loadingMsg.innerHTML = '⏳<br>Creating card...';
-    document.body.appendChild(loadingMsg);
-    
-    try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        canvas.width = 1080;
-        canvas.height = 1920;
-        
-        // Background gradient
-        const gradient = ctx.createLinearGradient(0, 0, 0, 1920);
-        gradient.addColorStop(0, '#FF8C00');
-        gradient.addColorStop(0.35, '#FFB300');
-        gradient.addColorStop(1, '#FFFFFF');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 1080, 1920);
-        
-        // White card
-        ctx.fillStyle = '#FFFFFF';
-        ctx.shadowColor = 'rgba(0,0,0,0.1)';
-        ctx.shadowBlur = 30;
-        ctx.beginPath();
-        ctx.roundRect(50, 350, 980, 1400, 50);
-        ctx.fill();
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        
-        // Header
-        ctx.fillStyle = '#FF8C00';
-        ctx.font = 'bold 50px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('💑 VIVAH SUTRA', 540, 100);
-        ctx.fillStyle = '#666';
-        ctx.font = '30px Arial';
-        ctx.fillText('Matrimony Profile', 540, 150);
-        
-        // Profile image
-        if (p.image) {
-            const img = new Image();
-            img.src = p.image;
-            await new Promise((resolve) => { img.onload = resolve; });
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(540, 280, 130, 0, Math.PI * 2);
-            ctx.clip();
-            ctx.drawImage(img, 410, 150, 260, 260);
-            ctx.restore();
-        } else {
-            ctx.fillStyle = '#FFC107';
-            ctx.beginPath();
-            ctx.arc(540, 280, 130, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 80px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(p.gender === 'Bride' ? '👰' : '🤵', 540, 310);
-        }
-        
-        // Name & Age
-        ctx.fillStyle = '#333';
-        ctx.font = 'bold 55px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${p.name}, ${p.age} yrs`, 540, 460);
-        ctx.fillStyle = '#FF8C00';
-        ctx.font = 'bold 35px Arial';
-        ctx.fillText(p.gender === 'Bride' ? '👰 Bride' : '🤵 Groom', 540, 520);
-        
-        // Divider
-        ctx.strokeStyle = '#FFB300';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(150, 560);
-        ctx.lineTo(930, 560);
-        ctx.stroke();
-        
-        // Details
-        const details = [
-            ['📏 Height', p.height],
-            ['⚖️ Weight', p.weight],
-            ['💍 Status', p.maritalStatus],
-            ['🕉️ Gotra', p.gotra],
-            ['💼 Profession', p.profession],
-            ['📍 Location', p.location],
-            ['👥 Community', p.community],
-            ['🎓 Education', p.education],
-            ['💰 Income', p.income],
-            ['📞 Contact', p.mobile]
-        ];
-        
-        let yPos = 640;
-        details.forEach(([label, value]) => {
-            if (value && value !== 'Not specified') {
-                ctx.fillStyle = '#FFF3E0';
-                ctx.beginPath();
-                ctx.roundRect(120, yPos - 25, 840, 55, 15);
-                ctx.fill();
-                ctx.fillStyle = '#333';
-                ctx.font = 'bold 30px Arial';
-                ctx.textAlign = 'left';
-                ctx.fillText(label + ':', 140, yPos + 12);
-                ctx.fillStyle = '#555';
-                ctx.font = '30px Arial';
-                ctx.fillText(value, 500, yPos + 12);
-                yPos += 80;
-            }
-        });
-        
-        // About
-        if (p.about && p.about !== 'No description') {
-            yPos += 20;
-            ctx.fillStyle = '#FF8C00';
-            ctx.font = 'bold 32px Arial';
-            ctx.fillText('📝 About:', 140, yPos);
-            ctx.fillStyle = '#555';
-            ctx.font = '28px Arial';
-            const words = p.about.split(' ');
-            let line = '', lineY = yPos + 50;
-            words.forEach(word => {
-                if (ctx.measureText(line + word + ' ').width > 800 && line) {
-                    ctx.fillText(line, 140, lineY);
-                    line = word + ' ';
-                    lineY += 45;
-                } else line += word + ' ';
-            });
-            ctx.fillText(line, 140, lineY);
-        }
-        
-        // Footer
-        ctx.fillStyle = '#FF8C00';
-        ctx.font = 'bold 35px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('💑 Vivah Sutra App', 540, 1820);
-        ctx.fillStyle = '#999';
-        ctx.font = '25px Arial';
-        ctx.fillText('Find your perfect match', 540, 1860);
-        
-        // Convert & Share
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
-        const file = new File([blob], `${p.name.replace(/\s+/g,'_')}_Profile.jpg`, { type: 'image/jpeg' });
-        
-        document.body.removeChild(loadingMsg);
-        
-        if (navigator.share && navigator.canShare?.({ files: [file] })) {
-            await navigator.share({ title: `${p.name} Profile`, text: `💑 ${p.name} - Vivah Sutra`, files: [file] });
-        } else {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `${p.name}_Profile.jpg`;
-            document.body.appendChild(a); a.click();
-            document.body.removeChild(a); URL.revokeObjectURL(url);
-            alert('📥 Card downloaded! Share manually.');
-        }
-    } catch (err) {
-        document.body.removeChild(loadingMsg);
-        console.error(err);
-    }
-}
-
-// ============ SEARCH ============
-function searchProfiles() {
-    const name = document.getElementById('searchName')?.value?.toLowerCase()?.trim() || '';
-    const gender = document.getElementById('searchGender')?.value || '';
-    const ageRange = document.getElementById('searchAge')?.value || '';
-    const community = document.getElementById('searchCommunity')?.value?.toLowerCase()?.trim() || '';
-    
-    let filtered = [...profiles];
-    if (name) filtered = filtered.filter(p => p.name?.toLowerCase()?.includes(name));
-    if (gender) filtered = filtered.filter(p => p.gender === gender);
-    if (ageRange) {
-        const [min, max] = ageRange.split('-');
-        if (max === '+') filtered = filtered.filter(p => p.age >= parseInt(min));
-        else if (min && max) filtered = filtered.filter(p => p.age >= parseInt(min) && p.age <= parseInt(max));
-    }
-    if (community) filtered = filtered.filter(p => p.community?.toLowerCase()?.includes(community));
-    displayProfiles(filtered, 'searchResults');
-}
-
-// ============ DELETE ============
-async function deleteProfile(id) {
-    if (!confirm('⚠️ Delete permanently?')) return;
-    await deleteProfileFromDB(id);
-    profiles = await getAllProfiles();
-    updateStats();
-    viewAllProfiles();
-    searchProfiles();
-}
-
-// ============ RESET ============
-function resetForm() {
-    document.getElementById('profileForm')?.reset();
-    const preview = document.getElementById('imagePreview');
-    if (preview) {
-        preview.innerHTML = '<span style="font-size:3rem;">📷</span><span style="color:#888;font-size:0.85rem;">Tap to add photo</span>';
-        preview.classList.remove('has-image');
-        delete preview.dataset.imageData;
-    }
-    document.getElementById('cropBtn').style.display = 'none';
-    if (cropper) { cropper.destroy(); cropper = null; }
-}
-
-// ============ BACKUP ============
-async function downloadBackup() {
-    const all = await getAllProfiles();
-    const data = { version:"5.0", app:"Vivah Sutra 💑", timestamp:new Date().toISOString(), total:all.length, profiles:all };
-    const str = JSON.stringify(data);
-    const mb = (str.length/1024/1024).toFixed(2);
-    if (parseFloat(mb)>50 && !confirm(`⚠️ ${mb}MB. Continue?`)) return;
-    
-    const blob = new Blob([str],{type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href=url; a.download=`vivah-backup-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-    alert(`✅ Backup done!\n👥 ${all.length} profiles\n📦 ${mb} MB`);
-}
-
-// ============ RESTORE ============
-async function restoreBackup(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 100*1024*1024) { alert('❌ Max 100MB'); event.target.value=''; return; }
-    
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        try {
-            const data = JSON.parse(e.target.result);
-            if (!data.profiles?.length) throw new Error('Empty');
-            if (confirm(`📋 Restore ${data.profiles.length} profiles?\n📅 ${new Date(data.timestamp).toLocaleString()}\n\n⚠️ Replaces current ${profiles.length} profiles.`)) {
-                await clearAllProfilesDB();
-                await bulkSaveProfiles(data.profiles);
-                profiles = await getAllProfiles();
-                updateStats(); viewAllProfiles(); searchProfiles();
-                alert('✅ Restored!');
-            }
-        } catch(err) { alert('❌ Invalid file'); }
-    };
-    reader.readAsText(file);
-    event.target.value='';
-}
-
-// ============ CLEAR ============
-async function clearAllData() {
-    if (!confirm('⚠️ DELETE ALL?\nDownload backup first!')) return;
-    if (!confirm('FINAL: Irreversible!')) return;
-    await clearAllProfilesDB();
-    profiles = [];
-    updateStats(); viewAllProfiles();
-    document.getElementById('searchResults').innerHTML = '<p style="text-align:center;padding:20px;grid-column:1/-1;">No profiles</p>';
-    alert('✅ Cleared');
-}
-
-// ============ SERVICE WORKER ============
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
-                                                              }
+/* INSTALL */
+#installBanner { display:none; position:fixed; bottom:0; left:0; right:0; background:#fff; padding:15px; box-shadow:0 -5px 20px rgba(0,0,0,0.2); z-index:150; text-align:center; }
+#installBanner button { padding:8px 15px; border-radius:10px; margin:3px; cursor:pointer; border:none; }
+#installBanner button:first-of-type { background:#FF8C00; color:#fff; }
