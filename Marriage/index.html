@@ -10,146 +10,147 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' rx='40' fill='%23FF8C00'/><text x='100' y='130' font-size='110' text-anchor='middle'>💑</text></svg>">
     <link rel="manifest" href="manifest.json">
     <title>Vivah Sutra 💑</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <!-- SPLASH -->
-    <div id="splashScreen" style="position:fixed;top:0;left:0;right:0;bottom:0;background:white;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.5s;">
-        <div style="font-size:5rem;">💑</div>
-        <h2 style="color:#FF8C00;margin-top:15px;font-family:sans-serif;">Vivah Sutra</h2>
+    <div id="splashScreen">
+        <div class="splash-icon">💑</div>
+        <h2>Vivah Sutra</h2>
+        <p>Loading...</p>
     </div>
 
-    <!-- NAVIGATION -->
-    <nav style="background:white;box-shadow:0 2px 15px rgba(255,140,0,0.1);position:sticky;top:0;z-index:100;border-bottom:2px solid #FFB300;padding:10px 15px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;max-width:800px;margin:0 auto;">
-            <div style="font-size:1.3rem;font-weight:700;color:#FF6F00;">💑 Vivah Sutra</div>
-            <div style="display:flex;gap:8px;">
-                <button onclick="showPage('home')" id="nav-home" style="padding:8px 14px;background:#fff3e0;color:#FF6F00;border:none;border-radius:20px;font-weight:700;font-size:0.85rem;">🏠 Home</button>
-                <button onclick="showPage('add')" id="nav-add" style="padding:8px 14px;background:white;color:#555;border:1px solid #ddd;border-radius:20px;font-weight:600;font-size:0.85rem;">➕ Add</button>
-                <button onclick="showPage('backup')" id="nav-backup" style="padding:8px 14px;background:white;color:#555;border:1px solid #ddd;border-radius:20px;font-weight:600;font-size:0.85rem;">💾 Backup</button>
+    <!-- TOP BAR -->
+    <nav id="topNav">
+        <div class="nav-inner">
+            <div class="nav-logo">💑 Vivah Sutra</div>
+            <div class="nav-btns">
+                <button onclick="showPage('home')" id="nav-home" class="nav-btn active">🏠 Home</button>
+                <button onclick="showPage('add')" id="nav-add" class="nav-btn">➕ Add</button>
+                <button onclick="showPage('backup')" id="nav-backup" class="nav-btn">💾 Backup</button>
             </div>
         </div>
     </nav>
 
-    <!-- MAIN CONTENT AREA -->
-    <div style="max-width:800px;margin:0 auto;padding:15px;">
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
 
-        <!-- HOME PAGE - Profile Cards Only -->
-        <div id="page-home" style="display:block;">
-            <div style="text-align:center;padding:20px 0;">
-                <h2 style="color:#FF6F00;">💑 All Profiles</h2>
-                <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;">
-                    <div style="background:white;padding:10px 20px;border-radius:15px;border:1px solid #FFC107;">
-                        <span style="font-weight:800;color:#FF6F00;" id="totalProfiles">0</span> Total
-                    </div>
-                    <div style="background:white;padding:10px 20px;border-radius:15px;border:1px solid #FFC107;">
-                        <span style="font-weight:800;color:#FF6F00;" id="groomCount">0</span> 🤵
-                    </div>
-                    <div style="background:white;padding:10px 20px;border-radius:15px;border:1px solid #FFC107;">
-                        <span style="font-weight:800;color:#FF6F00;" id="brideCount">0</span> 👰
-                    </div>
-                </div>
-                <!-- Quick Search -->
-                <div style="display:flex;gap:6px;margin-top:15px;flex-wrap:wrap;justify-content:center;">
-                    <input type="text" id="searchName" placeholder="Search name..." style="padding:8px;border:1px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.8rem;width:120px;">
-                    <select id="searchGender" style="padding:8px;border:1px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.8rem;">
-                        <option value="">All Gender</option>
-                        <option value="Groom">🤵 Groom</option>
-                        <option value="Bride">👰 Bride</option>
-                    </select>
-                    <input type="text" id="searchCommunity" placeholder="Community" style="padding:8px;border:1px solid #ffe0b2;border-radius:10px;background:#fffdf7;font-size:0.8rem;width:120px;">
-                    <button onclick="searchProfiles()" style="background:#FF8C00;color:white;border:none;padding:8px 15px;border-radius:10px;font-size:0.85rem;">🔍</button>
-                </div>
+        <!-- HOME PAGE -->
+        <div id="page-home" class="page active-page">
+            <div class="stats-row">
+                <div class="stat-box"><span id="totalProfiles">0</span><br>Total</div>
+                <div class="stat-box"><span id="groomCount">0</span><br>🤵 Groom</div>
+                <div class="stat-box"><span id="brideCount">0</span><br>👰 Bride</div>
             </div>
-            <div id="homeProfiles" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;"></div>
+
+            <!-- SEARCH BAR -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Search by name, community..." oninput="doSearch()">
+            </div>
+
+            <!-- FILTER ROW -->
+            <div class="filter-row">
+                <select id="filterGender" onchange="doSearch()">
+                    <option value="">All Gender</option>
+                    <option value="Groom">🤵 Groom</option>
+                    <option value="Bride">👰 Bride</option>
+                </select>
+                <button onclick="clearSearch()" class="clear-btn">✕ Clear</button>
+            </div>
+
+            <!-- PROFILE GRID -->
+            <div id="profileGrid" class="profile-grid"></div>
         </div>
 
-        <!-- ADD PROFILE PAGE - Hidden by default -->
-        <div id="page-add" style="display:none;">
-            <h2 style="text-align:center;color:#FF6F00;margin-bottom:15px;">➕ Add New Profile</h2>
-            <form id="profileForm" onsubmit="addProfile(event)" style="background:white;padding:20px;border-radius:18px;box-shadow:0 5px 20px rgba(255,140,0,0.08);border:1px solid #FFB300;">
+        <!-- ADD PAGE -->
+        <div id="page-add" class="page">
+            <h2 class="page-title">➕ Add New Profile</h2>
+            <form id="profileForm" class="add-form" onsubmit="return false;">
                 
-                <!-- IMAGE UPLOAD -->
-                <div style="margin-bottom:15px;text-align:center;">
-                    <label style="font-weight:600;color:#FF6F00;display:block;margin-bottom:5px;">📸 Profile Photo</label>
-                    <div id="imagePreview" onclick="document.getElementById('imageInput').click()" style="width:100%;aspect-ratio:9/16;max-height:250px;background:#fff7e0;border:2px dashed #FFB300;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;">
-                        <span style="font-size:3rem;">📷</span>
-                        <span style="color:#888;font-size:0.85rem;">Tap to add</span>
+                <!-- PHOTO -->
+                <div class="photo-section">
+                    <label>📸 Profile Photo</label>
+                    <div id="photoPreview" onclick="document.getElementById('photoInput').click()">
+                        <span>📷 Tap to select</span>
                     </div>
-                    <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
-                    <button type="button" id="cropBtn" onclick="openCropper()" style="display:none;margin-top:8px;background:#FF8C00;color:white;border:none;padding:8px 16px;border-radius:10px;">✂️ Crop</button>
+                    <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+                    <button type="button" id="cropBtn" class="crop-btn" style="display:none" onclick="openCrop()">✂️ Edit</button>
                 </div>
 
-                <!-- FIELDS -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">👤 Name *</label><input type="text" id="name" required style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">⚧ Gender *</label><select id="gender" required style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"><option value="">Select</option><option value="Groom">🤵 Groom</option><option value="Bride">👰 Bride</option></select></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">🎂 Age *</label><input type="number" id="age" required min="18" max="60" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">📏 Height</label><input type="text" id="height" placeholder="5'8''" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">⚖️ Weight</label><input type="text" id="weight" placeholder="70 kg" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">💍 Status</label><select id="maritalStatus" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"><option value="">Select</option><option value="Never Married">Never Married</option><option value="Divorced">Divorced</option><option value="Widowed">Widowed</option></select></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">🕉️ Gotra</label><input type="text" id="gotra" placeholder="Kashyap" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">💼 Profession *</label><input type="text" id="profession" required style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">📍 Location *</label><input type="text" id="location" required style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">👥 Community *</label><input type="text" id="community" required style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">📞 Mobile</label><input type="tel" id="mobile" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">🎓 Education</label><input type="text" id="education" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">💰 Income</label><input type="text" id="income" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></div>
-                    <div style="grid-column:1/-1;"><label style="font-weight:600;font-size:0.8rem;color:#FF6F00;">📝 About</label><textarea id="about" rows="2" style="width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;"></textarea></div>
+                <!-- FORM FIELDS -->
+                <div class="form-grid">
+                    <div class="fg"><label>👤 Name *</label><input type="text" id="fName" required></div>
+                    <div class="fg"><label>⚧ Gender *</label><select id="fGender" required><option value="">Select</option><option value="Groom">🤵 Groom</option><option value="Bride">👰 Bride</option></select></div>
+                    <div class="fg"><label>🎂 Age *</label><input type="number" id="fAge" required min="18" max="60"></div>
+                    <div class="fg"><label>📏 Height</label><input type="text" id="fHeight" placeholder="5'8''"></div>
+                    <div class="fg"><label>⚖️ Weight</label><input type="text" id="fWeight" placeholder="70 kg"></div>
+                    <div class="fg"><label>💍 Marital Status</label><select id="fMarital"><option value="">Select</option><option>Never Married</option><option>Divorced</option><option>Widowed</option></select></div>
+                    <div class="fg"><label>🕉️ Gotra</label><input type="text" id="fGotra" placeholder="Kashyap"></div>
+                    <div class="fg"><label>👨 Father's Name</label><input type="text" id="fFather" placeholder="Father's name"></div>
+                    <div class="fg"><label>👩 Mother's Name</label><input type="text" id="fMother" placeholder="Mother's name"></div>
+                    <div class="fg"><label>💼 Profession *</label><input type="text" id="fProfession" required></div>
+                    <div class="fg"><label>📍 Location *</label><input type="text" id="fLocation" required></div>
+                    <div class="fg"><label>👥 Community *</label><input type="text" id="fCommunity" required></div>
+                    <div class="fg"><label>📞 Mobile</label><input type="tel" id="fMobile"></div>
+                    <div class="fg"><label>🎓 Education</label><input type="text" id="fEducation"></div>
+                    <div class="fg"><label>💰 Income</label><input type="text" id="fIncome"></div>
+                    <div class="fg full"><label>📝 About</label><textarea id="fAbout" rows="3"></textarea></div>
                 </div>
-                <div style="display:flex;gap:10px;margin-top:15px;">
-                    <button type="submit" style="flex:1;padding:14px;background:linear-gradient(135deg,#FF8C00,#FFB300);color:white;border:none;border-radius:12px;font-weight:700;">💾 Save</button>
-                    <button type="button" onclick="resetForm()" style="flex:1;padding:14px;background:white;border:2px solid #FFB300;color:#FF6F00;border-radius:12px;font-weight:700;">🔄 Reset</button>
+                <div class="form-actions">
+                    <button type="submit" onclick="saveProfile()" class="btn-save">💾 Save</button>
+                    <button type="button" onclick="resetForm()" class="btn-reset">🔄 Reset</button>
                 </div>
             </form>
         </div>
 
-        <!-- BACKUP PAGE - Hidden by default -->
-        <div id="page-backup" style="display:none;">
-            <h2 style="text-align:center;color:#FF6F00;margin-bottom:15px;">💾 Backup & Restore</h2>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;">
-                <div onclick="downloadBackup()" style="background:white;padding:20px;border-radius:15px;border:2px solid #FFB300;text-align:center;cursor:pointer;">
-                    <div style="font-size:2.5rem;">📥</div>
-                    <h4 style="color:#FF6F00;">Download Backup</h4>
-                    <p style="font-size:0.75rem;color:#666;">All data + images</p>
+        <!-- BACKUP PAGE -->
+        <div id="page-backup" class="page">
+            <h2 class="page-title">💾 Backup & Restore</h2>
+            <div class="backup-cards">
+                <div class="b-card" onclick="downloadBackup()">
+                    <span class="b-icon">📥</span>
+                    <h3>Download Backup</h3>
+                    <p>Save all data + images</p>
                 </div>
-                <div onclick="document.getElementById('restoreFileInput').click()" style="background:white;padding:20px;border-radius:15px;border:2px solid #FFB300;text-align:center;cursor:pointer;">
-                    <div style="font-size:2.5rem;">📤</div>
-                    <h4 style="color:#FF6F00;">Restore Backup</h4>
-                    <p style="font-size:0.75rem;color:#666;">Upload JSON file</p>
-                    <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="restoreBackup(event)">
+                <div class="b-card" onclick="document.getElementById('restoreFile').click()">
+                    <span class="b-icon">📤</span>
+                    <h3>Restore Backup</h3>
+                    <p>Upload JSON file</p>
+                    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreBackup(event)">
                 </div>
             </div>
-            <button onclick="clearAllData()" style="width:100%;padding:14px;background:#dc3545;color:white;border:none;border-radius:12px;font-weight:700;font-size:1rem;">🗑️ Clear All Data</button>
+            <button onclick="clearAllData()" class="btn-danger-full">🗑️ Clear All Data</button>
         </div>
     </div>
 
-    <!-- FULL IMAGE VIEWER -->
-    <div id="imageViewer" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:300;align-items:center;justify-content:center;" onclick="closeImageViewer()">
-        <img id="fullImage" style="max-width:95%;max-height:90%;object-fit:contain;" onclick="event.stopPropagation();">
-        <button onclick="closeImageViewer()" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.2);color:white;border:none;padding:10px 15px;border-radius:20px;">✕</button>
+    <!-- IMAGE VIEWER -->
+    <div id="imageViewer" onclick="closeImageViewer()">
+        <img id="fullImage" onclick="event.stopPropagation()">
+        <button class="close-viewer" onclick="closeImageViewer()">✕</button>
     </div>
 
     <!-- CROP MODAL -->
-    <div id="cropModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:200;align-items:center;justify-content:center;">
-        <div style="background:white;border-radius:20px;padding:20px;width:95%;max-width:400px;">
-            <h3 style="color:#FF6F00;text-align:center;">✂️ Crop (9:16)</h3>
-            <div style="max-height:55vh;overflow:hidden;"><img id="cropImage" style="max-width:100%;"></div>
-            <div style="display:flex;gap:10px;margin-top:15px;">
-                <button onclick="cropImage()" style="flex:1;padding:12px;background:#28a745;color:white;border:none;border-radius:10px;font-weight:700;">✅ Done</button>
-                <button onclick="closeCropper()" style="flex:1;padding:12px;background:#dc3545;color:white;border:none;border-radius:10px;font-weight:700;">❌ Cancel</button>
+    <div id="cropModal">
+        <div class="crop-inner">
+            <h3>✂️ Crop (9:16)</h3>
+            <div class="crop-box"><img id="cropImage"></div>
+            <div class="crop-btns">
+                <button onclick="doCrop()" class="btn-crop-done">✅ Done</button>
+                <button onclick="closeCrop()" class="btn-crop-cancel">❌ Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- INSTALL PROMPT -->
-    <div id="installPrompt" style="display:none;position:fixed;bottom:0;left:0;right:0;background:white;padding:15px;box-shadow:0 -5px 20px rgba(0,0,0,0.2);z-index:150;text-align:center;">
-        <p>📱 Install this app</p>
-        <button onclick="installApp()" style="background:#FF8C00;color:white;border:none;padding:10px 20px;border-radius:10px;margin:3px;">Install</button>
-        <button onclick="document.getElementById('installPrompt').style.display='none'" style="background:#ddd;border:none;padding:10px 20px;border-radius:10px;margin:3px;">Later</button>
+    <!-- DETAIL MODAL -->
+    <div id="detailModal"></div>
+
+    <!-- INSTALL BANNER -->
+    <div id="installBanner">
+        <span>📱 Install this app</span>
+        <button onclick="installApp()">Install</button>
+        <button onclick="this.parentElement.style.display='none'">Later</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
