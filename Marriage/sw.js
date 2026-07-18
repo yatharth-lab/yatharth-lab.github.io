@@ -1,30 +1,83 @@
-const CACHE = 'vivah-v5';
-const ASSETS = [
-    '/','/index.html','/styles.css','/script.js','/manifest.json',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
+const CACHE_NAME = 'vivah-sutra-v8';
+const ASSETS_TO_CACHE = [
+    '/Marriage/',
+    '/Marriage/index.html',
+    '/Marriage/styles.css',
+    '/Marriage/script.js',
+    '/Marriage/manifest.json',
     'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js'
 ];
 
-self.addEventListener('install', e => {
-    e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+// Install - Cache all assets
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => {
+                console.log('✅ Caching assets...');
+                return cache.addAll(ASSETS_TO_CACHE);
+            })
+            .catch((err) => console.log('Cache error:', err))
+    );
     self.skipWaiting();
 });
 
-self.addEventListener('activate', e => {
-    e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+// Activate - Delete old caches
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cache) => {
+                    if (cache !== CACHE_NAME) {
+                        console.log('🗑️ Deleting old cache:', cache);
+                        return caches.delete(cache);
+                    }
+                })
+            );
+        })
+    );
     self.clients.claim();
 });
 
-self.addEventListener('fetch', e => {
-    if (e.request.url.includes('chrome-extension') || e.request.url.includes('indexedDB')) return;
-    e.respondWith(
-        caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
-            if (res.status === 200) {
-                const clone = res.clone();
-                caches.open(CACHE).then(c => c.put(e.request, clone));
-            }
-            return res;
-        }))
+// Fetch - Cache first, then network
+self.addEventListener('fetch', (event) => {
+    // Skip IndexedDB requests
+    if (event.request.url.includes('indexedDB') || 
+        event.request.url.includes('chrome-extension')) {
+        return;
+    }
+
+    event.respondWith(
+        caches.match(event.request)
+            .then((cachedResponse) => {
+                // Return cached response if found
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+
+                // Otherwise fetch from network
+                return fetch(event.request)
+                    .then((response) => {
+                        // Check if valid response
+                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                            return response;
+                        }
+
+                        // Clone and cache the new response
+                        const responseToCache = response.clone();
+                        caches.open(CACHE_NAME)
+                            .then((cache) => {
+                                cache.put(event.request, responseToCache);
+                            });
+
+                        return response;
+                    })
+                    .catch(() => {
+                        // Offline fallback
+                        if (event.request.mode === 'navigate') {
+                            return caches.match('/Marriage/index.html');
+                        }
+                    });
+            })
     );
 });
