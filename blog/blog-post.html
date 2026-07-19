@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudentBlog - Post</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15);
+            border-color: #4f46e5;
+        }
+
+        .article-card {
+            background: white;
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .article-card .featured-image {
+            width: 100%;
+            height: 380px;
+            border-radius: 16px;
+            object-fit: cover;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .article-card .featured-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .article-card .category-badge {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .article-card h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+            margin-bottom: 15px;
+        }
+
+        .article-card .meta-info {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            color: #64748b;
+            font-size: 0.95rem;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #f1f5f9;
+            margin-bottom: 25px;
+        }
+
+        .article-card .meta-info span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 30px;
+            padding: 15px 0;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f1f5f9;
+            flex-wrap: wrap;
+        }
+
+        .stats-bar .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .stats-bar .stat-item .num {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .like-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 30px;
+            background: #f1f5f9;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .like-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .like-btn.liked {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .share-section {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 25px 0;
+            padding: 20px 0;
+            border-top: 2px solid #f1f5f9;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .share-btn.whatsapp {
+            background: #25D366;
+        }
+        .share-btn.twitter {
+            background: #000;
+        }
+        .share-btn.linkedin {
+            background: #0A66C2;
+        }
+        .share-btn.facebook {
+            background: #1877F2;
+        }
+        .share-btn.copy {
+            background: #4f46e5;
+        }
+
+        .share-btn.copy.copied {
+            background: #16a34a;
+        }
+
+        .article-card .content-body {
+            font-size: 1.1rem;
+            line-height: 2;
+            color: #1e293b;
+        }
+
+        .article-card .content-body p {
+            margin-bottom: 20px;
+        }
+
+        .article-card .content-body h2 {
+            font-size: 1.8rem;
+            margin: 35px 0 15px;
+            color: #0f172a;
+        }
+
+        .article-card .content-body h3 {
+            font-size: 1.3rem;
+            margin: 25px 0 12px;
+            color: #1e293b;
+        }
+
+        .article-card .content-body ul,
+        .article-card .content-body ol {
+            margin: 15px 0 20px;
+            padding-left: 25px;
+        }
+
+        .article-card .content-body li {
+            margin-bottom: 8px;
+        }
+
+        .article-card .content-body blockquote {
+            background: #f1f5f9;
+            padding: 20px 30px;
+            border-radius: 12px;
+            border-left: 5px solid #4f46e5;
+            margin: 25px 0;
+            font-style: italic;
+            color: #334155;
+        }
+
+        .article-card .content-body .download-section {
+            background: linear-gradient(135deg, #f0f4ff, #e8eeff);
+            padding: 25px 30px;
+            border-radius: 16px;
+            margin: 30px 0;
+            border: 2px dashed #4f46e5;
+        }
+
+        .article-card .content-body .download-section a {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 10px;
+            margin-right: 10px;
+            transition: all 0.3s;
+        }
+
+        .article-card .content-body .download-section a:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+        }
+
+        .article-card .tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #f1f5f9;
+        }
+
+        .article-card .tags span {
+            background: #f1f5f9;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: #475569;
+        }
+
+        .author-box {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 16px;
+            margin-top: 30px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .author-box .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #4f46e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .author-box .info .name {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 1.1rem;
+        }
+
+        .author-box .info .bio {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .related-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f1f5f9;
+        }
+
+        .related-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #0f172a;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .related-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .related-card:hover {
+            border-color: #4f46e5;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.08);
+        }
+
+        .related-card a {
+            text-decoration: none;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .related-card p {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .error-state h2 {
+            font-size: 2.5rem;
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+
+        .error-state p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .error-state a {
+            display: inline-block;
+            margin-top: 20px;
+            background: #4f46e5;
+            color: white;
+            padding: 14px 35px;
+            border-radius: 16px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .article-card {
+                padding: 25px;
+            }
+            .article-card h1 {
+                font-size: 1.8rem;
+            }
+            .article-card .featured-image {
+                height: 200px;
+            }
+            .share-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .share-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="study-blog.html" class="back-btn">← Back to Blog</a>
+
+        <div class="article-card" id="articleContainer"></div>
+    </div>
+
+    <script src="blog.js"></script>
+    <script>
+        function getPostById(id) {
+            if (typeof blogPosts === 'undefined' || !Array.isArray(blogPosts)) return null;
+            return blogPosts.find(post => post.id === id);
+        }
+
+        function updateViews(postId) {
+            if (typeof blogPosts === 'undefined' || !Array.isArray(blogPosts)) return;
+            const post = blogPosts.find(p => p.id === postId);
+            if (post) {
+                post.views = (post.views || 0) + 1;
+                const viewed = JSON.parse(localStorage.getItem('viewedPosts') || '[]');
+                if (!viewed.includes(postId)) {
+                    viewed.push(postId);
+                    localStorage.setItem('viewedPosts', JSON.stringify(viewed));
+                }
+            }
+        }
+
+        function toggleLike(postId) {
+            if (typeof blogPosts === 'undefined' || !Array.isArray(blogPosts)) return;
+            const post = blogPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+            const index = likedPosts.indexOf(postId);
+
+            if (index > -1) {
+                likedPosts.splice(index, 1);
+                post.likes = (post.likes || 0) - 1;
+            } else {
+                likedPosts.push(postId);
+                post.likes = (post.likes || 0) + 1;
+            }
+            localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
+            renderPost();
+        }
+
+        function sharePost(platform, url, title) {
+            const encodedUrl = encodeURIComponent(url);
+            const encodedTitle = encodeURIComponent(title);
+
+            const shareUrls = {
+                whatsapp: `https://wa.me/?text=${encodedTitle}%20-%20${encodedUrl}`,
+                twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+                linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+                facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`
+            };
+
+            if (platform === 'copy') {
+                navigator.clipboard.writeText(`${title} - ${url}`).then(() => {
+                    const btn = document.querySelector('.share-btn.copy');
+                    btn.textContent = '✅ Copied!';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = '📋 Copy Link';
+                        btn.classList.remove('copied');
+                    }, 3000);
+                });
+                return;
+            }
+
+            window.open(shareUrls[platform], '_blank', 'width=600,height=500');
+        }
+
+        function renderPost() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const container = document.getElementById('articleContainer');
+
+            if (!id) {
+                container.innerHTML = `
+                    <div class="error-state">
+                        <h2>😕 No post selected</h2>
+                        <p>Please go back and choose a blog post to read.</p>
+                        <a href="study-blog.html">Browse Posts</a>
+                    </div>
+                `;
+                return;
+            }
+
+            if (typeof blogPosts === 'undefined' || !Array.isArray(blogPosts)) {
+                container.innerHTML = `
+                    <div class="error-state">
+                        <h2>⏳ Loading...</h2>
+                        <p>Please wait while the article loads.</p>
+                    </div>
+                `;
+                setTimeout(renderPost, 1000);
+                return;
+            }
+
+            const post = getPostById(id);
+
+            if (!post) {
+                container.innerHTML = `
+                    <div class="error-state">
+                        <h2>🔍 Post not found</h2>
+                        <p>The article you're looking for doesn't exist or was removed.</p>
+                        <a href="study-blog.html">Browse Posts</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const viewed = JSON.parse(localStorage.getItem('viewedPosts') || '[]');
+            if (!viewed.includes(post.id)) {
+                updateViews(post.id);
+            }
+
+            const imageSrc = post.imageUrl || post.image || '';
+            const isLiked = JSON.parse(localStorage.getItem('likedPosts') || '[]').includes(post.id);
+            const currentUrl = window.location.href;
+
+            const relatedPosts = blogPosts
+                .filter(p => p.category === post.category && p.id !== post.id)
+                .slice(0, 3);
+
+            container.innerHTML = `
+                ${imageSrc ? 
+                    `<div class="featured-image"><img src="${imageSrc}" alt="${post.title}" loading="lazy"></div>` : 
+                    `<div class="featured-image">📄</div>`
+                }
+                
+                <span class="category-badge">${post.category}</span>
+                <h1>${post.title}</h1>
+                
+                <div class="meta-info">
+                    <span>✍️ ${post.author || 'StudentBlog Team'}</span>
+                    <span>📅 ${post.date || '2026'}</span>
+                    <span>⏱️ ${post.readTime || '5 min'}</span>
+                </div>
+
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        👁️ <span class="num">${post.views || 0}</span> views
+                    </div>
+                    <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                        ${isLiked ? '❤️' : '🤍'} <span class="num">${post.likes || 0}</span> likes
+                    </button>
+                </div>
+
+                <div class="share-section">
+                    <button class="share-btn copy" onclick="sharePost('copy', '${currentUrl}', '${post.title}')">
+                        📋 Copy Link
+                    </button>
+                    <button class="share-btn whatsapp" onclick="sharePost('whatsapp', '${currentUrl}', '${post.title}')">
+                        📱 WhatsApp
+                    </button>
+                    <button class="share-btn twitter" onclick="sharePost('twitter', '${currentUrl}', '${post.title}')">
+                        🐦 Twitter
+                    </button>
+                    <button class="share-btn linkedin" onclick="sharePost('linkedin', '${currentUrl}', '${post.title}')">
+                        🔗 LinkedIn
+                    </button>
+                    <button class="share-btn facebook" onclick="sharePost('facebook', '${currentUrl}', '${post.title}')">
+                        👍 Facebook
+                    </button>
+                </div>
+
+                <div class="content-body">
+                    ${post.content}
+                    
+                    ${post.downloadLinks && post.downloadLinks.length > 0 ? `
+                        <div class="download-section">
+                            <strong>📥 Download Resources</strong>
+                            <p>Get these free resources to help you learn better:</p>
+                            ${post.downloadLinks.map(link => `
+                                <a href="${link.url}" target="_blank">⬇️ ${link.name}</a>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+
+                ${post.tags && post.tags.length > 0 ? `
+                    <div class="tags">
+                        ${post.tags.map(tag => `<span>#${tag}</span>`).join('')}
+                    </div>
+                ` : ''}
+
+                <div class="author-box">
+                    <div class="avatar">${(post.author || 'S')[0]}</div>
+                    <div class="info">
+                        <div class="name">${post.author || 'StudentBlog Team'}</div>
+                        <div class="bio">Sharing knowledge to help students learn better and achieve more.</div>
+                    </div>
+                </div>
+
+                <div class="related-section">
+                    <h3>📖 You might also like</h3>
+                    <div class="related-grid">
+                        ${relatedPosts.map(p => `
+                            <div class="related-card" onclick="window.location.href='blog-post.html?id=${p.id}'">
+                                <a href="blog-post.html?id=${p.id}">${p.title}</a>
+                                <p>${p.description.slice(0, 60)}...</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        renderPost();
+    </script>
+
+</body>
+</html>
