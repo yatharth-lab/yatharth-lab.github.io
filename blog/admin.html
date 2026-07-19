@@ -22,7 +22,7 @@
         }
 
         .admin-card {
-            max-width: 800px;
+            max-width: 850px;
             width: 100%;
             background: white;
             border-radius: 28px;
@@ -165,12 +165,79 @@
             font-size: 0.8rem;
         }
 
+        /* Download Group - New Design */
         .download-group {
             background: #f8fafc;
             padding: 20px;
             border-radius: 14px;
-            border: 2px dashed #e2e8f0;
+            border: 2px solid #e2e8f0;
             margin-bottom: 15px;
+            position: relative;
+        }
+
+        .download-group .download-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .download-group .download-row .or-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: 600;
+            grid-column: 1 / -1;
+            gap: 10px;
+        }
+
+        .download-group .download-row .or-divider::before,
+        .download-group .download-row .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .download-group .download-row .file-upload-area {
+            border: 2px dashed #dbeafe;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #eff6ff;
+            position: relative;
+        }
+
+        .download-group .download-row .file-upload-area:hover {
+            border-color: #4f46e5;
+            background: #dbeafe;
+        }
+
+        .download-group .download-row .file-upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .download-group .download-row .file-upload-area .file-icon {
+            font-size: 1.5rem;
+            display: block;
+        }
+
+        .download-group .download-row .file-upload-area .file-name {
+            font-size: 0.75rem;
+            color: #4f46e5;
+            font-weight: 600;
+            margin-top: 3px;
+            word-break: break-all;
         }
 
         .download-group .remove-btn {
@@ -278,6 +345,9 @@
             .form-row {
                 grid-template-columns: 1fr;
             }
+            .download-group .download-row {
+                grid-template-columns: 1fr;
+            }
             .admin-card h1 {
                 font-size: 1.6rem;
             }
@@ -288,7 +358,7 @@
 
     <div class="admin-card">
         <h1>✍️ Admin Panel</h1>
-        <p class="subtitle">Add a new blog post — image upload, downloads, views, shares — everything auto-updates!</p>
+        <p class="subtitle">Add a new blog post — image upload, file downloads, views, shares — everything auto-updates!</p>
 
         <form id="adminForm">
             <!-- GitHub Credentials -->
@@ -347,7 +417,7 @@
                     <img id="imagePreviewImg" src="" alt="Preview">
                     <button type="button" class="remove-image-btn" onclick="removeImage()">✕ Remove</button>
                 </div>
-                <div class="helper">Image will be uploaded to <strong>blog/images/</strong> folder in your repository</div>
+                <div class="helper">Image will be uploaded to <strong>blog/images/</strong> folder</div>
             </div>
 
             <div class="form-group">
@@ -373,13 +443,24 @@
                 </div>
             </div>
 
-            <!-- Download Links -->
+            <!-- Download Resources with Upload + Link Option -->
             <div class="form-group">
-                <label>📥 Download Resources (Optional)</label>
+                <label>📥 Download Resources (Optional — Upload file OR paste link)</label>
                 <div id="downloadContainer">
-                    <div class="download-group">
-                        <input type="text" placeholder="Resource name (e.g., PDF Guide)" class="download-name" style="margin-bottom:8px;">
-                        <input type="url" placeholder="Download URL" class="download-url">
+                    <div class="download-group" data-index="0">
+                        <div class="download-row">
+                            <div class="file-upload-area" id="downloadUpload0">
+                                <span class="file-icon">📤</span>
+                                <p style="font-size:0.8rem;color:#64748b;">Upload file (PDF, Image, ZIP)</p>
+                                <span class="file-name" id="downloadFileName0">No file selected</span>
+                                <input type="file" class="download-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.zip,.doc,.docx" data-index="0">
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:8px;">
+                                <input type="text" placeholder="Resource name (e.g., PDF Guide)" class="download-name" value="">
+                                <input type="url" placeholder="OR paste direct link (https://...)" class="download-url">
+                                <div class="helper" style="font-size:0.7rem;">Either upload a file OR paste a link — both work!</div>
+                            </div>
+                        </div>
                         <button type="button" class="remove-btn" onclick="removeDownload(this)">✕ Remove</button>
                     </div>
                 </div>
@@ -397,19 +478,53 @@
     </div>
 
     <script>
-        // ============ DOWNLOAD LINKS ============
+        // ============ DOWNLOAD COUNTER ============
+        let downloadCounter = 1;
+
+        // ============ ADD DOWNLOAD ============
         function addDownload() {
             const container = document.getElementById('downloadContainer');
+            const index = downloadCounter;
             const div = document.createElement('div');
             div.className = 'download-group';
+            div.dataset.index = index;
             div.innerHTML = `
-                <input type="text" placeholder="Resource name (e.g., PDF Guide)" class="download-name" style="margin-bottom:8px;">
-                <input type="url" placeholder="Download URL" class="download-url">
+                <div class="download-row">
+                    <div class="file-upload-area" id="downloadUpload${index}">
+                        <span class="file-icon">📤</span>
+                        <p style="font-size:0.8rem;color:#64748b;">Upload file (PDF, Image, ZIP)</p>
+                        <span class="file-name" id="downloadFileName${index}">No file selected</span>
+                        <input type="file" class="download-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.zip,.doc,.docx" data-index="${index}">
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <input type="text" placeholder="Resource name (e.g., PDF Guide)" class="download-name" value="">
+                        <input type="url" placeholder="OR paste direct link (https://...)" class="download-url">
+                        <div class="helper" style="font-size:0.7rem;">Either upload a file OR paste a link — both work!</div>
+                    </div>
+                </div>
                 <button type="button" class="remove-btn" onclick="removeDownload(this)">✕ Remove</button>
             `;
             container.appendChild(div);
+
+            // Add file input listener
+            const fileInput = div.querySelector('.download-file-input');
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const idx = this.dataset.index;
+                const fileNameSpan = document.getElementById(`downloadFileName${idx}`);
+                if (file) {
+                    fileNameSpan.textContent = file.name;
+                    fileNameSpan.style.color = '#16a34a';
+                } else {
+                    fileNameSpan.textContent = 'No file selected';
+                    fileNameSpan.style.color = '#4f46e5';
+                }
+            });
+
+            downloadCounter++;
         }
 
+        // ============ REMOVE DOWNLOAD ============
         function removeDownload(btn) {
             const group = btn.parentElement;
             if (document.querySelectorAll('.download-group').length > 1) {
@@ -419,7 +534,7 @@
             }
         }
 
-        // ============ IMAGE UPLOAD ============
+        // ============ IMAGE PREVIEW ============
         let uploadedImagePath = '';
         let uploadedImageUrl = '';
 
@@ -447,7 +562,7 @@
         }
 
         // ============ UPLOAD IMAGE TO GITHUB ============
-        async function uploadImageToGitHub(file, username, repo, token) {
+        async function uploadFileToGitHub(file, username, repo, token, folder) {
             const reader = new FileReader();
             return new Promise((resolve, reject) => {
                 reader.onload = async function(e) {
@@ -455,7 +570,7 @@
                         const base64Content = e.target.result.split(',')[1];
                         const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
                         const fileName = Date.now() + '-' + cleanName;
-                        const path = `blog/images/${fileName}`;
+                        const path = `${folder}/${fileName}`;
 
                         const uploadRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`, {
                             method: 'PUT',
@@ -464,17 +579,17 @@
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                message: `Add image: ${fileName}`,
+                                message: `Add file: ${fileName}`,
                                 content: base64Content
                             })
                         });
 
                         if (uploadRes.ok) {
-                            const imageUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/blog/images/${fileName}`;
-                            resolve({ path, url: imageUrl });
+                            const fileUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/${path}`;
+                            resolve({ path, url: fileUrl });
                         } else {
                             const err = await uploadRes.json();
-                            reject(new Error(err.message || 'Image upload failed'));
+                            reject(new Error(err.message || 'File upload failed'));
                         }
                     } catch (err) {
                         reject(err);
@@ -490,6 +605,22 @@
             status.textContent = msg;
             status.className = 'status ' + type;
         }
+
+        // ============ INITIAL FILE INPUT LISTENERS ============
+        document.querySelectorAll('.download-file-input').forEach(input => {
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const idx = this.dataset.index;
+                const fileNameSpan = document.getElementById(`downloadFileName${idx}`);
+                if (file) {
+                    fileNameSpan.textContent = file.name;
+                    fileNameSpan.style.color = '#16a34a';
+                } else {
+                    fileNameSpan.textContent = 'No file selected';
+                    fileNameSpan.style.color = '#4f46e5';
+                }
+            });
+        });
 
         // ============ FORM SUBMIT ============
         document.getElementById('adminForm').addEventListener('submit', async function(e) {
@@ -507,15 +638,51 @@
             const tags = document.getElementById('postTags').value.split(',').map(t => t.trim()).filter(t => t);
             const imageFile = document.getElementById('postImageFile').files[0];
 
-            const downloadNames = document.querySelectorAll('.download-name');
-            const downloadUrls = document.querySelectorAll('.download-url');
+            // Collect downloads with upload + link support
+            const downloadGroups = document.querySelectorAll('.download-group');
             const downloads = [];
-            for (let i = 0; i < downloadNames.length; i++) {
-                const name = downloadNames[i].value.trim();
-                const url = downloadUrls[i].value.trim();
-                if (name && url) downloads.push({ name, url });
+
+            for (let i = 0; i < downloadGroups.length; i++) {
+                const group = downloadGroups[i];
+                const nameInput = group.querySelector('.download-name');
+                const urlInput = group.querySelector('.download-url');
+                const fileInput = group.querySelector('.download-file-input');
+
+                const name = nameInput ? nameInput.value.trim() : '';
+                const url = urlInput ? urlInput.value.trim() : '';
+                const file = fileInput ? fileInput.files[0] : null;
+
+                // Skip if both name and (url or file) are empty
+                if (!name && !url && !file) continue;
+
+                let finalUrl = url;
+                let uploadedFilePath = '';
+
+                // If file is uploaded, upload it to GitHub
+                if (file) {
+                    try {
+                        const uploadResult = await uploadFileToGitHub(file, username, repo, token, 'blog/downloads');
+                        finalUrl = uploadResult.url;
+                        uploadedFilePath = uploadResult.path;
+                    } catch (err) {
+                        showStatus(`❌ Error uploading file "${file.name}": ${err.message}`, 'error');
+                        return;
+                    }
+                }
+
+                // If no URL and no file, skip
+                if (!finalUrl && !file) continue;
+
+                // Use name from input, or fallback to filename
+                const displayName = name || (file ? file.name : 'Download');
+
+                downloads.push({
+                    name: displayName,
+                    url: finalUrl || '#'
+                });
             }
 
+            // Validation
             if (!username || !repo || !token || !title || !description || !content || !imageFile) {
                 showStatus('❌ Please fill in all required fields (marked with *)', 'error');
                 return;
@@ -529,7 +696,7 @@
 
             try {
                 // STEP 1: Upload Image
-                const uploadResult = await uploadImageToGitHub(imageFile, username, repo, token);
+                const uploadResult = await uploadFileToGitHub(imageFile, username, repo, token, 'blog/images');
                 uploadedImagePath = uploadResult.path;
                 uploadedImageUrl = uploadResult.url;
 
@@ -602,24 +769,49 @@
                 });
 
                 if (pushRes.ok) {
-                    showStatus(`✅ Post "${title}" published successfully! 🎉 Image: ${uploadedImagePath}`, 'success');
+                    showStatus(`✅ Post "${title}" published successfully! 🎉`, 'success');
 
+                    // Reset form
                     document.getElementById('adminForm').reset();
                     removeImage();
 
+                    // Reset downloads
                     document.getElementById('downloadContainer').innerHTML = `
-                        <div class="download-group">
-                            <input type="text" placeholder="Resource name (e.g., PDF Guide)" class="download-name" style="margin-bottom:8px;">
-                            <input type="url" placeholder="Download URL" class="download-url">
+                        <div class="download-group" data-index="0">
+                            <div class="download-row">
+                                <div class="file-upload-area" id="downloadUpload0">
+                                    <span class="file-icon">📤</span>
+                                    <p style="font-size:0.8rem;color:#64748b;">Upload file (PDF, Image, ZIP)</p>
+                                    <span class="file-name" id="downloadFileName0">No file selected</span>
+                                    <input type="file" class="download-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.zip,.doc,.docx" data-index="0">
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <input type="text" placeholder="Resource name (e.g., PDF Guide)" class="download-name" value="">
+                                    <input type="url" placeholder="OR paste direct link (https://...)" class="download-url">
+                                    <div class="helper" style="font-size:0.7rem;">Either upload a file OR paste a link — both work!</div>
+                                </div>
+                            </div>
                             <button type="button" class="remove-btn" onclick="removeDownload(this)">✕ Remove</button>
                         </div>
                     `;
 
-                    document.getElementById('repoLink').href = `https://github.com/${username}/${repo}/blob/main/blog/blog.js`;
-                    document.getElementById('repoLink').textContent = `blog/blog.js`;
+                    // Re-add file input listener
+                    document.querySelector('.download-file-input').addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        const idx = this.dataset.index;
+                        const fileNameSpan = document.getElementById(`downloadFileName${idx}`);
+                        if (file) {
+                            fileNameSpan.textContent = file.name;
+                            fileNameSpan.style.color = '#16a34a';
+                        } else {
+                            fileNameSpan.textContent = 'No file selected';
+                            fileNameSpan.style.color = '#4f46e5';
+                        }
+                    });
 
                     document.querySelector('.image-upload-area .icon').style.display = 'block';
                     document.querySelector('.image-upload-area p').style.display = 'block';
+                    downloadCounter = 1;
                 } else {
                     const errData = await pushRes.json();
                     showStatus(`❌ Failed: ${errData.message || 'Unknown error'}`, 'error');
@@ -634,7 +826,7 @@
             submitBtn.textContent = '🚀 Publish Post';
         });
 
-        // ============ DRAG & DROP SUPPORT ============
+        // ============ DRAG & DROP SUPPORT FOR IMAGE ============
         const dropZone = document.getElementById('imageDropZone');
 
         dropZone.addEventListener('dragover', function(e) {
