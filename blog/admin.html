@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - StudentBlog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            min-height: 100vh;
+            padding: 30px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-card {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            padding: 45px 50px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .admin-card h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 5px;
+        }
+
+        .admin-card .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .form-group label .required {
+            color: #ef4444;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.08);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .form-group .helper {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .image-upload-area {
+            border: 2px dashed #e2e8f0;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8fafc;
+            position: relative;
+        }
+
+        .image-upload-area:hover {
+            border-color: #4f46e5;
+            background: #f0f4ff;
+        }
+
+        .image-upload-area .icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .image-upload-area p {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .image-upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        #imagePreviewContainer {
+            margin-top: 15px;
+            display: none;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+        }
+
+        #imagePreviewContainer img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            display: block;
+        }
+
+        #imagePreviewContainer .remove-image-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .download-group {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 14px;
+            border: 2px dashed #e2e8f0;
+            margin-bottom: 15px;
+        }
+
+        .download-group .remove-btn {
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .add-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #0f172a;
+            transition: all 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 16px 20px;
+            border-radius: 14px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .status.success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .status.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .status.loading {
+            display: block;
+            background: #e0e7ff;
+            color: #3730a3;
+            border: 1px solid #a5b4fc;
+        }
+
+        .preview-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .preview-link a {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .preview-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .admin-card {
+                padding: 25px 20px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .admin-card h1 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-card">
+        <h1>✍️ Admin Panel</h1>
+        <p class="subtitle">Add a new blog post — image upload, downloads, views, shares — everything auto-updates!</p>
+
+        <form id="adminForm">
+            <!-- GitHub Credentials -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>GitHub Username <span class="required">*</span></label>
+                    <input type="text" id="githubUsername" placeholder="your-username" required>
+                </div>
+                <div class="form-group">
+                    <label>Repository Name <span class="required">*</span></label>
+                    <input type="text" id="repoName" placeholder="your-repo" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Personal Access Token <span class="required">*</span></label>
+                <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx" required>
+                <div class="helper">Generate from GitHub Settings → Developer Settings → Personal Access Tokens (needs 'repo' scope)</div>
+            </div>
+
+            <hr style="margin: 25px 0; border: none; border-top: 2px solid #f1f5f9;">
+
+            <!-- Post Data -->
+            <div class="form-group">
+                <label>Post Title <span class="required">*</span></label>
+                <input type="text" id="postTitle" placeholder="e.g., 10 Best AI Tools for Students" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Category <span class="required">*</span></label>
+                    <select id="postCategory" required>
+                        <option value="AI">🤖 AI</option>
+                        <option value="Study">📖 Study</option>
+                        <option value="Career">💼 Career</option>
+                        <option value="Tech">💻 Tech</option>
+                        <option value="Other">📌 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Author</label>
+                    <input type="text" id="postAuthor" placeholder="Your name" value="StudentBlog Team">
+                </div>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="form-group">
+                <label>🖼️ Post Image <span class="required">*</span></label>
+                <div class="image-upload-area" id="imageDropZone">
+                    <span class="icon">📸</span>
+                    <p>Click or drag & drop an image here</p>
+                    <p style="font-size:0.8rem;color:#94a3b8;">JPG, PNG, WebP (Max 5MB)</p>
+                    <input type="file" id="postImageFile" accept="image/*" required>
+                </div>
+                <div id="imagePreviewContainer">
+                    <img id="imagePreviewImg" src="" alt="Preview">
+                    <button type="button" class="remove-image-btn" onclick="removeImage()">✕ Remove</button>
+                </div>
+                <div class="helper">Image will be uploaded to <strong>blog/images/</strong> folder in your repository</div>
+            </div>
+
+            <div class="form-group">
+                <label>Short Description <span class="required">*</span></label>
+                <textarea id="postDescription" placeholder="Brief description shown on the homepage card..." required></textarea>
+                <div class="helper">Max 200 characters recommended</div>
+            </div>
+
+            <div class="form-group">
+                <label>Full Content <span class="required">*</span></label>
+                <textarea id="postContent" placeholder="Write your full article here. You can use HTML tags like &lt;h2&gt;, &lt;ul&gt;, &lt;blockquote&gt; etc." required></textarea>
+                <div class="helper">Supports HTML formatting</div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Read Time</label>
+                    <input type="text" id="postReadTime" placeholder="e.g., 5 min" value="5 min">
+                </div>
+                <div class="form-group">
+                    <label>Tags (comma separated)</label>
+                    <input type="text" id="postTags" placeholder="AI, productivity, tools">
+                </div>
+            </div>
+
+            <!-- Download Links -->
+            <div class="form-group">
+                <label>📥 Download Resources (Optional)</label>
+                <div id="downloadContainer">
+                    <div class="download-group">
+                        <input type="text" placeholder="Resource name (e.g., PDF Guide)" class="download-name" style="margin-bottom:8px;">
+                        <input type="url" placeholder="Download URL" class="download-url">
+                        <button type="button" class="remove-btn" onclick="removeDownload(this)">✕ Remove</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn" onclick="addDownload()">+ Add another resource</button>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">🚀 Publish Post</button>
+        </form>
+
+        <div id="status" class="status"></div>
+
+        <div class="preview-link">
+            <a href="study-blog.html" target="_blank">👁️ View Blog →</a>
+        </div>
+    </div>
+
+    <script>
+        // ============ DOWNLOAD LINKS ============
+        function addDownload() {
+            const container = document.getElementById('downloadContainer');
+            const div = document.createElement('div');
+            div.className = 'download-group';
+            div.innerHTML = `
+                <input type="text" placeholder="Resource name (e.g., PDF Guide)" class="download-name" style="margin-bottom:8px;">
+                <input type="url" placeholder="Download URL" class="download-url">
+                <button type="button" class="remove-btn" onclick="removeDownload(this)">✕ Remove</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeDownload(btn) {
+            const group = btn.parentElement;
+            if (document.querySelectorAll('.download-group').length > 1) {
+                group.remove();
+            } else {
+                alert('Keep at least one download field (you can leave it empty)');
+            }
+        }
+
+        // ============ IMAGE UPLOAD ============
+        let uploadedImagePath = '';
+        let uploadedImageUrl = '';
+
+        document.getElementById('postImageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('imagePreviewImg').src = event.target.result;
+                    document.getElementById('imagePreviewContainer').style.display = 'block';
+                    document.querySelector('.image-upload-area .icon').style.display = 'none';
+                    document.querySelector('.image-upload-area p').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function removeImage() {
+            document.getElementById('postImageFile').value = '';
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.querySelector('.image-upload-area .icon').style.display = 'block';
+            document.querySelector('.image-upload-area p').style.display = 'block';
+            uploadedImagePath = '';
+            uploadedImageUrl = '';
+        }
+
+        // ============ UPLOAD IMAGE TO GITHUB ============
+        async function uploadImageToGitHub(file, username, repo, token) {
+            const reader = new FileReader();
+            return new Promise((resolve, reject) => {
+                reader.onload = async function(e) {
+                    try {
+                        const base64Content = e.target.result.split(',')[1];
+                        const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+                        const fileName = Date.now() + '-' + cleanName;
+                        const path = `blog/images/${fileName}`;
+
+                        const uploadRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `token ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: `Add image: ${fileName}`,
+                                content: base64Content
+                            })
+                        });
+
+                        if (uploadRes.ok) {
+                            const imageUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/blog/images/${fileName}`;
+                            resolve({ path, url: imageUrl });
+                        } else {
+                            const err = await uploadRes.json();
+                            reject(new Error(err.message || 'Image upload failed'));
+                        }
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ============ SHOW STATUS ============
+        function showStatus(msg, type) {
+            const status = document.getElementById('status');
+            status.textContent = msg;
+            status.className = 'status ' + type;
+        }
+
+        // ============ FORM SUBMIT ============
+        document.getElementById('adminForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('githubUsername').value.trim();
+            const repo = document.getElementById('repoName').value.trim();
+            const token = document.getElementById('githubToken').value.trim();
+            const title = document.getElementById('postTitle').value.trim();
+            const category = document.getElementById('postCategory').value;
+            const description = document.getElementById('postDescription').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+            const author = document.getElementById('postAuthor').value.trim() || 'StudentBlog Team';
+            const readTime = document.getElementById('postReadTime').value.trim() || '5 min';
+            const tags = document.getElementById('postTags').value.split(',').map(t => t.trim()).filter(t => t);
+            const imageFile = document.getElementById('postImageFile').files[0];
+
+            const downloadNames = document.querySelectorAll('.download-name');
+            const downloadUrls = document.querySelectorAll('.download-url');
+            const downloads = [];
+            for (let i = 0; i < downloadNames.length; i++) {
+                const name = downloadNames[i].value.trim();
+                const url = downloadUrls[i].value.trim();
+                if (name && url) downloads.push({ name, url });
+            }
+
+            if (!username || !repo || !token || !title || !description || !content || !imageFile) {
+                showStatus('❌ Please fill in all required fields (marked with *)', 'error');
+                return;
+            }
+
+            const status = document.getElementById('status');
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Uploading image...';
+            showStatus('⏳ Uploading image to GitHub...', 'loading');
+
+            try {
+                // STEP 1: Upload Image
+                const uploadResult = await uploadImageToGitHub(imageFile, username, repo, token);
+                uploadedImagePath = uploadResult.path;
+                uploadedImageUrl = uploadResult.url;
+
+                showStatus('✅ Image uploaded! Now publishing post...', 'loading');
+                submitBtn.textContent = '⏳ Publishing post...';
+
+                // STEP 2: Fetch current blog.js from blog/ folder
+                const fileUrl = `https://api.github.com/repos/${username}/${repo}/contents/blog/blog.js`;
+                let currentPosts = [];
+                let currentSha = '';
+
+                try {
+                    const getRes = await fetch(fileUrl, {
+                        headers: { 'Authorization': `token ${token}` }
+                    });
+
+                    if (getRes.ok) {
+                        const fileData = await getRes.json();
+                        currentSha = fileData.sha;
+                        const contentStr = atob(fileData.content);
+                        const match = contentStr.match(/const blogPosts = (\[[\s\S]*?\]);/);
+                        if (match) {
+                            try {
+                                currentPosts = eval(match[1]);
+                                if (!Array.isArray(currentPosts)) currentPosts = [];
+                            } catch (e) {
+                                currentPosts = [];
+                            }
+                        }
+                    }
+                } catch (err) {
+                    // File doesn't exist, will create new
+                }
+
+                // STEP 3: Create new post
+                const newPost = {
+                    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+                    title: title,
+                    description: description,
+                    content: content,
+                    category: category,
+                    image: uploadedImagePath,
+                    imageUrl: uploadedImageUrl,
+                    author: author,
+                    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+                    readTime: readTime,
+                    tags: tags,
+                    downloadLinks: downloads,
+                    views: 0,
+                    likes: 0
+                };
+
+                currentPosts.push(newPost);
+
+                // STEP 4: Create new blog.js content (NO SYNTAX ERRORS)
+                const newContent = `// Auto-generated by admin panel\nconst blogPosts = ${JSON.stringify(currentPosts, null, 2)};`;
+
+                // STEP 5: Push to GitHub
+                const pushRes = await fetch(fileUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Add new post: ${title}`,
+                        content: btoa(unescape(encodeURIComponent(newContent))),
+                        sha: currentSha || undefined
+                    })
+                });
+
+                if (pushRes.ok) {
+                    showStatus(`✅ Post "${title}" published successfully! 🎉 Image: ${uploadedImagePath}`, 'success');
+
+                    document.getElementById('adminForm').reset();
+                    removeImage();
+
+                    document.getElementById('downloadContainer').innerHTML = `
+                        <div class="download-group">
+                            <input type="text" placeholder="Resource name (e.g., PDF Guide)" class="download-name" style="margin-bottom:8px;">
+                            <input type="url" placeholder="Download URL" class="download-url">
+                            <button type="button" class="remove-btn" onclick="removeDownload(this)">✕ Remove</button>
+                        </div>
+                    `;
+
+                    document.getElementById('repoLink').href = `https://github.com/${username}/${repo}/blob/main/blog/blog.js`;
+                    document.getElementById('repoLink').textContent = `blog/blog.js`;
+
+                    document.querySelector('.image-upload-area .icon').style.display = 'block';
+                    document.querySelector('.image-upload-area p').style.display = 'block';
+                } else {
+                    const errData = await pushRes.json();
+                    showStatus(`❌ Failed: ${errData.message || 'Unknown error'}`, 'error');
+                }
+
+            } catch (err) {
+                showStatus(`❌ Error: ${err.message}`, 'error');
+                console.error('Error:', err);
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = '🚀 Publish Post';
+        });
+
+        // ============ DRAG & DROP SUPPORT ============
+        const dropZone = document.getElementById('imageDropZone');
+
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#4f46e5';
+            this.style.background = '#f0f4ff';
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e2e8f0';
+            this.style.background = '#f8fafc';
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e2e8f0';
+            this.style.background = '#f8fafc';
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('postImageFile').files = files;
+                const event = new Event('change');
+                document.getElementById('postImageFile').dispatchEvent(event);
+            }
+        });
+    </script>
+
+</body>
+</html>
