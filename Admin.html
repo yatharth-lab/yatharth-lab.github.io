@@ -147,7 +147,7 @@
 
                 if (!match) throw new Error("Could not find 'const storiesData = [...];' format in stories.js");
 
-                let insideArray = String(match).replace('const storiesData = [', '').replace('];', '').trim();
+                let insideArray = match[1].trim();
 
                 
                 const idMatches = insideArray.match(/id:\s*(\d+)/g);
