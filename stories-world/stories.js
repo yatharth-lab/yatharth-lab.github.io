@@ -117,5 +117,13 @@ const storiesData = [
   title: "मां",
   desc: "Great story of munshi prem Chandra from mansarovar part 1",
   file: "stories/मां.txt"
+},
+
+  {
+  id: 16,
+  category: "Munshi Premchand Stories",
+  title: "ईदगाह",
+  desc: "मुंशी प्रेमचंद की एक सुंदर कहानी...",
+  file: "stories/ईदगाह .txt"
 }
 ];
