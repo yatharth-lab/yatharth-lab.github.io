@@ -304,3 +304,34 @@ async function clearAllData(){
 
 // ============ SW ============
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+
+// ============ SYNC FROM GITHUB ============
+async function syncFromGitHub() {
+    // ⚠️ SAME TOKEN, OWNER, REPO DAALO
+    const TOKEN = 'YOUR_GITHUB_TOKEN_HERE';
+    const OWNER = 'YOUR_GITHUB_USERNAME_HERE';
+    const REPO = 'vivah-profiles';
+    
+    try {
+        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/issues?labels=biodata&state=open&per_page=100`, {
+            headers: { 'Authorization': `token ${TOKEN}`, 'User-Agent': 'VivahSutra' }
+        });
+        
+        const issues = await res.json();
+        
+        const remoteProfiles = issues.map(issue => {
+            try { return JSON.parse(issue.body); } catch(e) { return null; }
+        }).filter(p => p !== null);
+        
+        // Replace local data with remote
+        await clearAll();
+        await bulkAdd(remoteProfiles);
+        profiles = remoteProfiles;
+        
+        updateStats();
+        renderGrid(profiles);
+        alert(`✅ Synced! ${profiles.length} profiles`);
+    } catch(err) {
+        alert('📴 Offline - showing saved data');
+    }
+}
