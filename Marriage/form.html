@@ -97,11 +97,6 @@
             msg.style.color = '#FF8C00';
             msg.textContent = '⏳ Submitting...';
             
-            // ⚠️ ⚠️ ⚠️ YEH TEEN CHEEZEIN APNI DAALO ⚠️ ⚠️ ⚠️
-            const TOKEN = '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';
-            const OWNER = 'yatharth-lab';
-            const REPO = 'vivah-profiles';
-            
             const data = {
                 id: Date.now(),
                 name: document.getElementById('name').value,
@@ -124,34 +119,27 @@
                 createdAt: new Date().toISOString()
             };
             
-            const title = `👤 ${data.name}, ${data.age} - ${data.profession} (${data.location})`;
-            
             try {
-                const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/issues`, {
+                const res = await fetch('https://long-dream-947d.yatharthg833.workers.dev/', {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `token ${TOKEN}`,
-                        'Content-Type': 'application/json',
-                        'User-Agent': 'VivahSutra'
-                    },
-                    body: JSON.stringify({ title: title, body: JSON.stringify(data), labels: ['biodata'] })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
                 });
-                const responseText = await res.text();
-alert("Status: " + res.status + "\n\n" + responseText);
+                const result = await res.json();
                 
-                if (res.ok) {
+                if (result.success) {
                     msg.style.color = 'green';
                     msg.textContent = '✅ Biodata Submitted Successfully!';
                     e.target.reset();
                     document.getElementById('photoPreview').innerHTML = '<span>📷 Tap to select</span>';
                     photoData = null;
                 } else {
-                    throw new Error(responseText);
+                    msg.style.color = 'red';
+                    msg.textContent = '❌ Error: ' + (result.result?.message || 'Try again');
                 }
             } catch (err) {
-    msg.style.color = 'red';
-    msg.textContent = err.message;
-    alert(err.message);
+                msg.style.color = 'red';
+                msg.textContent = '❌ Network Error. Try again.';
             }
         }
     </script>
