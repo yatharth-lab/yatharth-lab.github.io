@@ -306,32 +306,23 @@ async function clearAllData(){
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 
 // ============ SYNC FROM GITHUB ============
+// ============ SYNC FROM GITHUB ============
 async function syncFromGitHub() {
-    // ⚠️ SAME TOKEN, OWNER, REPO DAALO
-    const TOKEN = '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';
-    const OWNER = 'yatharth-lab';
-    const REPO = 'vivah-profiles';
-    
     try {
-        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/issues?labels=biodata&state=open&per_page=100`, {
-            headers: { 'Authorization': `token ${TOKEN}`, 'User-Agent': 'VivahSutra' }
-        });
+        const res = await fetch('https://long-dream-947d.yatharthg833.workers.dev/');
+        const remote = await res.json();
         
-        const issues = await res.json();
-        
-        const remoteProfiles = issues.map(issue => {
-            try { return JSON.parse(issue.body); } catch(e) { return null; }
-        }).filter(p => p !== null);
-        
-        // Replace local data with remote
-        await clearAll();
-        await bulkAdd(remoteProfiles);
-        profiles = remoteProfiles;
-        
-        updateStats();
-        renderGrid(profiles);
-        alert(`✅ Synced! ${profiles.length} profiles`);
+        if (remote && remote.length > 0) {
+            await clearAll();
+            await bulkAdd(remote);
+            profiles = remote;
+            updateStats();
+            renderGrid(profiles);
+            alert('✅ ' + profiles.length + ' profiles loaded');
+        } else {
+            alert('📭 No profiles found');
+        }
     } catch(err) {
-        alert('📴 Offline - showing saved data');
+        alert('📴 Offline - using saved data');
     }
 }
