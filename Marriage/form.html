@@ -136,6 +136,8 @@
                     },
                     body: JSON.stringify({ title: title, body: JSON.stringify(data), labels: ['biodata'] })
                 });
+                const responseText = await res.text();
+alert("Status: " + res.status + "\n\n" + responseText);
                 
                 if (res.ok) {
                     msg.style.color = 'green';
@@ -144,11 +146,12 @@
                     document.getElementById('photoPreview').innerHTML = '<span>📷 Tap to select</span>';
                     photoData = null;
                 } else {
-                    throw new Error('Failed');
+                    throw new Error(responseText);
                 }
             } catch (err) {
-                msg.style.color = 'red';
-                msg.textContent = '❌ Error. Please try again.';
+    msg.style.color = 'red';
+    msg.textContent = err.message;
+    alert(err.message);
             }
         }
     </script>
