@@ -308,7 +308,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 // ============ SYNC FROM GITHUB ============
 async function syncFromGitHub() {
     // ⚠️ SAME TOKEN, OWNER, REPO DAALO
-    const TOKEN = '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';
+    const TOKEN = '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';
     const OWNER = 'yatharth-lab';
     const REPO = 'vivah-profiles';
     
