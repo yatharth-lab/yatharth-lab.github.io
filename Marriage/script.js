@@ -383,7 +383,9 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 // ============ SYNC FROM GITHUB ============
 async function syncFromGitHub() {
     try {
-        const res = await fetch('https://long-dream-947d.yatharthg833.workers.dev/');
+        const res = await fetch('https://long-dream-947d.yatharthg833.workers.dev/', {
+    cache: 'no-cache'
+});
         const remote = await res.json();
         
         if (remote && remote.length > 0) {
