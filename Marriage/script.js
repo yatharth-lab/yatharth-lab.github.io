@@ -235,6 +235,7 @@ async function deleteProfile(id){
     updateStats();renderGrid(profiles);
 }
 
+
 // ============ SHARE CARD ============
 async function shareCard(id){
     const p=profiles.find(x=>x.id===id);
@@ -242,26 +243,99 @@ async function shareCard(id){
     const canvas=document.createElement('canvas');
     const ctx=canvas.getContext('2d');
     canvas.width=1080;canvas.height=1920;
-    const grad=ctx.createLinearGradient(0,0,0,1920);
-    grad.addColorStop(0,'#FF8C00');grad.addColorStop(0.35,'#FFB300');grad.addColorStop(1,'#FFFFFF');
-    ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1920);
-    ctx.fillStyle='#FFF';ctx.shadowColor='rgba(0,0,0,0.1)';ctx.shadowBlur=30;
-    ctx.beginPath();ctx.roundRect(50,350,980,1420,50);ctx.fill();
-    ctx.shadowColor='transparent';ctx.shadowBlur=0;
-    ctx.fillStyle='#FF8C00';ctx.font='bold 50px Arial';ctx.textAlign='center';ctx.fillText('💑 VIVAH SUTRA',540,100);
-    if(p.image){const img=new Image();img.src=p.image;await new Promise(r=>{img.onload=r;});ctx.save();ctx.beginPath();ctx.arc(540,280,130,0,Math.PI*2);ctx.clip();ctx.drawImage(img,410,150,260,260);ctx.restore();}
-    else{ctx.fillStyle='#FFC107';ctx.beginPath();ctx.arc(540,280,130,0,Math.PI*2);ctx.fill();ctx.fillStyle='#FFF';ctx.font='80px Arial';ctx.fillText(p.gender==='Bride'?'👰':'🤵',540,310);}
-    ctx.fillStyle='#333';ctx.font='bold 55px Arial';ctx.fillText(`${p.name}, ${p.age} yrs`,540,460);
-    ctx.fillStyle='#FF8C00';ctx.font='35px Arial';ctx.fillText(p.gender==='Bride'?'👰 Bride':'🤵 Groom',540,520);
-    let y=640;
-    [['📏 Height',p.height],['⚖️ Weight',p.weight],['💍 Status',p.maritalStatus],['🕉️ Gotra',p.gotra],['👨 Father',p.fatherName],['👩 Mother',p.motherName],['💼 Profession',p.profession],['📍 Location',p.location],['👥 Community',p.community],['📞 Contact',p.mobile],['🎓 Education',p.education],['💰 Income',p.income]].forEach(([l,v])=>{
-        if(v&&v!=='Not specified'){ctx.fillStyle='#FFF3E0';ctx.beginPath();ctx.roundRect(120,y-25,840,55,15);ctx.fill();ctx.fillStyle='#333';ctx.font='bold 30px Arial';ctx.textAlign='left';ctx.fillText(l+':',140,y+12);ctx.fillStyle='#555';ctx.font='30px Arial';ctx.fillText(v,500,y+12);y+=80;}
+    
+    // White background
+    ctx.fillStyle='#FFFFFF';
+    ctx.fillRect(0,0,1080,1920);
+    
+    // Large photo on left side
+    if(p.image){
+        const img=new Image();
+        img.src=p.image;
+        await new Promise(r=>{img.onload=r;});
+        ctx.drawImage(img,60,60,450,600);
+    } else {
+        ctx.fillStyle='#FFC107';
+        ctx.fillRect(60,60,450,600);
+        ctx.fillStyle='#FFF';
+        ctx.font='bold 120px Arial';
+        ctx.textAlign='center';
+        ctx.fillText(p.gender==='Bride'?'👰':'🤵',285,400);
+    }
+    
+    // Name on right side
+    ctx.fillStyle='#FF8C00';
+    ctx.font='bold 65px Arial';
+    ctx.textAlign='left';
+    ctx.fillText(p.name,560,150);
+    
+    // Age & Gender
+    ctx.fillStyle='#555';
+    ctx.font='40px Arial';
+    ctx.fillText(`${p.age} yrs • ${p.gender==='Bride'?'👰 Bride':'🤵 Groom'}`,560,230);
+    
+    // Divider line
+    ctx.strokeStyle='#FFB300';
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(560,280);
+    ctx.lineTo(1000,280);
+    ctx.stroke();
+    
+    // Details
+    let y=340;
+    const details=[
+        ['📏 Height',p.height],
+        ['⚖️ Weight',p.weight],
+        ['💍 Status',p.maritalStatus],
+        ['🕉️ Gotra',p.gotra],
+        ['👨 Father',p.fatherName],
+        ['👩 Mother',p.motherName],
+        ['💼 Profession',p.profession],
+        ['📍 Location',p.location],
+        ['👥 Community',p.community],
+        ['📞 Contact',p.mobile],
+        ['🎓 Education',p.education],
+        ['💰 Income',p.income]
+    ];
+    
+    ctx.textAlign='left';
+    details.forEach(([l,v])=>{
+        if(v&&v!=='Not specified'&&v!==''){
+            ctx.fillStyle='#333';
+            ctx.font='bold 32px Arial';
+            ctx.fillText(l+':',560,y);
+            ctx.fillStyle='#555';
+            ctx.font='32px Arial';
+            ctx.fillText(v,800,y);
+            y+=55;
+        }
     });
-    ctx.fillStyle='#FF8C00';ctx.font='bold 35px Arial';ctx.textAlign='center';ctx.fillText('💑 Vivah Sutra App',540,1820);
+    
+    // About section
+    if(p.about&&p.about!=='No description'){
+        y+=20;
+        ctx.fillStyle='#FF8C00';
+        ctx.font='bold 32px Arial';
+        ctx.fillText('📝 About:',60,y);
+        ctx.fillStyle='#555';
+        ctx.font='28px Arial';
+        ctx.fillText(p.about.substring(0,200),60,y+45);
+    }
+    
+    // Convert to blob and share
     const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.9));
     const file=new File([blob],`${p.name}_Profile.jpg`,{type:'image/jpeg'});
-    if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({title:`${p.name}`,files:[file]});}
-    else{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${p.name}_Profile.jpg`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);alert('📥 Downloaded!');}
+    if(navigator.share&&navigator.canShare?.({files:[file]})){
+        await navigator.share({title:`${p.name}`,files:[file]});
+    } else {
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;a.download=`${p.name}_Profile.jpg`;
+        document.body.appendChild(a);a.click();
+        document.body.removeChild(a);URL.revokeObjectURL(url);
+        alert('📥 Downloaded!');
+    }
 }
 
 // ============ IMAGE VIEWER ============
