@@ -237,106 +237,180 @@ async function deleteProfile(id){
 
 
 // ============ SHARE CARD ============
+
+    // ========= SHARE CARD =========
+function drawCover(ctx,img,x,y,w,h,r=25){
+    const s=Math.max(w/img.width,h/img.height);
+    const nw=img.width*s,nh=img.height*s;
+    const nx=x+(w-nw)/2,ny=y+(h-nh)/2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x,y,w,h,r);
+    ctx.clip();
+    ctx.drawImage(img,nx,ny,nw,nh);
+    ctx.restore();
+}
+
 async function shareCard(id){
     const p=profiles.find(x=>x.id===id);
     if(!p)return;
-    const canvas=document.createElement('canvas');
-    const ctx=canvas.getContext('2d');
-    canvas.width=1080;canvas.height=1920;
-    
-    // White background
-    ctx.fillStyle='#FFFFFF';
+
+    const canvas=document.createElement("canvas");
+    const ctx=canvas.getContext("2d");
+    canvas.width=1080;
+    canvas.height=1920;
+
+    // Background
+    ctx.fillStyle="#fff";
     ctx.fillRect(0,0,1080,1920);
-    
-    // Large photo on left side
+
+    const g=ctx.createLinearGradient(0,0,1080,0);
+    g.addColorStop(0,"#FFF3E0");
+    g.addColorStop(1,"#FFFFFF");
+    ctx.fillStyle=g;
+    ctx.fillRect(0,0,1080,1920);
+
+    // Top Orange Strip
+    ctx.fillStyle="#F57C00";
+    ctx.fillRect(0,0,1080,45);
+
+    // Main Card
+    ctx.shadowColor="rgba(0,0,0,.18)";
+    ctx.shadowBlur=25;
+    ctx.fillStyle="#fff";
+    ctx.beginPath();
+    ctx.roundRect(35,55,1010,1815,35);
+    ctx.fill();
+    ctx.shadowBlur=0;
+
+    // Photo
     if(p.image){
         const img=new Image();
         img.src=p.image;
-        await new Promise(r=>{img.onload=r;});
-        ctx.drawImage(img,60,60,450,600);
-    } else {
-        ctx.fillStyle='#FFC107';
-        ctx.fillRect(60,60,450,600);
-        ctx.fillStyle='#FFF';
-        ctx.font='bold 120px Arial';
-        ctx.textAlign='center';
-        ctx.fillText(p.gender==='Bride'?'👰':'🤵',285,400);
+        await new Promise(r=>img.onload=r);
+
+        drawCover(ctx,img,70,90,432,768,30);
+
+        ctx.strokeStyle="#FF9800";
+        ctx.lineWidth=5;
+        ctx.beginPath();
+        ctx.roundRect(70,90,432,768,30);
+        ctx.stroke();
+
+    }else{
+        ctx.fillStyle="#FFE0B2";
+        ctx.beginPath();
+        ctx.roundRect(70,90,432,768,30);
+        ctx.fill();
+
+        ctx.fillStyle="#F57C00";
+        ctx.font="bold 120px Arial";
+        ctx.textAlign="center";
+        ctx.fillText(p.gender=="Bride"?"👰":"🤵",295,430);
     }
-    
-    // Name on right side
-    ctx.fillStyle='#FF8C00';
-    ctx.font='bold 65px Arial';
-    ctx.textAlign='left';
-    ctx.fillText(p.name,560,150);
-    
-    // Age & Gender
-    ctx.fillStyle='#555';
-    ctx.font='40px Arial';
-    ctx.fillText(`${p.age} yrs • ${p.gender==='Bride'?'👰 Bride':'🤵 Groom'}`,560,230);
-    
-    // Divider line
-    ctx.strokeStyle='#FFB300';
+
+    // Name
+    ctx.textAlign="left";
+    ctx.fillStyle="#F57C00";
+    ctx.font="bold 58px Arial";
+    ctx.fillText(p.name||"",560,150);
+
+    ctx.fillStyle="#666";
+    ctx.font="36px Arial";
+    ctx.fillText(`${p.age||"-"} Years`,560,215);
+
+    ctx.fillStyle="#FF9800";
+    ctx.font="bold 34px Arial";
+    ctx.fillText(p.gender=="Bride"?"👰 Bride":"🤵 Groom",560,270);
+
+    ctx.strokeStyle="#FFD180";
     ctx.lineWidth=3;
     ctx.beginPath();
-    ctx.moveTo(560,280);
-    ctx.lineTo(1000,280);
+    ctx.moveTo(560,315);
+    ctx.lineTo(980,315);
     ctx.stroke();
-    
-    // Details
-    let y=340;
-    const details=[
-        ['📏 Height',p.height],
-        ['⚖️ Weight',p.weight],
-        ['💍 Status',p.maritalStatus],
-        ['🕉️ Gotra',p.gotra],
-        ['👨 Father',p.fatherName],
-        ['👩 Mother',p.motherName],
-        ['💼 Profession',p.profession],
-        ['📍 Location',p.location],
-        ['👥 Community',p.community],
-        ['📞 Contact',p.mobile],
-        ['🎓 Education',p.education],
-        ['💰 Income',p.income]
-    ];
-    
-    ctx.textAlign='left';
-    details.forEach(([l,v])=>{
-        if(v&&v!=='Not specified'&&v!==''){
-            ctx.fillStyle='#333';
-            ctx.font='bold 32px Arial';
-            ctx.fillText(l+':',560,y);
-            ctx.fillStyle='#555';
-            ctx.font='32px Arial';
-            ctx.fillText(v,800,y);
-            y+=55;
-        }
+
+    let y=380;
+
+    [
+        ["📏 Height",p.height],
+        ["⚖️ Weight",p.weight],
+        ["💍 Status",p.maritalStatus],
+        ["🕉️ Gotra",p.gotra],
+        ["👨 Father",p.fatherName],
+        ["👩 Mother",p.motherName],
+        ["🎓 Education",p.education],
+        ["💼 Profession",p.profession],
+        ["💰 Income",p.income],
+        ["👥 Community",p.community],
+        ["📍 Location",p.location],
+        ["📞 Contact",p.mobile]
+    ].forEach(([k,v])=>{
+
+        if(!v||v=="Not specified")return;
+
+        ctx.fillStyle="#FFF8F0";
+        ctx.beginPath();
+        ctx.roundRect(560,y-28,420,50,14);
+        ctx.fill();
+
+        ctx.fillStyle="#F57C00";
+        ctx.font="bold 26px Arial";
+        ctx.fillText(k,575,y);
+
+        ctx.fillStyle="#444";
+        ctx.font="26px Arial";
+        ctx.fillText(v,760,y);
+
+        y+=65;
     });
-    
-    // About section
-    if(p.about&&p.about!=='No description'){
-        y+=20;
-        ctx.fillStyle='#FF8C00';
-        ctx.font='bold 32px Arial';
-        ctx.fillText('📝 About:',60,y);
-        ctx.fillStyle='#555';
-        ctx.font='28px Arial';
-        ctx.fillText(p.about.substring(0,200),60,y+45);
+
+    // About
+    if(p.about && p.about!="No description"){
+
+        y+=15;
+
+        ctx.fillStyle="#F57C00";
+        ctx.font="bold 34px Arial";
+        ctx.fillText("📝 About",70,y);
+
+        ctx.fillStyle="#555";
+        ctx.font="28px Arial";
+
+        let text=p.about;
+        let line="";
+        let yy=y+45;
+
+        for(const word of text.split(" ")){
+            const test=line+word+" ";
+            if(ctx.measureText(test).width>930){
+                ctx.fillText(line,70,yy);
+                line=word+" ";
+                yy+=36;
+                if(yy>1810)break;
+            }else line=test;
+        }
+        ctx.fillText(line,70,yy);
     }
-    
-    // Convert to blob and share
-    const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.9));
-    const file=new File([blob],`${p.name}_Profile.jpg`,{type:'image/jpeg'});
-    if(navigator.share&&navigator.canShare?.({files:[file]})){
-        await navigator.share({title:`${p.name}`,files:[file]});
-    } else {
+
+    const blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",0.92));
+    const file=new File([blob],`${p.name}_Profile.jpg`,{type:"image/jpeg"});
+
+    if(navigator.share && navigator.canShare?.({files:[file]})){
+        await navigator.share({
+            title:p.name,
+            files:[file]
+        });
+    }else{
         const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');
-        a.href=url;a.download=`${p.name}_Profile.jpg`;
-        document.body.appendChild(a);a.click();
-        document.body.removeChild(a);URL.revokeObjectURL(url);
-        alert('📥 Downloaded!');
+        const a=document.createElement("a");
+        a.href=url;
+        a.download=`${p.name}_Profile.jpg`;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 }
+
 
 // ============ IMAGE VIEWER ============
 function viewFull(src){if(src){document.getElementById('fullImage').src=src;document.getElementById('imageViewer').classList.add('show');}}
