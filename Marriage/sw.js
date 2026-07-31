@@ -1,83 +1,85 @@
-const CACHE_NAME = 'vivah-sutra-v8';
-const ASSETS_TO_CACHE = [
-    '/Marriage/',
-    '/Marriage/index.html',
-    '/Marriage/styles.css',
-    '/Marriage/script.js',
-    '/Marriage/manifest.json',
-    'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css',
-    'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js'
+const CACHE_NAME = "vivah-sutra-v9";
+
+const ASSETS = [
+  "/Marriage/",
+  "/Marriage/index.html",
+  "/Marriage/styles.css",
+  "/Marriage/script.js",
+  "/Marriage/manifest.json",
+  "https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css",
+  "https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"
 ];
 
-// Install - Cache all assets
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('✅ Caching assets...');
-                return cache.addAll(ASSETS_TO_CACHE);
-            })
-            .catch((err) => console.log('Cache error:', err))
-    );
-    self.skipWaiting();
+// Install
+self.addEventListener("install", e => {
+  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+  );
 });
 
-// Activate - Delete old caches
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cache) => {
-                    if (cache !== CACHE_NAME) {
-                        console.log('🗑️ Deleting old cache:', cache);
-                        return caches.delete(cache);
-                    }
-                })
-            );
+// Activate
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
         })
-    );
-    self.clients.claim();
+      )
+    )
+  );
+  self.clients.claim();
 });
 
-// Fetch - Cache first, then network
-self.addEventListener('fetch', (event) => {
-    // Skip IndexedDB requests
-    if (event.request.url.includes('indexedDB') || 
-        event.request.url.includes('chrome-extension')) {
-        return;
-    }
+// Fetch
+self.addEventListener("fetch", e => {
 
-    event.respondWith(
-        caches.match(event.request)
-            .then((cachedResponse) => {
-                // Return cached response if found
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
+  if (e.request.method !== "GET") return;
 
-                // Otherwise fetch from network
-                return fetch(event.request)
-                    .then((response) => {
-                        // Check if valid response
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
-                            return response;
-                        }
+  const url = new URL(e.request.url);
 
-                        // Clone and cache the new response
-                        const responseToCache = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then((cache) => {
-                                cache.put(event.request, responseToCache);
-                            });
+  // Always try network first for app files
+  if (
+    url.pathname.endsWith("index.html") ||
+    url.pathname.endsWith("script.js") ||
+    url.pathname.endsWith("styles.css") ||
+    url.pathname.endsWith("manifest.json")
+  ) {
 
-                        return response;
-                    })
-                    .catch(() => {
-                        // Offline fallback
-                        if (event.request.mode === 'navigate') {
-                            return caches.match('/Marriage/index.html');
-                        }
-                    });
-            })
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
     );
+
+    return;
+  }
+
+  // Cache First for everything else
+  e.respondWith(
+    caches.match(e.request).then(cache => {
+
+      if (cache) return cache;
+
+      return fetch(e.request).then(res => {
+
+        if (res.status === 200) {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, copy));
+        }
+
+        return res;
+
+      });
+
+    })
+  );
+
 });
