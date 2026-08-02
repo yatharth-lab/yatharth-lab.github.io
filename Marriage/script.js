@@ -153,7 +153,6 @@ function openDetail(id){
                 ${dl('📞 Mobile',p.mobile)}
                 ${dl('🎓 Education',p.education)}
                 ${dl('💰 Income',p.income)}
-                ${p.about&&p.about!=='No description'?`<div style="margin-top:10px;background:#fff7e0;padding:12px;border-radius:10px;"><strong>📝 About:</strong><br>${p.about}</div>`:''}
             </div>
             <div class="detail-actions">
                 <button style="background:#25D366;color:#fff;" onclick="shareCard(${p.id})">📤 Share</button>
@@ -235,10 +234,7 @@ async function deleteProfile(id){
     updateStats();renderGrid(profiles);
 }
 
-
-// ============ SHARE CARD ============
-
-   // // ============ PREMIUM SHARE CARD (FULL FIXED) ============
+// ============ SHARE CARD (WITHOUT ABOUT SECTION) ============
 async function shareCard(id) {
     const p = profiles.find(x => x.id === id);
     if (!p) return;
@@ -293,7 +289,6 @@ async function shareCard(id) {
             sx = 0; sy = (img.height - sh) / 2;
         }
         
-        // Outer Orange Border (Shadow)
         ctx.shadowColor = 'rgba(200, 100, 20, 0.3)';
         ctx.shadowBlur = 20;
         ctx.shadowOffsetY = 5;
@@ -302,14 +297,12 @@ async function shareCard(id) {
         ctx.roundRect(imgX - 8, imgY - 8, imgW + 16, imgH + 16, 30);
         ctx.fill();
         
-        // Inner White Border
         ctx.shadowColor = 'transparent';
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
         ctx.roundRect(imgX - 4, imgY - 4, imgW + 8, imgH + 8, 25);
         ctx.fill();
 
-        // Actual Image Clip
         ctx.save();
         ctx.beginPath();
         ctx.roundRect(imgX, imgY, imgW, imgH, 20);
@@ -317,8 +310,6 @@ async function shareCard(id) {
         ctx.drawImage(img, sx, sy, sw, sh, imgX, imgY, imgW, imgH);
         ctx.restore();
     } else {
-        // ================= FIX: PREMIUM PLACEHOLDER =================
-        // Outer Border
         ctx.shadowColor = 'rgba(200, 100, 20, 0.2)';
         ctx.shadowBlur = 15;
         ctx.fillStyle = '#E86A17';
@@ -326,14 +317,12 @@ async function shareCard(id) {
         ctx.roundRect(imgX - 8, imgY - 8, imgW + 16, imgH + 16, 30);
         ctx.fill();
 
-        // Inner White Border
         ctx.shadowColor = 'transparent';
         ctx.fillStyle = '#FFF9F0';
         ctx.beginPath();
         ctx.roundRect(imgX - 4, imgY - 4, imgW + 8, imgH + 8, 25);
         ctx.fill();
 
-        // Soft Gradient Background inside placeholder
         const gradient = ctx.createLinearGradient(imgX, imgY, imgX + imgW, imgY + imgH);
         gradient.addColorStop(0, '#FFF0E0');
         gradient.addColorStop(1, '#FFDCC0');
@@ -342,7 +331,6 @@ async function shareCard(id) {
         ctx.roundRect(imgX, imgY, imgW, imgH, 20);
         ctx.fill();
 
-        // Stylish Initials (Name ka pehla letter bada aur premium)
         ctx.fillStyle = '#C95A0E';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -350,38 +338,33 @@ async function shareCard(id) {
         ctx.font = 'bold 180px Georgia, "Times New Roman", serif';
         ctx.fillText(initial, 540, 480);
         
-        // Small Icon below initials
         ctx.font = '60px Arial, sans-serif';
         ctx.fillStyle = '#E86A17';
         ctx.fillText(p.gender === 'Bride' ? '👰' : '🤵', 540, 650);
-        ctx.textBaseline = 'alphabetic'; // Reset baseline
+        ctx.textBaseline = 'alphabetic';
     }
 
-    // ================= FIX: AUTO-SCALING NAME =================
+    // 5. Name (Auto-scaling)
     ctx.fillStyle = '#C95A0E';
-ctx.textAlign = 'center';
-
-let nameFontSize = 80; // Starting size
-ctx.font = `bold ${nameFontSize}px Georgia, "Times New Roman", serif`;
-
-const maxWidth = 700;
-
-while (ctx.measureText(p.name).width > maxWidth && nameFontSize > 40) {
-    nameFontSize -= 2;
+    ctx.textAlign = 'center';
+    let nameFontSize = 80;
     ctx.font = `bold ${nameFontSize}px Georgia, "Times New Roman", serif`;
-}
+    const maxWidth = 700;
+    while (ctx.measureText(p.name).width > maxWidth && nameFontSize > 40) {
+        nameFontSize -= 2;
+        ctx.font = `bold ${nameFontSize}px Georgia, "Times New Roman", serif`;
+    }
+    ctx.fillText(p.name, 540, 970);
 
-ctx.fillText(p.name, 540, 970);
-
-    // 7. Age & Gender
+    // 6. Age & Gender
     ctx.fillStyle = '#444';
     ctx.font = '32px Arial, sans-serif';
     ctx.fillText(`${p.age} yrs • ${p.gender === 'Bride' ? '👰 Bride' : '🤵 Groom'}`, 540, 1025);
 
-    // 8. Designer Divider
+    // 7. Designer Divider
     drawDesignerDivider(ctx, 540, 1060);
 
-    // 9. Details Grid (2 Columns)
+    // 8. Details Grid (2 Columns) - NO ABOUT SECTION
     const details = [
         ['📏 Height', p.height], ['⚖️ Weight', p.weight],
         ['💍 Status', p.maritalStatus], ['🕉️ Gotra', p.gotra],
@@ -393,46 +376,31 @@ ctx.fillText(p.name, 540, 970);
 
     let yBase = 1110;
 
-for (let i = 0; i < details.length; i += 2) {
+    for (let i = 0; i < details.length; i += 2) {
+        const left = details[i];
+        const right = details[i + 1];
 
-    const left = details[i];
-    const right = details[i + 1];
+        const leftShow = left && left[1] && left[1].trim() !== "" && left[1] !== "Not specified";
+        const rightShow = right && right[1] && right[1].trim() !== "" && right[1] !== "Not specified";
 
-    const leftShow =
-        left &&
-        left[1] &&
-        left[1].trim() !== "" &&
-        left[1] !== "Not specified";
+        if (!leftShow && !rightShow) continue;
 
-    const rightShow =
-        right &&
-        right[1] &&
-        right[1].trim() !== "" &&
-        right[1] !== "Not specified";
+        if (leftShow) drawPremiumBox(ctx, left, 135, yBase, 380);
+        if (rightShow) drawPremiumBox(ctx, right, 565, yBase, 380);
 
-    // अगर दोनों खाली हैं तो पूरी row छोड़ दो
-    if (!leftShow && !rightShow) continue;
+        yBase += 100;
+    }
 
-    if (leftShow)
-        drawPremiumBox(ctx, left, 135, yBase, 380);
+    yBase += 80;
 
-    if (rightShow)
-        drawPremiumBox(ctx, right, 565, yBase, 380);
-
-    yBase += 100;
-}
-
-    yBase += 50;
-        
-        
-    // 11. Bottom Floral Decoration
+    // 9. Bottom Floral Decoration
     drawBottomDecoration(ctx, 540, yBase + 60);
 
-    // 12. App Name 
+    // 10. App Name 
     ctx.fillStyle = '#C95A0E';
     ctx.font = 'bold 50px Georgia, "Times New Roman", serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Gatyatri Vivah Sutra', 540, 1850);
+    ctx.fillText('Gayatri Vivah Sutra', 540, 1850);
 
     // Share/Download
     const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
@@ -449,7 +417,7 @@ for (let i = 0; i < details.length; i += 2) {
     }
 }
 
-// ================= HELPER FUNCTIONS (Unchanged) =================
+// ================= HELPER FUNCTIONS =================
 function drawFloralCorner(ctx, x, y, dirX, dirY) {
     ctx.save();
     ctx.translate(x, y);
@@ -543,11 +511,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     };
 }
 
-        
-
-                
-
-
 // ============ IMAGE VIEWER ============
 function viewFull(src){if(src){document.getElementById('fullImage').src=src;document.getElementById('imageViewer').classList.add('show');}}
 function closeImageViewer(){document.getElementById('imageViewer').classList.remove('show');}
@@ -590,12 +553,11 @@ async function clearAllData(){
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 
 // ============ SYNC FROM GITHUB ============
-// ============ SYNC FROM GITHUB ============
 async function syncFromGitHub() {
     try {
         const res = await fetch('https://long-dream-947d.yatharthg833.workers.dev/', {
-    cache: 'no-cache'
-});
+            cache: 'no-cache'
+        });
         const remote = await res.json();
         
         if (remote && remote.length > 0) {
@@ -611,4 +573,4 @@ async function syncFromGitHub() {
     } catch(err) {
         alert('📴 Offline - using saved data');
     }
-}
+            }
