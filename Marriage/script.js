@@ -359,16 +359,19 @@ async function shareCard(id) {
 
     // ================= FIX: AUTO-SCALING NAME =================
     ctx.fillStyle = '#C95A0E';
-    ctx.textAlign = 'center';
-    let nameFontSize = 58;
-    let nameWidth = ctx.measureText(p.name).width;
-    // Agar naam zyada lamba hai (720px se upar), toh font chhota karo
-    while (nameWidth > 700 && nameFontSize > 30) {
-        nameFontSize -= 2;
-        ctx.font = `bold ${nameFontSize}px Georgia, "Times New Roman", serif`;
-        nameWidth = ctx.measureText(p.name).width;
-    }
-    ctx.fillText(p.name, 540, 970);
+ctx.textAlign = 'center';
+
+let nameFontSize = 80; // Starting size
+ctx.font = `bold ${nameFontSize}px Georgia, "Times New Roman", serif`;
+
+const maxWidth = 700;
+
+while (ctx.measureText(p.name).width > maxWidth && nameFontSize > 40) {
+    nameFontSize -= 2;
+    ctx.font = `bold ${nameFontSize}px Georgia, "Times New Roman", serif`;
+}
+
+ctx.fillText(p.name, 540, 970);
 
     // 7. Age & Gender
     ctx.fillStyle = '#444';
