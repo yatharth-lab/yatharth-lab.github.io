@@ -238,178 +238,149 @@ async function deleteProfile(id){
 
 // ============ SHARE CARD ============
 
-    // ========= SHARE CARD =========
-function drawCover(ctx,img,x,y,w,h,r=25){
-    const s=Math.max(w/img.width,h/img.height);
-    const nw=img.width*s,nh=img.height*s;
-    const nx=x+(w-nw)/2,ny=y+(h-nh)/2;
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(x,y,w,h,r);
-    ctx.clip();
-    ctx.drawImage(img,nx,ny,nw,nh);
-    ctx.restore();
-}
 
+        // ============ SHARE CARD ============
 async function shareCard(id){
     const p=profiles.find(x=>x.id===id);
     if(!p)return;
-
-    const canvas=document.createElement("canvas");
-    const ctx=canvas.getContext("2d");
-    canvas.width=1080;
-    canvas.height=1920;
-
-    // Background
-    ctx.fillStyle="#fff";
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
+    canvas.width=1080;canvas.height=1920;
+    
+    // White Background
+    ctx.fillStyle='#FFFFFF';
     ctx.fillRect(0,0,1080,1920);
-
-    const g=ctx.createLinearGradient(0,0,1080,0);
-    g.addColorStop(0,"#FFF3E0");
-    g.addColorStop(1,"#FFFFFF");
-    ctx.fillStyle=g;
-    ctx.fillRect(0,0,1080,1920);
-
-    // Top Orange Strip
-    ctx.fillStyle="#F57C00";
-    ctx.fillRect(0,0,1080,45);
-
-    // Main Card
-    ctx.shadowColor="rgba(0,0,0,.18)";
-    ctx.shadowBlur=25;
-    ctx.fillStyle="#fff";
-    ctx.beginPath();
-    ctx.roundRect(35,55,1010,1815,35);
-    ctx.fill();
-    ctx.shadowBlur=0;
-
-    // Photo
+    
+    // Profile Image - 432×768 (9:16), centered, cropped perfectly
     if(p.image){
         const img=new Image();
         img.src=p.image;
-        await new Promise(r=>img.onload=r);
-
-        drawCover(ctx,img,70,90,432,768,30);
-
-        ctx.strokeStyle="#FF9800";
-        ctx.lineWidth=5;
-        ctx.beginPath();
-        ctx.roundRect(70,90,432,768,30);
-        ctx.stroke();
-
+        await new Promise(r=>{img.onload=r;});
+        
+        const targetW=432, targetH=768;
+        const imgRatio=img.width/img.height;
+        const targetRatio=targetW/targetH;
+        
+        let sx,sy,sw,sh;
+        if(imgRatio>targetRatio){
+            // Image wider - crop sides
+            sh=img.height;
+            sw=img.height*targetRatio;
+            sx=(img.width-sw)/2;
+            sy=0;
+        }else{
+            // Image taller - crop top/bottom
+            sw=img.width;
+            sh=img.width/targetRatio;
+            sx=0;
+            sy=(img.height-sh)/2;
+        }
+        
+        // Draw cropped image in perfect 9:16
+        ctx.drawImage(img,sx,sy,sw,sh,324,100,432,768);
     }else{
-        ctx.fillStyle="#FFE0B2";
-        ctx.beginPath();
-        ctx.roundRect(70,90,432,768,30);
-        ctx.fill();
-
-        ctx.fillStyle="#F57C00";
-        ctx.font="bold 120px Arial";
-        ctx.textAlign="center";
-        ctx.fillText(p.gender=="Bride"?"👰":"🤵",295,430);
+        // Placeholder
+        ctx.fillStyle='#FFC107';
+        ctx.fillRect(324,100,432,768);
+        ctx.fillStyle='#FFF';
+        ctx.font='bold 100px Arial';
+        ctx.textAlign='center';
+        ctx.fillText(p.gender==='Bride'?'👰':'🤵',540,520);
     }
-
+    
     // Name
-    ctx.textAlign="left";
-    ctx.fillStyle="#F57C00";
-    ctx.font="bold 58px Arial";
-    ctx.fillText(p.name||"",560,150);
-
-    ctx.fillStyle="#666";
-    ctx.font="36px Arial";
-    ctx.fillText(`${p.age||"-"} Years`,560,215);
-
-    ctx.fillStyle="#FF9800";
-    ctx.font="bold 34px Arial";
-    ctx.fillText(p.gender=="Bride"?"👰 Bride":"🤵 Groom",560,270);
-
-    ctx.strokeStyle="#FFD180";
-    ctx.lineWidth=3;
+    ctx.fillStyle='#FF8C00';
+    ctx.font='bold 55px Arial';
+    ctx.textAlign='center';
+    ctx.fillText(p.name,540,940);
+    
+    // Age & Gender
+    ctx.fillStyle='#555';
+    ctx.font='38px Arial';
+    ctx.fillText(`${p.age} yrs • ${p.gender==='Bride'?'👰 Bride':'🤵 Groom'}`,540,1000);
+    
+    // Divider
+    ctx.strokeStyle='#FFB300';
+    ctx.lineWidth=2;
     ctx.beginPath();
-    ctx.moveTo(560,315);
-    ctx.lineTo(980,315);
+    ctx.moveTo(200,1040);
+    ctx.lineTo(880,1040);
     ctx.stroke();
-
-    let y=380;
-
-    [
-        ["📏 Height",p.height],
-        ["⚖️ Weight",p.weight],
-        ["💍 Status",p.maritalStatus],
-        ["🕉️ Gotra",p.gotra],
-        ["👨 Father",p.fatherName],
-        ["👩 Mother",p.motherName],
-        ["🎓 Education",p.education],
-        ["💼 Profession",p.profession],
-        ["💰 Income",p.income],
-        ["👥 Community",p.community],
-        ["📍 Location",p.location],
-        ["📞 Contact",p.mobile]
-    ].forEach(([k,v])=>{
-
-        if(!v||v=="Not specified")return;
-
-        ctx.fillStyle="#FFF8F0";
-        ctx.beginPath();
-        ctx.roundRect(560,y-28,420,50,14);
-        ctx.fill();
-
-        ctx.fillStyle="#F57C00";
-        ctx.font="bold 26px Arial";
-        ctx.fillText(k,575,y);
-
-        ctx.fillStyle="#444";
-        ctx.font="26px Arial";
-        ctx.fillText(v,760,y);
-
-        y+=65;
+    
+    // Details
+    let y=1100;
+    const details=[
+        ['📏 Height',p.height],
+        ['⚖️ Weight',p.weight],
+        ['💍 Status',p.maritalStatus],
+        ['🕉️ Gotra',p.gotra],
+        ['👨 Father',p.fatherName],
+        ['👩 Mother',p.motherName],
+        ['💼 Profession',p.profession],
+        ['📍 Location',p.location],
+        ['👥 Community',p.community],
+        ['📞 Contact',p.mobile],
+        ['🎓 Education',p.education],
+        ['💰 Income',p.income]
+    ];
+    
+    ctx.textAlign='left';
+    details.forEach(([l,v])=>{
+        if(v&&v!=='Not specified'&&v!==''){
+            ctx.fillStyle='#FFF3E0';
+            ctx.beginPath();
+            ctx.roundRect(150,y-20,780,50,12);
+            ctx.fill();
+            ctx.fillStyle='#333';
+            ctx.font='bold 28px Arial';
+            ctx.fillText(l+':',170,y+12);
+            ctx.fillStyle='#555';
+            ctx.font='28px Arial';
+            ctx.fillText(v,420,y+12);
+            y+=65;
+        }
     });
+    
+// App Name at bottom
+ctx.fillStyle='#FF8C00';
+ctx.font='bold 30px Arial';
+ctx.textAlign='center';
+ctx.fillText('Gayatri Vivah Sutra',540,1850);
 
     // About
-    if(p.about && p.about!="No description"){
-
-        y+=15;
-
-        ctx.fillStyle="#F57C00";
-        ctx.font="bold 34px Arial";
-        ctx.fillText("📝 About",70,y);
-
-        ctx.fillStyle="#555";
-        ctx.font="28px Arial";
-
-        let text=p.about;
-        let line="";
-        let yy=y+45;
-
-        for(const word of text.split(" ")){
-            const test=line+word+" ";
-            if(ctx.measureText(test).width>930){
-                ctx.fillText(line,70,yy);
-                line=word+" ";
-                yy+=36;
-                if(yy>1810)break;
-            }else line=test;
-        }
-        ctx.fillText(line,70,yy);
-    }
-
-    const blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",0.92));
-    const file=new File([blob],`${p.name}_Profile.jpg`,{type:"image/jpeg"});
-
-    if(navigator.share && navigator.canShare?.({files:[file]})){
-        await navigator.share({
-            title:p.name,
-            files:[file]
+    if(p.about&&p.about!=='No description'){
+        y+=20;
+        ctx.fillStyle='#FF8C00';
+        ctx.font='bold 28px Arial';
+        ctx.fillText('📝 About:',170,y);
+        ctx.fillStyle='#666';
+        ctx.font='26px Arial';
+        const words=p.about.split(' ');
+        let line='',lineY=y+45;
+        words.forEach(word=>{
+            if(ctx.measureText(line+word+' ').width>700&&line){
+                ctx.fillText(line,170,lineY);
+                line=word+' ';
+                lineY+=40;
+            }else line+=word+' ';
         });
+        ctx.fillText(line,170,lineY);
+    }
+    
+    // Convert and share
+    const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',1.0));
+    const file=new File([blob],`${p.name}_Profile.jpg`,{type:'image/jpeg'});
+    if(navigator.share&&navigator.canShare?.({files:[file]})){
+        await navigator.share({title:`${p.name}`,files:[file]});
     }else{
         const url=URL.createObjectURL(blob);
-        const a=document.createElement("a");
-        a.href=url;
-        a.download=`${p.name}_Profile.jpg`;
-        a.click();
-        URL.revokeObjectURL(url);
+        const a=document.createElement('a');
+        a.href=url;a.download=`${p.name}_Profile.jpg`;
+        document.body.appendChild(a);a.click();
+        document.body.removeChild(a);URL.revokeObjectURL(url);
+        alert('📥 Downloaded!');
     }
-}
+            }
 
 
 // ============ IMAGE VIEWER ============
