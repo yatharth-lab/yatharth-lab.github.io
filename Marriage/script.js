@@ -392,11 +392,35 @@ ctx.fillText(p.name, 540, 970);
     ];
 
     let yBase = 1110;
-    for (let i = 0; i < details.length; i += 2) {
-        drawPremiumBox(ctx, details[i], 135, yBase, 380);
-        if (details[i + 1]) drawPremiumBox(ctx, details[i + 1], 565, yBase, 380);
-        yBase += 100;
-    }
+
+for (let i = 0; i < details.length; i += 2) {
+
+    const left = details[i];
+    const right = details[i + 1];
+
+    const leftShow =
+        left &&
+        left[1] &&
+        left[1].trim() !== "" &&
+        left[1] !== "Not specified";
+
+    const rightShow =
+        right &&
+        right[1] &&
+        right[1].trim() !== "" &&
+        right[1] !== "Not specified";
+
+    // अगर दोनों खाली हैं तो पूरी row छोड़ दो
+    if (!leftShow && !rightShow) continue;
+
+    if (leftShow)
+        drawPremiumBox(ctx, left, 135, yBase, 380);
+
+    if (rightShow)
+        drawPremiumBox(ctx, right, 565, yBase, 380);
+
+    yBase += 100;
+}
 
     // 10. About Section
     if (p.about && p.about !== 'No description' && p.about !== '') {
