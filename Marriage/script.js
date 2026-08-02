@@ -424,42 +424,7 @@ for (let i = 0; i < details.length; i += 2) {
 
     yBase += 50;
         
-        ctx.shadowColor = 'rgba(0,0,0,0.05)';
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetY = 4;
-        ctx.fillStyle = '#FFFCF8';
-        ctx.strokeStyle = '#E86A17';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.roundRect(120, aboutY, 840, 170, 20);
-        ctx.fill();
-        ctx.stroke();
-        ctx.shadowColor = 'transparent';
-
-        ctx.fillStyle = '#C95A0E';
-        ctx.font = 'bold 28px Arial, sans-serif';
-        ctx.textAlign = 'center';
         
-        ctx.beginPath(); ctx.moveTo(200, aboutY + 35); ctx.lineTo(420, aboutY + 35); ctx.strokeStyle = '#E86A17'; ctx.lineWidth = 2; ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(660, aboutY + 35); ctx.lineTo(880, aboutY + 35); ctx.stroke();
-        ctx.fillText('📝 About', 540, aboutY + 45);
-
-        ctx.fillStyle = '#444';
-        ctx.font = '25px Arial, sans-serif';
-        const words = p.about.split(' ');
-        let line = '', lineY = aboutY + 90;
-        words.forEach(word => {
-            if (ctx.measureText(line + word + ' ').width > 760 && line) {
-                ctx.fillText(line.trim(), 540, lineY);
-                line = word + ' '; lineY += 40;
-            } else line += word + ' ';
-        });
-        ctx.fillText(line.trim(), 540, lineY);
-        yBase = lineY + 40;
-    } else {
-        yBase += 30;
-    }
-
     // 11. Bottom Floral Decoration
     drawBottomDecoration(ctx, 540, yBase + 60);
 
