@@ -422,9 +422,7 @@ for (let i = 0; i < details.length; i += 2) {
     yBase += 100;
 }
 
-    // 10. About Section
-    if (p.about && p.about !== 'No description' && p.about !== '') {
-        let aboutY = yBase + 30;
+    yBase += 50;
         
         ctx.shadowColor = 'rgba(0,0,0,0.05)';
         ctx.shadowBlur = 10;
@@ -467,7 +465,7 @@ for (let i = 0; i < details.length; i += 2) {
 
     // 12. App Name 
     ctx.fillStyle = '#C95A0E';
-    ctx.font = 'bold 32px Georgia, "Times New Roman", serif';
+    ctx.font = 'bold 50px Georgia, "Times New Roman", serif';
     ctx.textAlign = 'center';
     ctx.fillText('Gatyatri Vivah Sutra', 540, 1850);
 
