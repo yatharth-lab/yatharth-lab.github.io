@@ -404,7 +404,7 @@ async function shareCard(id) {
     ctx.fillStyle = '#C95A0E';
     ctx.font = 'bold 32px Georgia, "Times New Roman", serif';
     ctx.textAlign = 'center';
-    ctx.fillText('💑 Vivah Sutra', 540, 1850);
+    ctx.fillText('Gayatri Vivah Sutra', 540, 1850);
 
     // Share/Download Logic
     const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
