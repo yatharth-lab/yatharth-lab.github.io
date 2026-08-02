@@ -238,149 +238,302 @@ async function deleteProfile(id){
 
 // ============ SHARE CARD ============
 
+// ============ PREMIUM SHARE CARD (FULL DESIGN) ============
+async function shareCard(id) {
+    const p = profiles.find(x => x.id === id);
+    if (!p) return;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 1080;
+    canvas.height = 1920;
 
-        // ============ SHARE CARD ============
-async function shareCard(id){
-    const p=profiles.find(x=>x.id===id);
-    if(!p)return;
-    const canvas=document.createElement('canvas');
-    const ctx=canvas.getContext('2d');
-    canvas.width=1080;canvas.height=1920;
-    
-    // White Background
-    ctx.fillStyle='#FFFFFF';
-    ctx.fillRect(0,0,1080,1920);
-    
-    // Profile Image - 432×768 (9:16), centered, cropped perfectly
-    if(p.image){
-        const img=new Image();
-        img.src=p.image;
-        await new Promise(r=>{img.onload=r;});
-        
-        const targetW=432, targetH=768;
-        const imgRatio=img.width/img.height;
-        const targetRatio=targetW/targetH;
-        
-        let sx,sy,sw,sh;
-        if(imgRatio>targetRatio){
-            // Image wider - crop sides
-            sh=img.height;
-            sw=img.height*targetRatio;
-            sx=(img.width-sw)/2;
-            sy=0;
-        }else{
-            // Image taller - crop top/bottom
-            sw=img.width;
-            sh=img.width/targetRatio;
-            sx=0;
-            sy=(img.height-sh)/2;
-        }
-        
-        // Draw cropped image in perfect 9:16
-        ctx.drawImage(img,sx,sy,sw,sh,324,100,432,768);
-    }else{
-        // Placeholder
-        ctx.fillStyle='#FFC107';
-        ctx.fillRect(324,100,432,768);
-        ctx.fillStyle='#FFF';
-        ctx.font='bold 100px Arial';
-        ctx.textAlign='center';
-        ctx.fillText(p.gender==='Bride'?'👰':'🤵',540,520);
-    }
-    
-    // Name
-    ctx.fillStyle='#FF8C00';
-    ctx.font='bold 55px Arial';
-    ctx.textAlign='center';
-    ctx.fillText(p.name,540,940);
-    
-    // Age & Gender
-    ctx.fillStyle='#555';
-    ctx.font='38px Arial';
-    ctx.fillText(`${p.age} yrs • ${p.gender==='Bride'?'👰 Bride':'🤵 Groom'}`,540,1000);
-    
-    // Divider
-    ctx.strokeStyle='#FFB300';
-    ctx.lineWidth=2;
+    // 1. Deep Orange Background
+    ctx.fillStyle = '#E86A17'; 
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // 2. White Card with Drop Shadow (Premium Look)
+    const cardX = 30, cardY = 30, cardW = 1020, cardH = 1860, radius = 60;
+    // Shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 10;
     ctx.beginPath();
-    ctx.moveTo(200,1040);
-    ctx.lineTo(880,1040);
-    ctx.stroke();
-    
-    // Details
-    let y=1100;
-    const details=[
-        ['📏 Height',p.height],
-        ['⚖️ Weight',p.weight],
-        ['💍 Status',p.maritalStatus],
-        ['🕉️ Gotra',p.gotra],
-        ['👨 Father',p.fatherName],
-        ['👩 Mother',p.motherName],
-        ['💼 Profession',p.profession],
-        ['📍 Location',p.location],
-        ['👥 Community',p.community],
-        ['📞 Contact',p.mobile],
-        ['🎓 Education',p.education],
-        ['💰 Income',p.income]
-    ];
-    
-    ctx.textAlign='left';
-    details.forEach(([l,v])=>{
-        if(v&&v!=='Not specified'&&v!==''){
-            ctx.fillStyle='#FFF3E0';
-            ctx.beginPath();
-            ctx.roundRect(150,y-20,780,50,12);
-            ctx.fill();
-            ctx.fillStyle='#333';
-            ctx.font='bold 28px Arial';
-            ctx.fillText(l+':',170,y+12);
-            ctx.fillStyle='#555';
-            ctx.font='28px Arial';
-            ctx.fillText(v,420,y+12);
-            y+=65;
-        }
-    });
-    
-// App Name at bottom
-ctx.fillStyle='#FF8C00';
-ctx.font='bold 30px Arial';
-ctx.textAlign='center';
-ctx.fillText('Gayatri Vivah Sutra',540,1850);
+    ctx.roundRect(cardX, cardY, cardW, cardH, radius);
+    ctx.fillStyle = '#FFFDF8';
+    ctx.fill();
+    // Reset shadow for other elements
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
 
-    // About
-    if(p.about&&p.about!=='No description'){
-        y+=20;
-        ctx.fillStyle='#FF8C00';
-        ctx.font='bold 28px Arial';
-        ctx.fillText('📝 About:',170,y);
-        ctx.fillStyle='#666';
-        ctx.font='26px Arial';
-        const words=p.about.split(' ');
-        let line='',lineY=y+45;
-        words.forEach(word=>{
-            if(ctx.measureText(line+word+' ').width>700&&line){
-                ctx.fillText(line,170,lineY);
-                line=word+' ';
-                lineY+=40;
-            }else line+=word+' ';
-        });
-        ctx.fillText(line,170,lineY);
+    // 3. Top & Bottom Floral Corner Decorations (Hand-drawn using Canvas)
+    drawFloralCorner(ctx, 30, 30, 1, 1); // Top-Left
+    drawFloralCorner(ctx, 1050, 30, -1, 1); // Top-Right
+    drawFloralCorner(ctx, 30, 1890, 1, -1); // Bottom-Left
+    drawFloralCorner(ctx, 1050, 1890, -1, -1); // Bottom-Right
+
+    // 4. Top Center Decorative Line + Flower
+    drawTopDecoration(ctx, 540, 80);
+
+    // 5. Profile Image (Double Border + Shadow)
+    if (p.image) {
+        const img = new Image();
+        img.src = p.image;
+        await new Promise(r => { img.onload = r; });
+
+        const targetW = 432, targetH = 768;
+        const imgRatio = img.width / img.height;
+        const targetRatio = targetW / targetH;
+        let sx, sy, sw, sh;
+        if (imgRatio > targetRatio) {
+            sh = img.height; sw = img.height * targetRatio;
+            sx = (img.width - sw) / 2; sy = 0;
+        } else {
+            sw = img.width; sh = img.width / targetRatio;
+            sx = 0; sy = (img.height - sh) / 2;
+        }
+
+        const imgX = 324, imgY = 120, imgW = 432, imgH = 768;
+        
+        // Outer Thin Orange Border (Shadow effect)
+        ctx.shadowColor = 'rgba(200, 100, 20, 0.3)';
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetY = 5;
+        ctx.fillStyle = '#E86A17';
+        ctx.beginPath();
+        ctx.roundRect(imgX - 8, imgY - 8, imgW + 16, imgH + 16, 30);
+        ctx.fill();
+        
+        // Inner Thick White Border
+        ctx.shadowColor = 'transparent';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.roundRect(imgX - 4, imgY - 4, imgW + 8, imgH + 8, 25);
+        ctx.fill();
+
+        // Actual Image
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(imgX, imgY, imgW, imgH, 20);
+        ctx.clip();
+        ctx.drawImage(img, sx, sy, sw, sh, imgX, imgY, imgW, imgH);
+        ctx.restore();
     }
-    
-    // Convert and share
-    const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',1.0));
-    const file=new File([blob],`${p.name}_Profile.jpg`,{type:'image/jpeg'});
-    if(navigator.share&&navigator.canShare?.({files:[file]})){
-        await navigator.share({title:`${p.name}`,files:[file]});
-    }else{
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');
-        a.href=url;a.download=`${p.name}_Profile.jpg`;
-        document.body.appendChild(a);a.click();
-        document.body.removeChild(a);URL.revokeObjectURL(url);
+
+    // 6. Name (Font Fallback: Georgia -> serif)
+    ctx.fillStyle = '#C95A0E';
+    ctx.font = 'bold 58px Georgia, "Times New Roman", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.name, 540, 970);
+
+    // 7. Age & Gender
+    ctx.fillStyle = '#444';
+    ctx.font = '32px Arial, sans-serif';
+    ctx.fillText(`${p.age} yrs • ${p.gender === 'Bride' ? '👰 Bride' : '🤵 Groom'}`, 540, 1025);
+
+    // 8. Designer Divider (Leaf + Line)
+    drawDesignerDivider(ctx, 540, 1060);
+
+    // 9. Details Grid (2 Columns) - Premium Boxes
+    const details = [
+        ['📏 Height', p.height], ['⚖️ Weight', p.weight],
+        ['💍 Status', p.maritalStatus], ['🕉️ Gotra', p.gotra],
+        ['👨 Father', p.fatherName], ['👩 Mother', p.motherName],
+        ['💼 Profession', p.profession], ['🎓 Education', p.education],
+        ['💰 Income', p.income], ['👥 Community', p.community],
+        ['📍 Location', p.location], ['📞 Contact', p.mobile]
+    ];
+
+    let yBase = 1110;
+    for (let i = 0; i < details.length; i += 2) {
+        drawPremiumBox(ctx, details[i], 135, yBase, 380);
+        if (details[i + 1]) drawPremiumBox(ctx, details[i + 1], 565, yBase, 380);
+        yBase += 100; // Extra spacing
+    }
+
+    // 10. About Section (Decorative Title, Box)
+    if (p.about && p.about !== 'No description') {
+        let aboutY = yBase + 30;
+        
+        // About Box
+        ctx.shadowColor = 'rgba(0,0,0,0.05)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 4;
+        ctx.fillStyle = '#FFFCF8';
+        ctx.strokeStyle = '#E86A17';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(120, aboutY, 840, 170, 20);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowColor = 'transparent';
+
+        // About Title with Side Lines
+        ctx.fillStyle = '#C95A0E';
+        ctx.font = 'bold 28px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        
+        // Line Left
+        ctx.beginPath(); ctx.moveTo(200, aboutY + 35); ctx.lineTo(420, aboutY + 35); ctx.strokeStyle = '#E86A17'; ctx.lineWidth = 2; ctx.stroke();
+        // Line Right
+        ctx.beginPath(); ctx.moveTo(660, aboutY + 35); ctx.lineTo(880, aboutY + 35); ctx.stroke();
+        // Text
+        ctx.fillText('📝 About', 540, aboutY + 45);
+
+        // About Text
+        ctx.fillStyle = '#444';
+        ctx.font = '25px Arial, sans-serif';
+        const words = p.about.split(' ');
+        let line = '', lineY = aboutY + 90;
+        words.forEach(word => {
+            if (ctx.measureText(line + word + ' ').width > 760 && line) {
+                ctx.fillText(line.trim(), 540, lineY);
+                line = word + ' '; lineY += 40;
+            } else line += word + ' ';
+        });
+        ctx.fillText(line.trim(), 540, lineY);
+        yBase = lineY + 40;
+    } else {
+        yBase += 30;
+    }
+
+    // 11. Bottom Floral Decoration above App Name
+    drawBottomDecoration(ctx, 540, yBase + 60);
+
+    // 12. App Name (Perfectly placed, Font fallback)
+    ctx.fillStyle = '#C95A0E';
+    ctx.font = 'bold 32px Georgia, "Times New Roman", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('💑 Vivah Sutra', 540, 1850);
+
+    // Share/Download Logic
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
+    const file = new File([blob], `${p.name}_Profile.jpg`, { type: 'image/jpeg' });
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: `${p.name}`, files: [file] });
+    } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${p.name}_Profile.jpg`;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
         alert('📥 Downloaded!');
     }
-            }
+}
+
+// ================= HELPER FUNCTIONS =================
+
+// 1. Floral Corner Decor
+function drawFloralCorner(ctx, x, y, dirX, dirY) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(dirX, dirY);
+    ctx.strokeStyle = '#E86A17';
+    ctx.lineWidth = 2.5;
+    // Main Swirl
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(60, 0, 100, 40, 100, 100);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(0, 60, 40, 100, 100, 100);
+    ctx.stroke();
+    // Leaves
+    ctx.fillStyle = '#E86A17';
+    for(let i=0; i<3; i++){
+        let px = 30 + i*20, py = 30 + i*10;
+        ctx.beginPath();
+        ctx.ellipse(px, py-10, 12, 6, 0.5, 0, Math.PI*2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+// 2. Top Center Decoration
+function drawTopDecoration(ctx, cx, y) {
+    ctx.strokeStyle = '#E86A17'; ctx.lineWidth = 2;
+    // Left lines
+    ctx.beginPath(); ctx.moveTo(cx-150, y); ctx.lineTo(cx-50, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-140, y+15); ctx.lineTo(cx-60, y+15); ctx.stroke();
+    // Right lines
+    ctx.beginPath(); ctx.moveTo(cx+150, y); ctx.lineTo(cx+50, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+140, y+15); ctx.lineTo(cx+60, y+15); ctx.stroke();
+    // Center Flower
+    ctx.fillStyle = '#E86A17';
+    for(let i=0; i<6; i++){
+        let angle = (i * 60) * Math.PI / 180;
+        ctx.beginPath(); ctx.ellipse(cx + Math.cos(angle)*15, y+5 + Math.sin(angle)*15, 12, 6, angle, 0, Math.PI*2);
+        ctx.fill();
+    }
+    ctx.beginPath(); ctx.arc(cx, y+5, 8, 0, Math.PI*2); ctx.fillStyle = '#FFF'; ctx.fill(); ctx.fillStyle = '#E86A17'; ctx.beginPath(); ctx.arc(cx, y+5, 3, 0, Math.PI*2); ctx.fill();
+}
+
+// 3. Designer Divider
+function drawDesignerDivider(ctx, cx, y) {
+    ctx.strokeStyle = '#E86A17'; ctx.lineWidth = 2;
+    // Main Line
+    ctx.beginPath(); ctx.moveTo(cx-300, y); ctx.lineTo(cx-40, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+300, y); ctx.lineTo(cx+40, y); ctx.stroke();
+    // Leaves on divider
+    ctx.fillStyle = '#E86A17';
+    for(let i=0; i<3; i++){
+        let px = cx - 250 + i*80;
+        ctx.beginPath(); ctx.ellipse(px, y-12, 10, 5, -0.3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(px, y+12, 10, 5, 0.3, 0, Math.PI*2); ctx.fill();
+    }
+    // Center Flower
+    ctx.beginPath(); ctx.arc(cx, y, 8, 0, Math.PI*2); ctx.fillStyle = '#E86A17'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, y, 3, 0, Math.PI*2); ctx.fillStyle = '#FFF'; ctx.fill();
+}
+
+// 4. Premium Detail Box
+function drawPremiumBox(ctx, detail, x, y, width) {
+    let [label, value] = detail;
+    if (!value || value === 'Not specified' || value === '') return;
+    
+    ctx.shadowColor = 'rgba(0,0,0,0.03)'; ctx.shadowBlur = 5;
+    ctx.fillStyle = '#FFFBF5'; // Cream
+    ctx.strokeStyle = '#E86A17'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.roundRect(x, y, width, 75, 12); ctx.fill(); ctx.stroke();
+    ctx.shadowColor = 'transparent';
+
+    ctx.fillStyle = '#C95A0E'; ctx.font = 'bold 18px Arial, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(label, x + 18, y + 32);
+    ctx.fillStyle = '#222'; ctx.font = '22px Arial, sans-serif';
+    ctx.fillText(value, x + 18, y + 62);
+}
+
+// 5. Bottom Decoration
+function drawBottomDecoration(ctx, cx, y) {
+    ctx.strokeStyle = '#E86A17'; ctx.lineWidth = 1.5;
+    // Lines
+    ctx.beginPath(); ctx.moveTo(cx-250, y); ctx.lineTo(cx-50, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+250, y); ctx.lineTo(cx+50, y); ctx.stroke();
+    // Flowers
+    ctx.fillStyle = '#E86A17';
+    for(let i=0; i<4; i++){
+        let px = cx - 150 + i*100;
+        ctx.beginPath(); ctx.ellipse(px, y-10, 10, 5, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(px, y+10, 10, 5, 0, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.beginPath(); ctx.arc(cx, y, 10, 0, Math.PI*2); ctx.fillStyle = '#FFF'; ctx.fill(); ctx.fillStyle = '#E86A17'; ctx.beginPath(); ctx.arc(cx, y, 4, 0, Math.PI*2); ctx.fill();
+}
+
+// Polyfill for roundRect
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (r > w / 2) r = w / 2; if (r > h / 2) r = h / 2;
+        this.moveTo(x + r, y); this.lineTo(x + w - r, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + r);
+        this.lineTo(x + w, y + h - r); this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        this.lineTo(x + r, y + h); this.quadraticCurveTo(x, y + h, x, y + h - r);
+        this.lineTo(x, y + r); this.quadraticCurveTo(x, y, x + r, y);
+        return this;
+    };
+                                     }
+
+                
 
 
 // ============ IMAGE VIEWER ============
