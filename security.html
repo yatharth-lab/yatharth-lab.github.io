@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER VAULT v6.0 | AUTO-CONFIG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            font-family: 'Courier New', monospace;
+            overflow-y: auto;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Matrix Background */
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        /* Scanlines */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 0, 0.02) 2px,
+                rgba(0, 255, 0, 0.02) 4px
+            );
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .terminal {
+            background: rgba(0, 0, 0, 0.92);
+            border: 2px solid #0f0;
+            border-radius: 15px;
+            padding: 30px;
+            width: 95%;
+            max-width: 850px;
+            box-shadow: 0 0 60px rgba(0, 255, 0, 0.3),
+                        inset 0 0 60px rgba(0, 255, 0, 0.05);
+            animation: pulse 2s infinite;
+            backdrop-filter: blur(20px);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(0, 255, 0, 0.2), inset 0 0 30px rgba(0, 255, 0, 0.05); }
+            50% { box-shadow: 0 0 80px rgba(0, 255, 0, 0.4), inset 0 0 80px rgba(0, 255, 0, 0.1); }
+        }
+
+        .glitch-text {
+            color: #0f0;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            animation: glitch 1.5s infinite;
+            text-shadow: 3px 3px #003300;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-3px, 2px); }
+            40% { transform: translate(3px, -2px); }
+            60% { transform: translate(-2px, -3px); }
+            80% { transform: translate(2px, 3px); }
+        }
+
+        .subtitle {
+            color: #0a0;
+            text-align: center;
+            font-size: 13px;
+            margin: 10px 0 25px;
+            letter-spacing: 3px;
+        }
+
+        .cyber-input, .cyber-textarea {
+            background: rgba(0, 25, 0, 0.7);
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 14px;
+            width: 100%;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .cyber-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .cyber-input:focus, .cyber-textarea:focus {
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
+            background: rgba(0, 40, 0, 0.8);
+            border-color: #0f0;
+        }
+
+        .cyber-input::placeholder {
+            color: rgba(0, 255, 0, 0.25);
+        }
+
+        .cyber-btn {
+            background: rgba(0, 25, 0, 0.8);
+            border: 2px solid #0f0;
+            color: #0f0;
+            padding: 14px 28px;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            margin: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyber-btn:hover {
+            background: rgba(0, 255, 0, 0.15);
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .cyber-btn:active {
+            transform: translateY(0);
+        }
+
+        .cyber-btn.danger {
+            border-color: #ff0040;
+            color: #ff0040;
+            background: rgba(30, 0, 0, 0.8);
+        }
+
+        .cyber-btn.danger:hover {
+            background: rgba(255, 0, 0, 0.2);
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.5);
+        }
+
+        .cyber-btn.warning {
+            border-color: #ffaa00;
+            color: #ffaa00;
+            background: rgba(30, 20, 0, 0.8);
+        }
+
+        .cyber-btn.success {
+            border-color: #00ff88;
+            color: #00ff88;
+            background: rgba(0, 30, 20, 0.8);
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .file-card {
+            background: rgba(0, 20, 0, 0.5);
+            border: 1px solid #0f0;
+            padding: 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .file-card:hover {
+            background: rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-icon {
+            font-size: 32px;
+        }
+
+        .file-name {
+            color: #0f0;
+            font-weight: bold;
+            font-size: 15px;
+            word-break: break-word;
+        }
+
+        .file-meta {
+            color: rgba(0, 255, 0, 0.5);
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .mini-btn {
+            padding: 5px 10px;
+            font-size: 11px;
+            border-radius: 5px;
+            letter-spacing: 1px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 20, 0, 0.95);
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 20px 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            animation: slideIn 0.5s, fadeOut 0.5s 3s forwards;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            max-width: 400px;
+        }
+
+        .notification.error {
+            border-color: #ff0040;
+            color: #ff0040;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 255, 0, 0.2);
+            border-top: 3px solid #0f0;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 0.8s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: rgba(0, 10, 0, 0.95);
+            border: 2px solid #0f0;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 0 60px rgba(0, 255, 0, 0.4);
+            animation: modalIn 0.3s ease-out;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .status-bar {
+            color: #0a0;
+            font-size: 11px;
+            text-align: center;
+            margin-top: 20px;
+            letter-spacing: 2px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .upload-zone {
+            border: 2px dashed #0f0;
+            padding: 40px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px 0;
+        }
+
+        .upload-zone:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0f0;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .terminal {
+                padding: 20px;
+                width: 100%;
+            }
+            .glitch-text {
+                font-size: 22px;
+            }
+            .file-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrixCanvas"></canvas>
+    <div class="scanlines"></div>
+    <div id="notificationContainer"></div>
+    <div class="spinner" id="spinner"></div>
+
+    <div class="main-container">
+        <div class="terminal" id="terminal"></div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <script>
+        // ==================== GLOBAL STATE ====================
+        const APP = {
+            githubToken: '',
+            githubUsername: '',
+            repoName: '',
+            masterPassword: '',
+            backupPassword: '',
+            files: [],
+            currentFolder: 'root',
+            isLoggedIn: false,
+            isFirstSetup: false,
+            configIssueNumber: null
+        };
+
+        // ==================== ENCODING ====================
+        function b64Encode(str) {
+            try { return btoa(unescape(encodeURIComponent(str))); } 
+            catch (e) { return btoa(str); }
+        }
+        function b64Decode(str) {
+            try { return decodeURIComponent(escape(atob(str))); } 
+            catch (e) { return atob(str); }
+        }
+
+        // ==================== MATRIX RAIN ====================
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*{}[]|/\\';
+        const fontSize = 16;
+        let columns, drops;
+
+        function initMatrix() {
+            columns = Math.floor(canvas.width / fontSize);
+            drops = Array(columns).fill(1);
+        }
+        initMatrix();
+        window.addEventListener('resize', initMatrix);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = `${fontSize}px monospace`;
+
+            for (let i = 0; i < drops.length; i++) {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+
+        // ==================== NOTIFICATIONS ====================
+        function notify(message, isError = false) {
+            const container = document.getElementById('notificationContainer');
+            const el = document.createElement('div');
+            el.className = `notification ${isError ? 'error' : ''}`;
+            el.textContent = message;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        function showSpinner() { document.getElementById('spinner').style.display = 'block'; }
+        function hideSpinner() { document.getElementById('spinner').style.display = 'none'; }
+
+        function openModal(html) {
+            document.getElementById('modalContent').innerHTML = html;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // ==================== GITHUB API ====================
+        async function githubAPI(endpoint, method = 'GET', body = null) {
+            const url = `https://api.github.com/repos/${APP.githubUsername}/${APP.repoName}${endpoint}`;
+            const headers = {
+                'Authorization': `token ${APP.githubToken}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            };
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+            
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.message || `HTTP ${response.status}`);
+            }
+            return response.json();
+        }
+
+        // ==================== CONFIG MANAGEMENT ====================
+        async function saveConfigToGitHub() {
+            // Save config as an issue with specific title
+            const configData = {
+                githubToken: APP.githubToken,
+                githubUsername: APP.githubUsername,
+                repoName: APP.repoName,
+                masterPassword: APP.masterPassword,
+                backupPassword: APP.backupPassword,
+                type: 'vault-config'
+            };
+
+            const existingIssues = await githubAPI('/issues?state=all&labels=config');
+            
+            if (existingIssues.length > 0) {
+                // Update existing config issue
+                APP.configIssueNumber = existingIssues[0].number;
+                await githubAPI(`/issues/${APP.configIssueNumber}`, 'PATCH', {
+                    body: b64Encode(JSON.stringify(configData))
+                });
+            } else {
+                // Create new config issue
+                const newIssue = await githubAPI('/issues', 'POST', {
+                    title: '⚙️ VAULT_CONFIG (DO NOT DELETE)',
+                    body: b64Encode(JSON.stringify(configData)),
+                    labels: ['config']
+                });
+                APP.configIssueNumber = newIssue.number;
+            }
+        }
+
+        async function loadConfigFromGitHub(username, repo, token) {
+            try {
+                // Temporarily set credentials to fetch config
+                const originalToken = APP.githubToken;
+                const originalUser = APP.githubUsername;
+                const originalRepo = APP.repoName;
+                
+                APP.githubToken = token;
+                APP.githubUsername = username;
+                APP.repoName = repo;
+                
+                const issues = await githubAPI('/issues?labels=config&state=all');
+                
+                if (issues.length > 0) {
+                    const configData = JSON.parse(b64Decode(issues[0].body));
+                    APP.configIssueNumber = issues[0].number;
+                    return configData;
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function initializeRepo() {
+            try {
+                // Create initial issues for file management
+                const issues = await githubAPI('/issues?state=all&per_page=3');
+                
+                if (issues.length < 2) {
+                    await githubAPI('/issues', 'POST', {
+                        title: '📁 FILE_INDEX',
+                        body: b64Encode(JSON.stringify({ files: [] })),
+                        labels: ['file-index']
+                    });
+                }
+            } catch (e) {
+                throw new Error('Repo initialization failed: ' + e.message);
+            }
+        }
+
+        // ==================== FILE OPERATIONS ====================
+        async function getFileIndexIssue() {
+            const issues = await githubAPI('/issues?labels=file-index&state=all');
+            if (issues.length > 0) return issues[0].number;
+            
+            const newIssue = await githubAPI('/issues', 'POST', {
+                title: '📁 FILE_INDEX',
+                body: b64Encode(JSON.stringify({ files: [] })),
+                labels: ['file-index']
+            });
+            return newIssue.number;
+        }
+
+        async function loadFiles() {
+            const issueNumber = await getFileIndexIssue();
+            const data = await githubAPI(`/issues/${issueNumber}`);
+            APP.files = JSON.parse(b64Decode(data.body || '{}')).files || [];
+        }
+
+        async function saveFiles() {
+            const issueNumber = await getFileIndexIssue();
+            await githubAPI(`/issues/${issueNumber}`, 'PATCH', {
+                body: b64Encode(JSON.stringify({ files: APP.files }))
+            });
+        }
+
+        async function addFile(name, type, content = '', password = '') {
+            const fileId = Date.now().toString();
+            const fileData = {
+                id: fileId,
+                name,
+                type,
+                folder: APP.currentFolder,
+                hasPassword: !!password,
+                password: password ? b64Encode(password) : '',
+                createdAt: new Date().toISOString(),
+                issueNumber: null
+            };
+
+            if (content && type !== 'folder') {
+                const newIssue = await githubAPI('/issues', 'POST', {
+                    title: `📄 FILE: ${name}`,
+                    body: b64Encode(JSON.stringify({
+                        content: b64Encode(content),
+                        fileId,
+                        type
+                    }))
+                });
+                fileData.issueNumber = newIssue.number;
+            }
+
+            APP.files.push(fileData);
+            await saveFiles();
+            return fileData;
+        }
+
+        async function deleteFile(fileId) {
+            APP.files = APP.files.filter(f => f.id !== fileId);
+            await saveFiles();
+        }
+
+        async function updateFilePassword(fileId, newPassword) {
+            const file = APP.files.find(f => f.id === fileId);
+            if (file) {
+                file.password = newPassword ? b64Encode(newPassword) : '';
+                file.hasPassword = !!newPassword;
+                await saveFiles();
+            }
+        }
+
+        async function getFileContent(fileId) {
+            const file = APP.files.find(f => f.id === fileId);
+            if (!file?.issueNumber) return null;
+            
+            const issue = await githubAPI(`/issues/${file.issueNumber}`);
+            const data = JSON.parse(b64Decode(issue.body));
+            return data.content ? b64Decode(data.content) : null;
+        }
+
+        // ==================== BIOMETRIC ====================
+        async function biometricLogin() {
+            if (!window.PublicKeyCredential) {
+                notify('Biometric not supported on this device', true);
+                return false;
+            }
+            try {
+                const credential = await navigator.credentials.get({
+                    publicKey: {
+                        challenge: new Uint8Array(32),
+                        allowCredentials: [],
+                        userVerification: 'required',
+                        timeout: 60000
+                    }
+                });
+                return !!credential;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // ==================== UI RENDERS ====================
+        function renderFirstSetup() {
+            document.getElementById('terminal').innerHTML = `
+                <div style="text-align: center;">
+                    <h1 class="glitch-text">⚡ CYBER VAULT v6.0</h1>
+                    <p class="subtitle">[ ONE-TIME SETUP ]</p>
+                    
+                    <div style="text-align: left; max-width: 500px; margin: 0 auto;">
+                        <div style="background: rgba(0,40,0,0.5); border: 1px solid #0f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="color: #ffaa00; font-size: 13px; margin: 0;">
+                                ⚡ This setup will be saved to GitHub.<br>
+                                Next time just enter password!
+                            </p>
+                        </div>
+                        
+                        <label style="color: #0f0; font-size: 14px;">🔑 GitHub Token</label>
+                        <input type="password" id="setupToken" class="cyber-input" 
+                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                        <div style="color: #0a0; font-size: 11px; margin-bottom: 15px;">
+                            Get from GitHub → Settings → Developer settings → Tokens (repo scope)
+                        </div>
+                        
+                        <label style="color: #0f0; font-size: 14px;">👤 GitHub Username</label>
+                        <input type="text" id="setupUsername" class="cyber-input" placeholder="your-username">
+                        
+                        <label style="color: #0f0; font-size: 14px;">📦 Repository Name</label>
+                        <input type="text" id="setupRepo" class="cyber-input" placeholder="your-repo">
+                        
+                        <label style="color: #0f0; font-size: 14px;">🔐 Master Password</label>
+                        <input type="password" id="setupMaster" class="cyber-input" 
+                               placeholder="Create master password">
+                        
+                        <label style="color: #0f0; font-size: 14px;">🛡️ Backup Password</label>
+                        <input type="password" id="setupBackup" class="cyber-input" 
+                               placeholder="Create backup password">
+                        <div style="color: #ffaa00; font-size: 11px; margin-bottom: 20px;">
+                            ⚠️ Used for recovery & admin. Must be different from master password.
+                        </div>
+                    </div>
+                    
+                    <button class="cyber-btn" onclick="completeFirstSetup()" style="width: 100%;">
+                        🚀 INITIALIZE & SAVE TO GITHUB
+                    </button>
+                    
+                    <div class="status-bar">[ CONFIG WILL BE SAVED TO GITHUB ISSUE ]</div>
+                </div>
+            `;
+        }
+
+        function renderQuickSetup() {
+            document.getElementById('terminal').innerHTML = `
+                <div style="text-align: center;">
+                    <h1 class="glitch-text">⚡ CONNECT VAULT</h1>
+                    <p class="subtitle">[ FETCH CONFIG FROM GITHUB ]</p>
+                    
+                    <div style="text-align: left; max-width: 500px; margin: 0 auto;">
+                        <div style="background: rgba(0,40,0,0.5); border: 1px solid #0f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="color: #0f0; font-size: 13px; margin: 0;">
+                                📌 Enter repo details to fetch your existing config
+                            </p>
+                        </div>
+                        
+                        <label style="color: #0f0; font-size: 14px;">🔑 GitHub Token</label>
+                        <input type="password" id="quickToken" class="cyber-input" 
+                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                        
+                        <label style="color: #0f0; font-size: 14px;">👤 GitHub Username</label>
+                        <input type="text" id="quickUsername" class="cyber-input" placeholder="username">
+                        
+                        <label style="color: #0f0; font-size: 14px;">📦 Repository Name</label>
+                        <input type="text" id="quickRepo" class="cyber-input" placeholder="repo-name">
+                    </div>
+                    
+                    <button class="cyber-btn" onclick="fetchAndConnect()" style="width: 100%; margin: 10px 0;">
+                        🔗 FETCH CONFIG
+                    </button>
+                    
+                    <button class="cyber-btn warning" onclick="renderFirstSetup()" style="width: 100%;">
+                        🆕 NEW SETUP
+                    </button>
+                    
+                    <div class="status-bar">[ EXISTING USERS ]</div>
+                </div>
+            `;
+        }
+
+        function renderLogin() {
+            document.getElementById('terminal').innerHTML = `
+                <div style="text-align: center;">
+                    <h1 class="glitch-text">⚡ CYBER VAULT v6.0</h1>
+                    <p class="subtitle">[ ${APP.githubUsername}/${APP.repoName} ]</p>
+                    
+                    <div style="max-width: 400px; margin: 30px auto;">
+                        <input type="password" id="loginPassword" class="cyber-input" 
+                               placeholder="ENTER MASTER PASSWORD" style="text-align: center;">
+                        
+                        <button class="cyber-btn" onclick="passwordLogin()" style="width: 100%; margin-top: 20px;">
+                            🔐 ACCESS VAULT
+                        </button>
+                        
+                        <button class="cyber-btn" onclick="bioLoginHandler()" style="width: 100%; margin-top: 10px;">
+                            🖐️ BIOMETRIC SCAN
+                        </button>
+                        
+                        <button class="cyber-btn danger" onclick="resetAll()" 
+                                style="width: 100%; margin-top: 30px; font-size: 12px;">
+                            🔄 RESET & RECONFIGURE
+                        </button>
+                    </div>
+                    
+                    <div class="status-bar">[ CONFIG LOADED FROM GITHUB ] [ AES-256 ]</div>
+                </div>
+            `;
+        }
+
+        function renderDashboard() {
+            const currentFiles = APP.files.filter(f => f.folder === APP.currentFolder);
+            
+            document.getElementById('terminal').innerHTML = `
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                        <h1 class="glitch-text" style="font-size: 24px; margin: 0;">📁 ${APP.currentFolder.toUpperCase()}</h1>
+                        <div style="color: #0f0;">${currentFiles.length} items</div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="cyber-btn" onclick="showUploadModal()">⬆️ UPLOAD</button>
+                        <button class="cyber-btn" onclick="showCreateFolderModal()">📁 FOLDER</button>
+                        ${APP.currentFolder !== 'root' ? 
+                            `<button class="cyber-btn" onclick="goBack()">↩️ BACK</button>` : ''}
+                        <button class="cyber-btn warning" onclick="showAdminPanel()">⚙️ ADMIN</button>
+                        <button class="cyber-btn danger" onclick="logout()">🚪 EXIT</button>
+                    </div>
+                    
+                    <div class="file-grid">
+                        ${currentFiles.length === 0 ? 
+                            `<div style="color: rgba(0,255,0,0.4); text-align: center; grid-column: 1/-1; padding: 60px;">
+                                [ FOLDER EMPTY ]<br>
+                                <span style="font-size: 12px;">Upload files using ⬆️ button</span>
+                            </div>` :
+                            currentFiles.map(file => `
+                                <div class="file-card">
+                                    <div class="file-header">
+                                        <span class="file-icon">
+                                            ${file.type === 'folder' ? '📁' : file.type === 'image' ? '🖼️' : file.type === 'video' ? '🎥' : '📄'}
+                                        </span>
+                                        ${file.hasPassword ? '<span style="color: #ff0040;">🔒</span>' : '<span style="color: #0f0;">🔓</span>'}
+                                    </div>
+                                    <div class="file-name">${file.name}</div>
+                                    <div class="file-meta">
+                                        ${file.type.toUpperCase()} | ${new Date(file.createdAt).toLocaleDateString()}
+                                    </div>
+                                    <div class="file-actions">
+                                        ${file.hasPassword ? 
+                                            `<button class="cyber-btn warning mini-btn" onclick="unlockFilePrompt('${file.id}')">🔓</button>
+                                             <button class="cyber-btn mini-btn" onclick="changeFilePasswordPrompt('${file.id}')">🔄</button>` :
+                                            `<button class="cyber-btn mini-btn" onclick="lockFilePrompt('${file.id}')">🔒</button>`
+                                        }
+                                        <button class="cyber-btn mini-btn" onclick="viewFile('${file.id}')">👁️</button>
+                                        <button class="cyber-btn danger mini-btn" onclick="deleteFilePrompt('${file.id}')">🗑️</button>
+                                    </div>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                    
+                    <div class="status-bar">[ ${APP.githubUsername}/${APP.repoName} ] [ CONFIG ON GITHUB ]</div>
+                </div>
+            `;
+        }
+
+        // ==================== MODALS ====================
+        function showUploadModal() {
+            openModal(`
+                <h2 class="glitch-text" style="font-size: 20px;">⬆️ UPLOAD FILE</h2>
+                <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <div style="font-size: 50px;">📤</div>
+                    <div style="color: #0f0; margin-top: 10px;">CLICK OR DRAG FILE HERE</div>
+                    <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)">
+                </div>
+                <div id="fileInfo" style="color: #0f0; margin: 10px 0; display: none;"></div>
+                <input type="text" id="fileName" class="cyber-input" placeholder="File Name">
+                <select id="fileType" class="cyber-input">
+                    <option value="document">📄 Document</option>
+                    <option value="image">🖼️ Image</option>
+                    <option value="video">🎥 Video</option>
+                </select>
+                <input type="password" id="filePassword" class="cyber-input" placeholder="Password (Optional)">
+                <button class="cyber-btn" onclick="handleUpload()" style="width: 100%;">🚀 UPLOAD</button>
+                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%;">CANCEL</button>
+            `);
+            
+            setTimeout(() => {
+                const dropZone = document.getElementById('dropZone');
+                if (dropZone) {
+                    ['dragover', 'drop'].forEach(event => {
+                        dropZone.addEventListener(event, e => e.preventDefault());
+                    });
+                    dropZone.addEventListener('drop', e => {
+                        const file = e.dataTransfer.files[0];
+                        if (file) {
+                            document.getElementById('fileInput').files = e.dataTransfer.files;
+                            handleFileSelect({ files: [file] });
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+        function handleFileSelect(input) {
+            const file = input.files?.[0] || input;
+            if (file) {
+                document.getElementById('fileInfo').style.display = 'block';
+                document.getElementById('fileInfo').innerHTML = 
+                    `📎 Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                if (!document.getElementById('fileName').value) {
+                    document.getElementById('fileName').value = file.name.split('.')[0];
+                }
+                const typeSelect = document.getElementById('fileType');
+                if (file.type?.startsWith('image/')) typeSelect.value = 'image';
+                else if (file.type?.startsWith('video/')) typeSelect.value = 'video';
+                else typeSelect.value = 'document';
+            }
+        }
+
+        function showCreateFolderModal() {
+            openModal(`
+                <h2 class="glitch-text" style="font-size: 20px;">📁 CREATE FOLDER</h2>
+                <input type="text" id="folderName" class="cyber-input" placeholder="Folder Name">
+                <input type="password" id="folderPassword" class="cyber-input" placeholder="Password (Optional)">
+                <button class="cyber-btn" onclick="handleCreateFolder()" style="width: 100%;">CREATE</button>
+                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%;">CANCEL</button>
+            `);
+        }
+
+        function showAdminPanel() {
+            openModal(`
+                <h2 class="glitch-text" style="font-size: 20px;">⚙️ ADMIN PANEL</h2>
+                <input type="password" id="adminBackupPass" class="cyber-input" 
+                       placeholder="Enter Backup Password">
+                
+                <h3 style="color: #0f0; margin-top: 20px;">🔑 Passwords</h3>
+                <button class="cyber-btn" onclick="changeMasterPass()" style="width: 100%; margin: 5px 0;">
+                    Change Master Password
+                </button>
+                <button class="cyber-btn" onclick="changeBackupPass()" style="width: 100%; margin: 5px 0;">
+                    Change Backup Password
+                </button>
+                
+                <h3 style="color: #0f0; margin-top: 20px;">📁 File Passwords</h3>
+                <button class="cyber-btn warning" onclick="changeAllPasswords()" style="width: 100%; margin: 5px 0;">
+                    Set Password For All Files
+                </button>
+                <button class="cyber-btn" onclick="removeAllPasswords()" style="width: 100%; margin: 5px 0;">
+                    Remove All Passwords
+                </button>
+                
+                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%; margin-top: 20px;">
+                    CLOSE
+                </button>
+            `);
+        }
+
+        // ==================== ACTIONS ====================
+        async function completeFirstSetup() {
+            const token = document.getElementById('setupToken').value.trim();
+            const username = document.getElementById('setupUsername').value.trim();
+            const repo = document.getElementById('setupRepo').value.trim();
+            const master = document.getElementById('setupMaster').value;
+            const backup = document.getElementById('setupBackup').value;
+
+            if (!token || !username || !repo || !master || !backup) {
+                notify('❌ All fields required!', true);
+                return;
+            }
+            if (master === backup) {
+                notify('❌ Passwords must be different!', true);
+                return;
+            }
+
+            APP.githubToken = token;
+            APP.githubUsername = username;
+            APP.repoName = repo;
+            APP.masterPassword = master;
+            APP.backupPassword = backup;
+
+            showSpinner();
+            try {
+                await initializeRepo();
+                await saveConfigToGitHub();
+                localStorage.setItem('vaultConfigured', 'true');
+                APP.isLoggedIn = true;
+                APP.files = [];
+                hideSpinner();
+                notify('✅ Vault initialized & saved to GitHub!');
+                renderDashboard();
+            } catch (e) {
+                hideSpinner();
+                notify('❌ Setup failed: ' + e.message, true);
+            }
+        }
+
+        async function fetchAndConnect() {
+            const token = document.getElementById('quickToken').value.trim();
+            const username = document.getElementById('quickUsername').value.trim();
+            const repo = document.getElementById('quickRepo').value.trim();
+
+            if (!token || !username || !repo) {
+                notify('❌ All fields required!', true);
+                return;
+            }
+
+            showSpinner();
+            try {
+                const config = await loadConfigFromGitHub(username, repo, token);
+                if (config && config.type === 'vault-config') {
+                    APP.githubToken = config.githubToken;
+                    APP.githubUsername = config.githubUsername;
+                    APP.repoName = config.repoName;
+                    APP.masterPassword = config.masterPassword;
+                    APP.backupPassword = config.backupPassword;
+                    localStorage.setItem('vaultConfigured', 'true');
+                    hideSpinner();
+                    notify('✅ Config loaded! Enter password to continue.');
+                    renderLogin();
+                } else {
+                    hideSpinner();
+                    notify('❌ No config found. Do fresh setup.', true);
+                }
+            } catch (e) {
+                hideSpinner();
+                notify('❌ Failed: ' + e.message, true);
+            }
+        }
+
+        async function passwordLogin() {
+            const password = document.getElementById('loginPassword').value;
+            if (password === APP.masterPassword) {
+                APP.isLoggedIn = true;
+                showSpinner();
+                try {
+                    await loadFiles();
+                    hideSpinner();
+                    notify('✅ ACCESS GRANTED');
+                    renderDashboard();
+                } catch (e) {
+                    hideSpinner();
+                    notify('❌ Failed to load files', true);
+                }
+            } else {
+                notify('❌ ACCESS DENIED', true);
+            }
+        }
+
+        async function bioLoginHandler() {
+            notify('🖐️ Scanning...');
+            const success = await biometricLogin();
+            if (success) {
+                APP.isLoggedIn = true;
+                showSpinner();
+                try {
+                    await loadFiles();
+                    hideSpinner();
+                    notify('✅ VERIFIED');
+                    renderDashboard();
+                } catch (e) {
+                    hideSpinner();
+                    notify('❌ Load failed', true);
+                }
+            } else {
+                notify('❌ Biometric failed', true);
+            }
+        }
+
+        async function handleUpload() {
+            const name = document.getElementById('fileName').value.trim();
+            const type = document.getElementById('fileType').value;
+            const password = document.getElementById('filePassword').value;
+            const file = document.getElementById('fileInput').files[0];
+
+            if (!name || !file) {
+                notify('❌ Name and file required!', true);
+                return;
+            }
+
+            showSpinner();
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        await addFile(name, type, e.target.result, password);
+                        hideSpinner();
+                        closeModal();
+                        renderDashboard();
+                        notify('✅ File uploaded!');
+                    } catch (err) {
+                        hideSpinner();
+                        notify('❌ ' + err.message, true);
+                    }
+                };
+                reader.readAsDataURL(file);
+            } catch (e) {
+                hideSpinner();
+                notify('❌ Upload error', true);
+            }
+        }
+
+        async function handleCreateFolder() {
+            const name = document.getElementById('folderName').value.trim();
+            const password = document.getElementById('folderPassword').value;
+
+            if (!name) {
+                notify('❌ Folder name required!', true);
+                return;
+            }
+
+            showSpinner();
+            try {
+                await addFile(name, 'folder', '', password);
+                hideSpinner();
+                closeModal();
+                renderDashboard();
+                notify('✅ Folder created!');
+            } catch (e) {
+                hideSpinner();
+                notify('❌ Failed', true);
+            }
+        }
+
+        async function viewFile(fileId) {
+            const file = APP.files.find(f => f.id === fileId);
+            
+            if (file.hasPassword) {
+                const pass = prompt('🔒 Enter password:');
+                if (!pass || b64Decode(file.password) !== pass) {
+                    notify('❌ Wrong password!', true);
+                    return;
+                }
+            }
+
+            if (file.type === 'folder') {
+                APP.currentFolder = file.name;
+                renderDashboard();
+                return;
+            }
+
+            showSpinner();
+            try {
+                const content = await getFileContent(fileId);
+                hideSpinner();
+                if (content) {
+                    openModal(`
+                        <h2 class="glitch-text" style="font-size: 18px;">${file.name}</h2>
+                        <div style="max-height: 60vh; overflow-y: auto; margin: 20px 0;">
+                            ${file.type === 'image' ? 
+                                `<img src="${content}" style="max-width: 100%; border-radius: 5px;">` :
+                                file.type === 'video' ? 
+                                `<video controls style="max-width: 100%;"><source src="${content}"></video>` :
+                                `<pre style="color: #0f0; white-space: pre-wrap;">${content.substring(0, 2000)}</pre>`
+                            }
+                        </div>
+                        <button class="cyber-btn" onclick="closeModal()" style="width: 100%;">CLOSE</button>
+                    `);
+                }
+            } catch (e) {
+                hideSpinner();
+                notify('❌ Load failed', true);
+            }
+        }
+
+        function goBack() {
+            APP.currentFolder = 'root';
+            renderDashboard();
+        }
+
+        function lockFilePrompt(fileId) {
+            const pass = prompt('🔒 Set password:');
+            if (pass) {
+                updateFilePassword(fileId, pass);
+                renderDashboard();
+                notify('🔒 Locked!');
+            }
+        }
+
+        function unlockFilePrompt(fileId) {
+            const file = APP.files.find(f => f.id === fileId);
+            const pass = prompt('🔓 Enter password:');
+            if (pass && b64Decode(file.password) === pass) {
+                notify('✅ Unlocked!');
+            } else {
+                notify('❌ Wrong!', true);
+            }
+        }
+
+        function changeFilePasswordPrompt(fileId) {
+            const file = APP.files.find(f => f.id === fileId);
+            const old = prompt('Current password:');
+            if (old && b64Decode(file.password) === old) {
+                const newPass = prompt('New password (empty to remove):');
+                updateFilePassword(fileId, newPass || '');
+                renderDashboard();
+                notify(newPass ? '🔄 Updated!' : '🔓 Removed!');
+            } else {
+                notify('❌ Wrong!', true);
+            }
+        }
+
+        async function deleteFilePrompt(fileId) {
+            if (confirm('⚠️ Delete permanently?')) {
+                await deleteFile(fileId);
+                renderDashboard();
+                notify('🗑️ Deleted!');
+            }
+        }
+
+        async function changeMasterPass() {
+            const backup = document.getElementById('adminBackupPass').value;
+            if (backup !== APP.backupPassword) {
+                notify('❌ Wrong backup password!', true);
+                return;
+            }
+            const newPass = prompt('New master password:');
+            if (newPass && newPass !== APP.backupPassword) {
+                APP.masterPassword = newPass;
+                await saveConfigToGitHub();
+                closeModal();
+                notify('✅ Master password updated on GitHub!');
+            }
+        }
+
+        async function changeBackupPass() {
+            const old = document.getElementById('adminBackupPass').value;
+            if (old !== APP.backupPassword) {
+                notify('❌ Wrong!', true);
+                return;
+            }
+            const newPass = prompt('New backup password:');
+            if (newPass && newPass !== APP.masterPassword) {
+                APP.backupPassword = newPass;
+                await saveConfigToGitHub();
+                closeModal();
+                notify('✅ Backup password updated!');
+            }
+        }
+
+        async function changeAllPasswords() {
+            const backup = document.getElementById('adminBackupPass').value;
+            if (backup !== APP.backupPassword) {
+                notify('❌ Wrong backup password!', true);
+                return;
+            }
+            const pass = prompt('Password for ALL files:');
+            if (pass) {
+                APP.files.forEach(f => {
+                    f.password = b64Encode(pass);
+                    f.hasPassword = true;
+                });
+                await saveFiles();
+                closeModal();
+                renderDashboard();
+                notify('✅ All files locked!');
+            }
+        }
+
+        async function removeAllPasswords() {
+            const backup = document.getElementById('adminBackupPass').value;
+            if (backup !== APP.backupPassword) {
+                notify('❌ Wrong!', true);
+                return;
+            }
+            if (confirm('Remove ALL passwords?')) {
+                APP.files.forEach(f => {
+                    f.password = '';
+                    f.hasPassword = false;
+                });
+                await saveFiles();
+                closeModal();
+                renderDashboard();
+                notify('🔓 All unlocked!');
+            }
+        }
+
+        function logout() {
+            APP.isLoggedIn = false;
+            APP.files = [];
+            APP.currentFolder = 'root';
+            renderLogin();
+        }
+
+        function resetAll() {
+            if (confirm('⚠️ Clear all local data? Config remains on GitHub.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // ==================== INIT ====================
+        async function init() {
+            const configured = localStorage.getItem('vaultConfigured');
+            
+            if (configured === 'true') {
+                // Already configured, check for config
+                if (APP.githubToken && APP.githubUsername && APP.repoName) {
+                    renderLogin();
+                } else {
+                    renderQuickSetup();
+                }
+            } else {
+                renderQuickSetup();
+            }
+        }
+
+        // Enter key support
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const loginInput = document.getElementById('loginPassword');
+                if (loginInput && document.activeElement === loginInput) {
+                    passwordLogin();
+                }
+            }
+        });
+
+        // Modal close on overlay click
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        init();
+    </script>
+</body>
+  </html>
