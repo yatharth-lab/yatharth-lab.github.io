@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER VAULT v6.0 | AUTO-CONFIG</title>
+    <title>CYBER VAULT | SECURE STORAGE</title>
     <style>
         * {
             margin: 0;
@@ -14,9 +14,8 @@
         body {
             background: #000;
             font-family: 'Courier New', monospace;
-            overflow-y: auto;
             height: 100vh;
-            width: 100vw;
+            overflow-y: auto;
         }
 
         /* Matrix Background */
@@ -62,11 +61,13 @@
             border-radius: 15px;
             padding: 30px;
             width: 95%;
-            max-width: 850px;
+            max-width: 900px;
             box-shadow: 0 0 60px rgba(0, 255, 0, 0.3),
                         inset 0 0 60px rgba(0, 255, 0, 0.05);
             animation: pulse 2s infinite;
             backdrop-filter: blur(20px);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         @keyframes pulse {
@@ -76,12 +77,13 @@
 
         .glitch-text {
             color: #0f0;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: bold;
             text-align: center;
             text-transform: uppercase;
             animation: glitch 1.5s infinite;
             text-shadow: 3px 3px #003300;
+            margin-bottom: 20px;
         }
 
         @keyframes glitch {
@@ -96,11 +98,11 @@
             color: #0a0;
             text-align: center;
             font-size: 13px;
-            margin: 10px 0 25px;
+            margin: 10px 0 20px;
             letter-spacing: 3px;
         }
 
-        .cyber-input, .cyber-textarea {
+        .cyber-input {
             background: rgba(0, 25, 0, 0.7);
             border: 1px solid #0f0;
             color: #0f0;
@@ -112,21 +114,17 @@
             border-radius: 8px;
             outline: none;
             transition: all 0.3s;
+            letter-spacing: 1px;
         }
 
-        .cyber-textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .cyber-input:focus, .cyber-textarea:focus {
+        .cyber-input:focus {
             box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
             background: rgba(0, 40, 0, 0.8);
             border-color: #0f0;
         }
 
         .cyber-input::placeholder {
-            color: rgba(0, 255, 0, 0.25);
+            color: rgba(0, 255, 0, 0.3);
         }
 
         .cyber-btn {
@@ -174,15 +172,9 @@
             background: rgba(30, 20, 0, 0.8);
         }
 
-        .cyber-btn.success {
-            border-color: #00ff88;
-            color: #00ff88;
-            background: rgba(0, 30, 20, 0.8);
-        }
-
         .file-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
@@ -234,7 +226,7 @@
         }
 
         .mini-btn {
-            padding: 5px 10px;
+            padding: 6px 12px;
             font-size: 11px;
             border-radius: 5px;
             letter-spacing: 1px;
@@ -332,18 +324,14 @@
             50% { opacity: 0.5; }
         }
 
-        .upload-zone {
-            border: 2px dashed #0f0;
-            padding: 40px;
-            text-align: center;
-            border-radius: 10px;
+        select.cyber-input {
+            appearance: none;
             cursor: pointer;
-            transition: all 0.3s;
-            margin: 20px 0;
         }
 
-        .upload-zone:hover {
-            background: rgba(0, 255, 0, 0.1);
+        select.cyber-input option {
+            background: #000;
+            color: #0f0;
         }
 
         ::-webkit-scrollbar {
@@ -363,7 +351,7 @@
                 width: 100%;
             }
             .glitch-text {
-                font-size: 22px;
+                font-size: 20px;
             }
             .file-grid {
                 grid-template-columns: 1fr;
@@ -387,18 +375,19 @@
     </div>
 
     <script>
-        // ==================== GLOBAL STATE ====================
+        // ==================== FIXED PASSWORDS (Code me hardcoded) ====================
+        const MASTER_PASSWORD = 'Y@th@Rth';
+        const BACKUP_PASSWORD = 'mann';
+        
+        // ==================== APP STATE ====================
         const APP = {
             githubToken: '',
             githubUsername: '',
             repoName: '',
-            masterPassword: '',
-            backupPassword: '',
             files: [],
             currentFolder: 'root',
-            isLoggedIn: false,
-            isFirstSetup: false,
-            configIssueNumber: null
+            isAdminLoggedIn: false,
+            isUserLoggedIn: false
         };
 
         // ==================== ENCODING ====================
@@ -450,7 +439,7 @@
         }
         setInterval(drawMatrix, 50);
 
-        // ==================== NOTIFICATIONS ====================
+        // ==================== UTILITIES ====================
         function notify(message, isError = false) {
             const container = document.getElementById('notificationContainer');
             const el = document.createElement('div');
@@ -491,128 +480,64 @@
             return response.json();
         }
 
-        // ==================== CONFIG MANAGEMENT ====================
-        async function saveConfigToGitHub() {
-            // Save config as an issue with specific title
-            const configData = {
-                githubToken: APP.githubToken,
-                githubUsername: APP.githubUsername,
-                repoName: APP.repoName,
-                masterPassword: APP.masterPassword,
-                backupPassword: APP.backupPassword,
-                type: 'vault-config'
-            };
-
-            const existingIssues = await githubAPI('/issues?state=all&labels=config');
-            
-            if (existingIssues.length > 0) {
-                // Update existing config issue
-                APP.configIssueNumber = existingIssues[0].number;
-                await githubAPI(`/issues/${APP.configIssueNumber}`, 'PATCH', {
-                    body: b64Encode(JSON.stringify(configData))
-                });
-            } else {
-                // Create new config issue
-                const newIssue = await githubAPI('/issues', 'POST', {
-                    title: '⚙️ VAULT_CONFIG (DO NOT DELETE)',
-                    body: b64Encode(JSON.stringify(configData)),
-                    labels: ['config']
-                });
-                APP.configIssueNumber = newIssue.number;
-            }
-        }
-
-        async function loadConfigFromGitHub(username, repo, token) {
+        // ==================== STORAGE FILE OPERATIONS ====================
+        async function getStorageFile() {
             try {
-                // Temporarily set credentials to fetch config
-                const originalToken = APP.githubToken;
-                const originalUser = APP.githubUsername;
-                const originalRepo = APP.repoName;
-                
-                APP.githubToken = token;
-                APP.githubUsername = username;
-                APP.repoName = repo;
-                
-                const issues = await githubAPI('/issues?labels=config&state=all');
-                
-                if (issues.length > 0) {
-                    const configData = JSON.parse(b64Decode(issues[0].body));
-                    APP.configIssueNumber = issues[0].number;
-                    return configData;
-                }
-                return null;
+                // Get storage/data.json from repo
+                const response = await githubAPI('/contents/storage/data.json');
+                const content = b64Decode(response.content);
+                return JSON.parse(content);
             } catch (e) {
-                return null;
+                // File doesn't exist, create it
+                return { files: [], folders: [] };
             }
         }
 
-        async function initializeRepo() {
+        async function saveStorageFile(data) {
             try {
-                // Create initial issues for file management
-                const issues = await githubAPI('/issues?state=all&per_page=3');
+                // Check if file exists
+                const existing = await githubAPI('/contents/storage/data.json').catch(() => null);
                 
-                if (issues.length < 2) {
-                    await githubAPI('/issues', 'POST', {
-                        title: '📁 FILE_INDEX',
-                        body: b64Encode(JSON.stringify({ files: [] })),
-                        labels: ['file-index']
-                    });
-                }
-            } catch (e) {
-                throw new Error('Repo initialization failed: ' + e.message);
-            }
-        }
+                const body = {
+                    message: 'Update storage data',
+                    content: b64Encode(JSON.stringify(data, null, 2)),
+                    branch: 'main'
+                };
 
-        // ==================== FILE OPERATIONS ====================
-        async function getFileIndexIssue() {
-            const issues = await githubAPI('/issues?labels=file-index&state=all');
-            if (issues.length > 0) return issues[0].number;
-            
-            const newIssue = await githubAPI('/issues', 'POST', {
-                title: '📁 FILE_INDEX',
-                body: b64Encode(JSON.stringify({ files: [] })),
-                labels: ['file-index']
-            });
-            return newIssue.number;
+                if (existing) {
+                    body.sha = existing.sha;
+                }
+
+                await githubAPI('/contents/storage/data.json', 'PUT', body);
+            } catch (e) {
+                throw new Error('Failed to save: ' + e.message);
+            }
         }
 
         async function loadFiles() {
-            const issueNumber = await getFileIndexIssue();
-            const data = await githubAPI(`/issues/${issueNumber}`);
-            APP.files = JSON.parse(b64Decode(data.body || '{}')).files || [];
+            const data = await getStorageFile();
+            APP.files = data.files || [];
         }
 
         async function saveFiles() {
-            const issueNumber = await getFileIndexIssue();
-            await githubAPI(`/issues/${issueNumber}`, 'PATCH', {
-                body: b64Encode(JSON.stringify({ files: APP.files }))
-            });
+            const data = await getStorageFile();
+            data.files = APP.files;
+            await saveStorageFile(data);
         }
 
-        async function addFile(name, type, content = '', password = '') {
+        async function addFile(name, type, content, folder, password = '') {
             const fileId = Date.now().toString();
             const fileData = {
                 id: fileId,
-                name,
-                type,
-                folder: APP.currentFolder,
-                hasPassword: !!password,
+                name: name,
+                type: type,
+                folder: folder || 'root',
                 password: password ? b64Encode(password) : '',
+                hasPassword: !!password,
+                content: content ? b64Encode(content) : '',
                 createdAt: new Date().toISOString(),
-                issueNumber: null
+                size: content ? Math.round(content.length * 0.75 / 1024) : 0 // Approximate KB
             };
-
-            if (content && type !== 'folder') {
-                const newIssue = await githubAPI('/issues', 'POST', {
-                    title: `📄 FILE: ${name}`,
-                    body: b64Encode(JSON.stringify({
-                        content: b64Encode(content),
-                        fileId,
-                        type
-                    }))
-                });
-                fileData.issueNumber = newIssue.number;
-            }
 
             APP.files.push(fileData);
             await saveFiles();
@@ -633,195 +558,130 @@
             }
         }
 
-        async function getFileContent(fileId) {
+        async function updateFileContent(fileId, newContent) {
             const file = APP.files.find(f => f.id === fileId);
-            if (!file?.issueNumber) return null;
-            
-            const issue = await githubAPI(`/issues/${file.issueNumber}`);
-            const data = JSON.parse(b64Decode(issue.body));
-            return data.content ? b64Decode(data.content) : null;
-        }
-
-        // ==================== BIOMETRIC ====================
-        async function biometricLogin() {
-            if (!window.PublicKeyCredential) {
-                notify('Biometric not supported on this device', true);
-                return false;
-            }
-            try {
-                const credential = await navigator.credentials.get({
-                    publicKey: {
-                        challenge: new Uint8Array(32),
-                        allowCredentials: [],
-                        userVerification: 'required',
-                        timeout: 60000
-                    }
-                });
-                return !!credential;
-            } catch (e) {
-                return false;
+            if (file) {
+                file.content = newContent ? b64Encode(newContent) : '';
+                file.size = newContent ? Math.round(newContent.length * 0.75 / 1024) : 0;
+                await saveFiles();
             }
         }
 
         // ==================== UI RENDERS ====================
-        function renderFirstSetup() {
+        function renderMainLogin() {
+            // First screen - User Login (for viewing files)
             document.getElementById('terminal').innerHTML = `
                 <div style="text-align: center;">
-                    <h1 class="glitch-text">⚡ CYBER VAULT v6.0</h1>
-                    <p class="subtitle">[ ONE-TIME SETUP ]</p>
-                    
-                    <div style="text-align: left; max-width: 500px; margin: 0 auto;">
-                        <div style="background: rgba(0,40,0,0.5); border: 1px solid #0f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                            <p style="color: #ffaa00; font-size: 13px; margin: 0;">
-                                ⚡ This setup will be saved to GitHub.<br>
-                                Next time just enter password!
-                            </p>
-                        </div>
-                        
-                        <label style="color: #0f0; font-size: 14px;">🔑 GitHub Token</label>
-                        <input type="password" id="setupToken" class="cyber-input" 
-                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-                        <div style="color: #0a0; font-size: 11px; margin-bottom: 15px;">
-                            Get from GitHub → Settings → Developer settings → Tokens (repo scope)
-                        </div>
-                        
-                        <label style="color: #0f0; font-size: 14px;">👤 GitHub Username</label>
-                        <input type="text" id="setupUsername" class="cyber-input" placeholder="your-username">
-                        
-                        <label style="color: #0f0; font-size: 14px;">📦 Repository Name</label>
-                        <input type="text" id="setupRepo" class="cyber-input" placeholder="your-repo">
-                        
-                        <label style="color: #0f0; font-size: 14px;">🔐 Master Password</label>
-                        <input type="password" id="setupMaster" class="cyber-input" 
-                               placeholder="Create master password">
-                        
-                        <label style="color: #0f0; font-size: 14px;">🛡️ Backup Password</label>
-                        <input type="password" id="setupBackup" class="cyber-input" 
-                               placeholder="Create backup password">
-                        <div style="color: #ffaa00; font-size: 11px; margin-bottom: 20px;">
-                            ⚠️ Used for recovery & admin. Must be different from master password.
-                        </div>
-                    </div>
-                    
-                    <button class="cyber-btn" onclick="completeFirstSetup()" style="width: 100%;">
-                        🚀 INITIALIZE & SAVE TO GITHUB
-                    </button>
-                    
-                    <div class="status-bar">[ CONFIG WILL BE SAVED TO GITHUB ISSUE ]</div>
-                </div>
-            `;
-        }
-
-        function renderQuickSetup() {
-            document.getElementById('terminal').innerHTML = `
-                <div style="text-align: center;">
-                    <h1 class="glitch-text">⚡ CONNECT VAULT</h1>
-                    <p class="subtitle">[ FETCH CONFIG FROM GITHUB ]</p>
-                    
-                    <div style="text-align: left; max-width: 500px; margin: 0 auto;">
-                        <div style="background: rgba(0,40,0,0.5); border: 1px solid #0f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                            <p style="color: #0f0; font-size: 13px; margin: 0;">
-                                📌 Enter repo details to fetch your existing config
-                            </p>
-                        </div>
-                        
-                        <label style="color: #0f0; font-size: 14px;">🔑 GitHub Token</label>
-                        <input type="password" id="quickToken" class="cyber-input" 
-                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-                        
-                        <label style="color: #0f0; font-size: 14px;">👤 GitHub Username</label>
-                        <input type="text" id="quickUsername" class="cyber-input" placeholder="username">
-                        
-                        <label style="color: #0f0; font-size: 14px;">📦 Repository Name</label>
-                        <input type="text" id="quickRepo" class="cyber-input" placeholder="repo-name">
-                    </div>
-                    
-                    <button class="cyber-btn" onclick="fetchAndConnect()" style="width: 100%; margin: 10px 0;">
-                        🔗 FETCH CONFIG
-                    </button>
-                    
-                    <button class="cyber-btn warning" onclick="renderFirstSetup()" style="width: 100%;">
-                        🆕 NEW SETUP
-                    </button>
-                    
-                    <div class="status-bar">[ EXISTING USERS ]</div>
-                </div>
-            `;
-        }
-
-        function renderLogin() {
-            document.getElementById('terminal').innerHTML = `
-                <div style="text-align: center;">
-                    <h1 class="glitch-text">⚡ CYBER VAULT v6.0</h1>
-                    <p class="subtitle">[ ${APP.githubUsername}/${APP.repoName} ]</p>
+                    <h1 class="glitch-text">⚡ CYBER VAULT</h1>
+                    <p class="subtitle">[ SECURE STORAGE SYSTEM ]</p>
                     
                     <div style="max-width: 400px; margin: 30px auto;">
-                        <input type="password" id="loginPassword" class="cyber-input" 
-                               placeholder="ENTER MASTER PASSWORD" style="text-align: center;">
+                        <input type="password" id="userPassword" class="cyber-input" 
+                               placeholder="ENTER PASSWORD" style="text-align: center;">
                         
-                        <button class="cyber-btn" onclick="passwordLogin()" style="width: 100%; margin-top: 20px;">
+                        <button class="cyber-btn" onclick="userLogin()" style="width: 100%; margin-top: 20px;">
                             🔐 ACCESS VAULT
                         </button>
                         
-                        <button class="cyber-btn" onclick="bioLoginHandler()" style="width: 100%; margin-top: 10px;">
-                            🖐️ BIOMETRIC SCAN
-                        </button>
-                        
-                        <button class="cyber-btn danger" onclick="resetAll()" 
-                                style="width: 100%; margin-top: 30px; font-size: 12px;">
-                            🔄 RESET & RECONFIGURE
+                        <button class="cyber-btn warning" onclick="renderAdminLogin()" 
+                                style="width: 100%; margin-top: 10px; font-size: 13px;">
+                            ⚙️ ADMIN ACCESS
                         </button>
                     </div>
                     
-                    <div class="status-bar">[ CONFIG LOADED FROM GITHUB ] [ AES-256 ]</div>
+                    <div class="status-bar">[ MASTER PASSWORD REQUIRED ]</div>
                 </div>
             `;
         }
 
-        function renderDashboard() {
+        function renderAdminLogin() {
+            // Admin Login - API details & backup password
+            document.getElementById('terminal').innerHTML = `
+                <div style="text-align: center;">
+                    <h1 class="glitch-text">⚙️ ADMIN PANEL</h1>
+                    <p class="subtitle">[ RESTRICTED ACCESS ]</p>
+                    
+                    <div style="text-align: left; max-width: 500px; margin: 0 auto;">
+                        <label style="color: #0f0; font-size: 14px;">🔑 GitHub Token</label>
+                        <input type="password" id="adminToken" class="cyber-input" 
+                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                        
+                        <label style="color: #0f0; font-size: 14px;">👤 GitHub Username</label>
+                        <input type="text" id="adminUsername" class="cyber-input" 
+                               placeholder="your-username">
+                        
+                        <label style="color: #0f0; font-size: 14px;">📦 Repository Name</label>
+                        <input type="text" id="adminRepo" class="cyber-input" 
+                               placeholder="your-repo">
+                        
+                        <label style="color: #0f0; font-size: 14px;">🛡️ Backup Password</label>
+                        <input type="password" id="adminBackup" class="cyber-input" 
+                               placeholder="Enter backup password">
+                    </div>
+                    
+                    <button class="cyber-btn" onclick="adminLogin()" style="width: 100%; margin-top: 20px;">
+                        🔐 ADMIN LOGIN
+                    </button>
+                    
+                    <button class="cyber-btn danger" onclick="renderMainLogin()" 
+                            style="width: 100%; margin-top: 10px;">
+                        ↩️ BACK TO USER LOGIN
+                    </button>
+                    
+                    <div class="status-bar">[ BACKUP PASSWORD: mann ]</div>
+                </div>
+            `;
+        }
+
+        function renderAdminDashboard() {
             const currentFiles = APP.files.filter(f => f.folder === APP.currentFolder);
+            const folders = [...new Set(APP.files.map(f => f.folder))];
             
             document.getElementById('terminal').innerHTML = `
                 <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
-                        <h1 class="glitch-text" style="font-size: 24px; margin: 0;">📁 ${APP.currentFolder.toUpperCase()}</h1>
-                        <div style="color: #0f0;">${currentFiles.length} items</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <h1 class="glitch-text" style="font-size: 22px; margin: 0;">⚙️ ADMIN: ${APP.currentFolder.toUpperCase()}</h1>
+                        <span style="color: #0f0;">${currentFiles.length} files</span>
                     </div>
                     
-                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                        <button class="cyber-btn" onclick="showUploadModal()">⬆️ UPLOAD</button>
-                        <button class="cyber-btn" onclick="showCreateFolderModal()">📁 FOLDER</button>
+                    <div style="display: flex; gap: 8px; margin: 20px 0; flex-wrap: wrap;">
+                        <button class="cyber-btn" onclick="showUploadForm()">⬆️ UPLOAD FILE</button>
+                        <button class="cyber-btn" onclick="showCreateFolderForm()">📁 NEW FOLDER</button>
+                        <button class="cyber-btn warning" onclick="showPasswordManager()">🔑 PASSWORDS</button>
                         ${APP.currentFolder !== 'root' ? 
-                            `<button class="cyber-btn" onclick="goBack()">↩️ BACK</button>` : ''}
-                        <button class="cyber-btn warning" onclick="showAdminPanel()">⚙️ ADMIN</button>
-                        <button class="cyber-btn danger" onclick="logout()">🚪 EXIT</button>
+                            `<button class="cyber-btn" onclick="changeFolder('root')">↩️ ROOT</button>` : ''}
+                        <button class="cyber-btn danger" onclick="adminLogout()">🚪 EXIT</button>
                     </div>
+                    
+                    ${folders.length > 1 ? `
+                        <div style="margin-bottom: 15px;">
+                            <span style="color: #0a0;">📁 Folders: </span>
+                            ${folders.filter(f => f !== 'root').map(f => 
+                                `<button class="cyber-btn mini-btn" onclick="changeFolder('${f}')">📁 ${f}</button>`
+                            ).join(' ')}
+                        </div>
+                    ` : ''}
                     
                     <div class="file-grid">
                         ${currentFiles.length === 0 ? 
-                            `<div style="color: rgba(0,255,0,0.4); text-align: center; grid-column: 1/-1; padding: 60px;">
-                                [ FOLDER EMPTY ]<br>
-                                <span style="font-size: 12px;">Upload files using ⬆️ button</span>
+                            `<div style="color: rgba(0,255,0,0.4); text-align: center; grid-column: 1/-1; padding: 50px;">
+                                [ EMPTY ] - Upload files using ⬆️ button
                             </div>` :
                             currentFiles.map(file => `
                                 <div class="file-card">
                                     <div class="file-header">
                                         <span class="file-icon">
-                                            ${file.type === 'folder' ? '📁' : file.type === 'image' ? '🖼️' : file.type === 'video' ? '🎥' : '📄'}
+                                            ${file.type === 'image' ? '🖼️' : file.type === 'video' ? '🎥' : '📄'}
                                         </span>
                                         ${file.hasPassword ? '<span style="color: #ff0040;">🔒</span>' : '<span style="color: #0f0;">🔓</span>'}
                                     </div>
                                     <div class="file-name">${file.name}</div>
                                     <div class="file-meta">
-                                        ${file.type.toUpperCase()} | ${new Date(file.createdAt).toLocaleDateString()}
+                                        ${file.type} | ${file.size}KB | ${new Date(file.createdAt).toLocaleDateString()}
                                     </div>
                                     <div class="file-actions">
-                                        ${file.hasPassword ? 
-                                            `<button class="cyber-btn warning mini-btn" onclick="unlockFilePrompt('${file.id}')">🔓</button>
-                                             <button class="cyber-btn mini-btn" onclick="changeFilePasswordPrompt('${file.id}')">🔄</button>` :
-                                            `<button class="cyber-btn mini-btn" onclick="lockFilePrompt('${file.id}')">🔒</button>`
-                                        }
-                                        <button class="cyber-btn mini-btn" onclick="viewFile('${file.id}')">👁️</button>
+                                        <button class="cyber-btn mini-btn" onclick="viewFile('${file.id}')">👁️ VIEW</button>
+                                        <button class="cyber-btn warning mini-btn" onclick="changeFilePass('${file.id}')">🔄 PASS</button>
                                         <button class="cyber-btn danger mini-btn" onclick="deleteFilePrompt('${file.id}')">🗑️</button>
                                     </div>
                                 </div>
@@ -829,458 +689,418 @@
                         }
                     </div>
                     
-                    <div class="status-bar">[ ${APP.githubUsername}/${APP.repoName} ] [ CONFIG ON GITHUB ]</div>
+                    <div class="status-bar">[ ADMIN MODE ] [ ${APP.githubUsername}/${APP.repoName} ]</div>
                 </div>
             `;
         }
 
-        // ==================== MODALS ====================
-        function showUploadModal() {
+        function renderUserDashboard() {
+            const currentFiles = APP.files.filter(f => f.folder === APP.currentFolder);
+            const folders = [...new Set(APP.files.map(f => f.folder))];
+            
+            document.getElementById('terminal').innerHTML = `
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <h1 class="glitch-text" style="font-size: 22px; margin: 0;">📁 ${APP.currentFolder.toUpperCase()}</h1>
+                        <span style="color: #0f0;">${currentFiles.length} files</span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px; margin: 20px 0; flex-wrap: wrap;">
+                        ${APP.currentFolder !== 'root' ? 
+                            `<button class="cyber-btn" onclick="changeFolder('root')">↩️ ROOT</button>` : ''}
+                        <button class="cyber-btn danger" onclick="userLogout()">🚪 LOCK</button>
+                    </div>
+                    
+                    ${folders.length > 1 ? `
+                        <div style="margin-bottom: 15px;">
+                            <span style="color: #0a0;">📁 Folders: </span>
+                            ${folders.filter(f => f !== 'root').map(f => 
+                                `<button class="cyber-btn mini-btn" onclick="changeFolder('${f}')">📁 ${f}</button>`
+                            ).join(' ')}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="file-grid">
+                        ${currentFiles.length === 0 ? 
+                            `<div style="color: rgba(0,255,0,0.4); text-align: center; grid-column: 1/-1; padding: 50px;">
+                                [ NO FILES ]
+                            </div>` :
+                            currentFiles.map(file => `
+                                <div class="file-card" onclick="${file.hasPassword ? `promptFilePassword('${file.id}')` : `viewFile('${file.id}')`}">
+                                    <div class="file-header">
+                                        <span class="file-icon">
+                                            ${file.type === 'image' ? '🖼️' : file.type === 'video' ? '🎥' : '📄'}
+                                        </span>
+                                        ${file.hasPassword ? '<span style="color: #ff0040;">🔒</span>' : '<span style="color: #0f0;">🔓</span>'}
+                                    </div>
+                                    <div class="file-name">${file.name}</div>
+                                    <div class="file-meta">
+                                        ${file.type} | ${file.size}KB | ${new Date(file.createdAt).toLocaleDateString()}
+                                    </div>
+                                    ${file.hasPassword ? '<div style="color: #ffaa00; font-size: 10px; margin-top: 5px;">🔒 Password Protected</div>' : ''}
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                    
+                    <div class="status-bar">[ USER MODE ] [ READ ONLY ]</div>
+                </div>
+            `;
+        }
+
+        function showUploadForm() {
             openModal(`
                 <h2 class="glitch-text" style="font-size: 20px;">⬆️ UPLOAD FILE</h2>
-                <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                    <div style="font-size: 50px;">📤</div>
-                    <div style="color: #0f0; margin-top: 10px;">CLICK OR DRAG FILE HERE</div>
-                    <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)">
-                </div>
-                <div id="fileInfo" style="color: #0f0; margin: 10px 0; display: none;"></div>
-                <input type="text" id="fileName" class="cyber-input" placeholder="File Name">
-                <select id="fileType" class="cyber-input">
+                
+                <label style="color: #0f0; font-size: 13px;">📁 Folder (leave empty for root)</label>
+                <input type="text" id="uploadFolder" class="cyber-input" placeholder="e.g., documents">
+                
+                <label style="color: #0f0; font-size: 13px;">📄 File Name</label>
+                <input type="text" id="uploadName" class="cyber-input" placeholder="my-file">
+                
+                <label style="color: #0f0; font-size: 13px;">📂 File Type</label>
+                <select id="uploadType" class="cyber-input">
                     <option value="document">📄 Document</option>
                     <option value="image">🖼️ Image</option>
                     <option value="video">🎥 Video</option>
                 </select>
-                <input type="password" id="filePassword" class="cyber-input" placeholder="Password (Optional)">
-                <button class="cyber-btn" onclick="handleUpload()" style="width: 100%;">🚀 UPLOAD</button>
+                
+                <label style="color: #0f0; font-size: 13px;">📝 Content (text or base64 for images/videos)</label>
+                <textarea id="uploadContent" class="cyber-input" rows="5" 
+                          placeholder="Enter text content or paste base64..."></textarea>
+                
+                <label style="color: #0f0; font-size: 13px;">🔒 File Password (optional)</label>
+                <input type="password" id="uploadPassword" class="cyber-input" placeholder="Set file password">
+                
+                <button class="cyber-btn" onclick="uploadFile()" style="width: 100%; margin-top: 15px;">
+                    🚀 UPLOAD TO STORAGE
+                </button>
                 <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%;">CANCEL</button>
             `);
-            
-            setTimeout(() => {
-                const dropZone = document.getElementById('dropZone');
-                if (dropZone) {
-                    ['dragover', 'drop'].forEach(event => {
-                        dropZone.addEventListener(event, e => e.preventDefault());
-                    });
-                    dropZone.addEventListener('drop', e => {
-                        const file = e.dataTransfer.files[0];
-                        if (file) {
-                            document.getElementById('fileInput').files = e.dataTransfer.files;
-                            handleFileSelect({ files: [file] });
-                        }
-                    });
-                }
-            }, 100);
         }
 
-        function handleFileSelect(input) {
-            const file = input.files?.[0] || input;
-            if (file) {
-                document.getElementById('fileInfo').style.display = 'block';
-                document.getElementById('fileInfo').innerHTML = 
-                    `📎 Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-                if (!document.getElementById('fileName').value) {
-                    document.getElementById('fileName').value = file.name.split('.')[0];
-                }
-                const typeSelect = document.getElementById('fileType');
-                if (file.type?.startsWith('image/')) typeSelect.value = 'image';
-                else if (file.type?.startsWith('video/')) typeSelect.value = 'video';
-                else typeSelect.value = 'document';
-            }
-        }
-
-        function showCreateFolderModal() {
+        function showCreateFolderForm() {
             openModal(`
                 <h2 class="glitch-text" style="font-size: 20px;">📁 CREATE FOLDER</h2>
-                <input type="text" id="folderName" class="cyber-input" placeholder="Folder Name">
-                <input type="password" id="folderPassword" class="cyber-input" placeholder="Password (Optional)">
-                <button class="cyber-btn" onclick="handleCreateFolder()" style="width: 100%;">CREATE</button>
+                <input type="text" id="newFolderName" class="cyber-input" placeholder="Folder Name">
+                <button class="cyber-btn" onclick="createFolder()" style="width: 100%;">CREATE FOLDER</button>
                 <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%;">CANCEL</button>
             `);
         }
 
-        function showAdminPanel() {
+        function showPasswordManager() {
+            const files = APP.files.filter(f => f.hasPassword);
             openModal(`
-                <h2 class="glitch-text" style="font-size: 20px;">⚙️ ADMIN PANEL</h2>
-                <input type="password" id="adminBackupPass" class="cyber-input" 
-                       placeholder="Enter Backup Password">
+                <h2 class="glitch-text" style="font-size: 20px;">🔑 PASSWORD MANAGER</h2>
                 
-                <h3 style="color: #0f0; margin-top: 20px;">🔑 Passwords</h3>
-                <button class="cyber-btn" onclick="changeMasterPass()" style="width: 100%; margin: 5px 0;">
-                    Change Master Password
-                </button>
-                <button class="cyber-btn" onclick="changeBackupPass()" style="width: 100%; margin: 5px 0;">
-                    Change Backup Password
-                </button>
+                <h3 style="color: #0f0; margin-top: 15px;">Locked Files (${files.length})</h3>
+                ${files.length === 0 ? 
+                    '<p style="color: #0a0;">No locked files</p>' :
+                    files.map(f => `
+                        <div style="background: rgba(0,20,0,0.5); padding: 10px; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #0f0;">🔒 ${f.name}</span>
+                            <button class="cyber-btn mini-btn" onclick="changeFilePass('${f.id}'); closeModal();">🔄 CHANGE</button>
+                        </div>
+                    `).join('')
+                }
                 
-                <h3 style="color: #0f0; margin-top: 20px;">📁 File Passwords</h3>
-                <button class="cyber-btn warning" onclick="changeAllPasswords()" style="width: 100%; margin: 5px 0;">
-                    Set Password For All Files
+                <h3 style="color: #0f0; margin-top: 20px;">Bulk Operations</h3>
+                <button class="cyber-btn warning" onclick="setAllPasswords()" style="width: 100%; margin: 5px 0;">
+                    SET PASSWORD FOR ALL FILES
                 </button>
                 <button class="cyber-btn" onclick="removeAllPasswords()" style="width: 100%; margin: 5px 0;">
-                    Remove All Passwords
+                    REMOVE ALL PASSWORDS
                 </button>
                 
-                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%; margin-top: 20px;">
-                    CLOSE
-                </button>
+                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%; margin-top: 20px;">CLOSE</button>
             `);
         }
 
         // ==================== ACTIONS ====================
-        async function completeFirstSetup() {
-            const token = document.getElementById('setupToken').value.trim();
-            const username = document.getElementById('setupUsername').value.trim();
-            const repo = document.getElementById('setupRepo').value.trim();
-            const master = document.getElementById('setupMaster').value;
-            const backup = document.getElementById('setupBackup').value;
+        function userLogin() {
+            const password = document.getElementById('userPassword').value;
+            
+            if (password === MASTER_PASSWORD) {
+                APP.isUserLoggedIn = true;
+                notify('✅ ACCESS GRANTED');
+                
+                // Check if we have API credentials stored
+                if (APP.githubToken && APP.githubUsername && APP.repoName) {
+                    showSpinner();
+                    loadFiles()
+                        .then(() => {
+                            hideSpinner();
+                            renderUserDashboard();
+                        })
+                        .catch(e => {
+                            hideSpinner();
+                            notify('❌ Failed to load files: ' + e.message, true);
+                            renderMainLogin();
+                        });
+                } else {
+                    notify('⚠️ Please login as Admin first to configure API', true);
+                    setTimeout(() => renderAdminLogin(), 1500);
+                }
+            } else {
+                notify('❌ WRONG PASSWORD!', true);
+                document.getElementById('userPassword').value = '';
+            }
+        }
 
-            if (!token || !username || !repo || !master || !backup) {
+        async function adminLogin() {
+            const token = document.getElementById('adminToken').value.trim();
+            const username = document.getElementById('adminUsername').value.trim();
+            const repo = document.getElementById('adminRepo').value.trim();
+            const backup = document.getElementById('adminBackup').value;
+
+            if (!token || !username || !repo || !backup) {
                 notify('❌ All fields required!', true);
                 return;
             }
-            if (master === backup) {
-                notify('❌ Passwords must be different!', true);
+
+            if (backup !== BACKUP_PASSWORD) {
+                notify('❌ WRONG BACKUP PASSWORD!', true);
                 return;
             }
 
             APP.githubToken = token;
             APP.githubUsername = username;
             APP.repoName = repo;
-            APP.masterPassword = master;
-            APP.backupPassword = backup;
 
             showSpinner();
             try {
-                await initializeRepo();
-                await saveConfigToGitHub();
-                localStorage.setItem('vaultConfigured', 'true');
-                APP.isLoggedIn = true;
-                APP.files = [];
+                // Test connection
+                await githubAPI('/contents');
+                await loadFiles();
+                APP.isAdminLoggedIn = true;
+                APP.isUserLoggedIn = true;
+                
+                // Save API details to localStorage for user mode
+                localStorage.setItem('vaultAPI', b64Encode(JSON.stringify({
+                    token, username, repo
+                })));
+                
                 hideSpinner();
-                notify('✅ Vault initialized & saved to GitHub!');
-                renderDashboard();
+                notify('✅ ADMIN ACCESS GRANTED');
+                renderAdminDashboard();
             } catch (e) {
                 hideSpinner();
-                notify('❌ Setup failed: ' + e.message, true);
+                notify('❌ Connection failed: ' + e.message, true);
             }
         }
 
-        async function fetchAndConnect() {
-            const token = document.getElementById('quickToken').value.trim();
-            const username = document.getElementById('quickUsername').value.trim();
-            const repo = document.getElementById('quickRepo').value.trim();
+        async function uploadFile() {
+            const folder = document.getElementById('uploadFolder').value.trim() || 'root';
+            const name = document.getElementById('uploadName').value.trim();
+            const type = document.getElementById('uploadType').value;
+            const content = document.getElementById('uploadContent').value;
+            const password = document.getElementById('uploadPassword').value;
 
-            if (!token || !username || !repo) {
-                notify('❌ All fields required!', true);
+            if (!name || !content) {
+                notify('❌ File name and content required!', true);
                 return;
             }
 
             showSpinner();
             try {
-                const config = await loadConfigFromGitHub(username, repo, token);
-                if (config && config.type === 'vault-config') {
-                    APP.githubToken = config.githubToken;
-                    APP.githubUsername = config.githubUsername;
-                    APP.repoName = config.repoName;
-                    APP.masterPassword = config.masterPassword;
-                    APP.backupPassword = config.backupPassword;
-                    localStorage.setItem('vaultConfigured', 'true');
-                    hideSpinner();
-                    notify('✅ Config loaded! Enter password to continue.');
-                    renderLogin();
-                } else {
-                    hideSpinner();
-                    notify('❌ No config found. Do fresh setup.', true);
-                }
+                await addFile(name, type, content, folder, password);
+                hideSpinner();
+                closeModal();
+                notify('✅ File uploaded to storage/data.json');
+                renderAdminDashboard();
+            } catch (e) {
+                hideSpinner();
+                notify('❌ Upload failed: ' + e.message, true);
+            }
+        }
+
+        function createFolder() {
+            const folderName = document.getElementById('newFolderName').value.trim();
+            if (folderName) {
+                APP.currentFolder = folderName;
+                closeModal();
+                renderAdminDashboard();
+                notify('📁 Switched to folder: ' + folderName);
+            }
+        }
+
+        function changeFolder(folder) {
+            APP.currentFolder = folder;
+            if (APP.isAdminLoggedIn) {
+                renderAdminDashboard();
+            } else {
+                renderUserDashboard();
+            }
+        }
+
+        function viewFile(fileId) {
+            const file = APP.files.find(f => f.id === fileId);
+            if (!file) return;
+
+            if (file.hasPassword && !APP.isAdminLoggedIn) {
+                promptFilePassword(fileId);
+                return;
+            }
+
+            const content = file.content ? b64Decode(file.content) : '';
+            
+            openModal(`
+                <h2 class="glitch-text" style="font-size: 18px;">📄 ${file.name}</h2>
+                <div style="color: #0a0; font-size: 12px; margin: 5px 0;">
+                    Type: ${file.type} | Size: ${file.size}KB | ${new Date(file.createdAt).toLocaleString()}
+                </div>
+                <div style="max-height: 60vh; overflow-y: auto; margin: 15px 0; background: rgba(0,20,0,0.5); padding: 15px; border-radius: 8px; border: 1px solid #0f0;">
+                    ${file.type === 'image' ? 
+                        `<img src="${content}" style="max-width: 100%;">` :
+                        file.type === 'video' ? 
+                        `<video controls style="max-width: 100%;"><source src="${content}"></video>` :
+                        `<pre style="color: #0f0; white-space: pre-wrap; font-family: 'Courier New', monospace;">${content}</pre>`
+                    }
+                </div>
+                ${APP.isAdminLoggedIn ? `
+                    <button class="cyber-btn warning" onclick="editFileContent('${fileId}')" style="width: 100%; margin: 5px 0;">
+                        ✏️ EDIT CONTENT
+                    </button>
+                ` : ''}
+                <button class="cyber-btn" onclick="closeModal()" style="width: 100%;">CLOSE</button>
+            `);
+        }
+
+        function editFileContent(fileId) {
+            const file = APP.files.find(f => f.id === fileId);
+            if (!file) return;
+            
+            const content = file.content ? b64Decode(file.content) : '';
+            
+            openModal(`
+                <h2 class="glitch-text" style="font-size: 18px;">✏️ EDIT: ${file.name}</h2>
+                <textarea id="editContent" class="cyber-input" rows="10">${content}</textarea>
+                <button class="cyber-btn" onclick="saveFileContent('${fileId}')" style="width: 100%; margin-top: 10px;">
+                    💾 SAVE CHANGES
+                </button>
+                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%;">CANCEL</button>
+            `);
+        }
+
+        async function saveFileContent(fileId) {
+            const newContent = document.getElementById('editContent').value;
+            showSpinner();
+            try {
+                await updateFileContent(fileId, newContent);
+                hideSpinner();
+                closeModal();
+                notify('✅ File updated!');
+                renderAdminDashboard();
             } catch (e) {
                 hideSpinner();
                 notify('❌ Failed: ' + e.message, true);
             }
         }
 
-        async function passwordLogin() {
-            const password = document.getElementById('loginPassword').value;
-            if (password === APP.masterPassword) {
-                APP.isLoggedIn = true;
-                showSpinner();
-                try {
-                    await loadFiles();
-                    hideSpinner();
-                    notify('✅ ACCESS GRANTED');
-                    renderDashboard();
-                } catch (e) {
-                    hideSpinner();
-                    notify('❌ Failed to load files', true);
-                }
-            } else {
-                notify('❌ ACCESS DENIED', true);
-            }
-        }
-
-        async function bioLoginHandler() {
-            notify('🖐️ Scanning...');
-            const success = await biometricLogin();
-            if (success) {
-                APP.isLoggedIn = true;
-                showSpinner();
-                try {
-                    await loadFiles();
-                    hideSpinner();
-                    notify('✅ VERIFIED');
-                    renderDashboard();
-                } catch (e) {
-                    hideSpinner();
-                    notify('❌ Load failed', true);
-                }
-            } else {
-                notify('❌ Biometric failed', true);
-            }
-        }
-
-        async function handleUpload() {
-            const name = document.getElementById('fileName').value.trim();
-            const type = document.getElementById('fileType').value;
-            const password = document.getElementById('filePassword').value;
-            const file = document.getElementById('fileInput').files[0];
-
-            if (!name || !file) {
-                notify('❌ Name and file required!', true);
-                return;
-            }
-
-            showSpinner();
-            try {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    try {
-                        await addFile(name, type, e.target.result, password);
-                        hideSpinner();
-                        closeModal();
-                        renderDashboard();
-                        notify('✅ File uploaded!');
-                    } catch (err) {
-                        hideSpinner();
-                        notify('❌ ' + err.message, true);
-                    }
-                };
-                reader.readAsDataURL(file);
-            } catch (e) {
-                hideSpinner();
-                notify('❌ Upload error', true);
-            }
-        }
-
-        async function handleCreateFolder() {
-            const name = document.getElementById('folderName').value.trim();
-            const password = document.getElementById('folderPassword').value;
-
-            if (!name) {
-                notify('❌ Folder name required!', true);
-                return;
-            }
-
-            showSpinner();
-            try {
-                await addFile(name, 'folder', '', password);
-                hideSpinner();
-                closeModal();
-                renderDashboard();
-                notify('✅ Folder created!');
-            } catch (e) {
-                hideSpinner();
-                notify('❌ Failed', true);
-            }
-        }
-
-        async function viewFile(fileId) {
-            const file = APP.files.find(f => f.id === fileId);
-            
-            if (file.hasPassword) {
-                const pass = prompt('🔒 Enter password:');
-                if (!pass || b64Decode(file.password) !== pass) {
+        function promptFilePassword(fileId) {
+            const password = prompt('🔒 This file is locked. Enter password:');
+            if (password) {
+                const file = APP.files.find(f => f.id === fileId);
+                if (file && b64Decode(file.password) === password) {
+                    viewFile(fileId);
+                } else {
                     notify('❌ Wrong password!', true);
-                    return;
                 }
             }
+        }
 
-            if (file.type === 'folder') {
-                APP.currentFolder = file.name;
-                renderDashboard();
+        function changeFilePass(fileId) {
+            const file = APP.files.find(f => f.id === fileId);
+            if (!file) return;
+
+            const backup = prompt('Enter BACKUP PASSWORD to change file password:');
+            if (backup !== BACKUP_PASSWORD) {
+                notify('❌ Wrong backup password!', true);
                 return;
             }
 
-            showSpinner();
-            try {
-                const content = await getFileContent(fileId);
-                hideSpinner();
-                if (content) {
-                    openModal(`
-                        <h2 class="glitch-text" style="font-size: 18px;">${file.name}</h2>
-                        <div style="max-height: 60vh; overflow-y: auto; margin: 20px 0;">
-                            ${file.type === 'image' ? 
-                                `<img src="${content}" style="max-width: 100%; border-radius: 5px;">` :
-                                file.type === 'video' ? 
-                                `<video controls style="max-width: 100%;"><source src="${content}"></video>` :
-                                `<pre style="color: #0f0; white-space: pre-wrap;">${content.substring(0, 2000)}</pre>`
-                            }
-                        </div>
-                        <button class="cyber-btn" onclick="closeModal()" style="width: 100%;">CLOSE</button>
-                    `);
-                }
-            } catch (e) {
-                hideSpinner();
-                notify('❌ Load failed', true);
-            }
-        }
-
-        function goBack() {
-            APP.currentFolder = 'root';
-            renderDashboard();
-        }
-
-        function lockFilePrompt(fileId) {
-            const pass = prompt('🔒 Set password:');
-            if (pass) {
-                updateFilePassword(fileId, pass);
-                renderDashboard();
-                notify('🔒 Locked!');
-            }
-        }
-
-        function unlockFilePrompt(fileId) {
-            const file = APP.files.find(f => f.id === fileId);
-            const pass = prompt('🔓 Enter password:');
-            if (pass && b64Decode(file.password) === pass) {
-                notify('✅ Unlocked!');
-            } else {
-                notify('❌ Wrong!', true);
-            }
-        }
-
-        function changeFilePasswordPrompt(fileId) {
-            const file = APP.files.find(f => f.id === fileId);
-            const old = prompt('Current password:');
-            if (old && b64Decode(file.password) === old) {
-                const newPass = prompt('New password (empty to remove):');
-                updateFilePassword(fileId, newPass || '');
-                renderDashboard();
-                notify(newPass ? '🔄 Updated!' : '🔓 Removed!');
-            } else {
-                notify('❌ Wrong!', true);
-            }
+            const newPass = prompt('Enter NEW password for this file (empty to remove):');
+            updateFilePassword(fileId, newPass || '')
+                .then(() => {
+                    notify(newPass ? '🔒 Password updated!' : '🔓 Password removed!');
+                    renderAdminDashboard();
+                })
+                .catch(e => notify('❌ Failed: ' + e.message, true));
         }
 
         async function deleteFilePrompt(fileId) {
-            if (confirm('⚠️ Delete permanently?')) {
-                await deleteFile(fileId);
-                renderDashboard();
-                notify('🗑️ Deleted!');
+            if (confirm('⚠️ Delete this file permanently?')) {
+                try {
+                    await deleteFile(fileId);
+                    notify('🗑️ File deleted!');
+                    renderAdminDashboard();
+                } catch (e) {
+                    notify('❌ Failed: ' + e.message, true);
+                }
             }
         }
 
-        async function changeMasterPass() {
-            const backup = document.getElementById('adminBackupPass').value;
-            if (backup !== APP.backupPassword) {
-                notify('❌ Wrong backup password!', true);
-                return;
-            }
-            const newPass = prompt('New master password:');
-            if (newPass && newPass !== APP.backupPassword) {
-                APP.masterPassword = newPass;
-                await saveConfigToGitHub();
-                closeModal();
-                notify('✅ Master password updated on GitHub!');
-            }
-        }
-
-        async function changeBackupPass() {
-            const old = document.getElementById('adminBackupPass').value;
-            if (old !== APP.backupPassword) {
-                notify('❌ Wrong!', true);
-                return;
-            }
-            const newPass = prompt('New backup password:');
-            if (newPass && newPass !== APP.masterPassword) {
-                APP.backupPassword = newPass;
-                await saveConfigToGitHub();
-                closeModal();
-                notify('✅ Backup password updated!');
-            }
-        }
-
-        async function changeAllPasswords() {
-            const backup = document.getElementById('adminBackupPass').value;
-            if (backup !== APP.backupPassword) {
-                notify('❌ Wrong backup password!', true);
-                return;
-            }
-            const pass = prompt('Password for ALL files:');
-            if (pass) {
+        async function setAllPasswords() {
+            const newPass = prompt('Enter password for ALL files:');
+            if (newPass) {
                 APP.files.forEach(f => {
-                    f.password = b64Encode(pass);
+                    f.password = b64Encode(newPass);
                     f.hasPassword = true;
                 });
                 await saveFiles();
-                closeModal();
-                renderDashboard();
-                notify('✅ All files locked!');
+                notify('🔒 All files locked!');
+                renderAdminDashboard();
             }
         }
 
         async function removeAllPasswords() {
-            const backup = document.getElementById('adminBackupPass').value;
-            if (backup !== APP.backupPassword) {
-                notify('❌ Wrong!', true);
-                return;
-            }
-            if (confirm('Remove ALL passwords?')) {
+            if (confirm('Remove passwords from ALL files?')) {
                 APP.files.forEach(f => {
                     f.password = '';
                     f.hasPassword = false;
                 });
                 await saveFiles();
-                closeModal();
-                renderDashboard();
-                notify('🔓 All unlocked!');
+                notify('🔓 All passwords removed!');
+                renderAdminDashboard();
             }
         }
 
-        function logout() {
-            APP.isLoggedIn = false;
+        function adminLogout() {
+            APP.isAdminLoggedIn = false;
+            APP.isUserLoggedIn = false;
             APP.files = [];
-            APP.currentFolder = 'root';
-            renderLogin();
+            renderMainLogin();
         }
 
-        function resetAll() {
-            if (confirm('⚠️ Clear all local data? Config remains on GitHub.')) {
-                localStorage.clear();
-                location.reload();
-            }
+        function userLogout() {
+            APP.isUserLoggedIn = false;
+            renderMainLogin();
         }
 
-        // ==================== INIT ====================
-        async function init() {
-            const configured = localStorage.getItem('vaultConfigured');
-            
-            if (configured === 'true') {
-                // Already configured, check for config
-                if (APP.githubToken && APP.githubUsername && APP.repoName) {
-                    renderLogin();
-                } else {
-                    renderQuickSetup();
+        // ==================== INITIALIZATION ====================
+        function init() {
+            // Try to load API details from localStorage
+            const savedAPI = localStorage.getItem('vaultAPI');
+            if (savedAPI) {
+                try {
+                    const apiData = JSON.parse(b64Decode(savedAPI));
+                    APP.githubToken = apiData.token;
+                    APP.githubUsername = apiData.username;
+                    APP.repoName = apiData.repo;
+                } catch (e) {
+                    // Invalid saved data
                 }
-            } else {
-                renderQuickSetup();
             }
+            
+            renderMainLogin();
         }
 
         // Enter key support
         document.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const loginInput = document.getElementById('loginPassword');
-                if (loginInput && document.activeElement === loginInput) {
-                    passwordLogin();
+                const userPass = document.getElementById('userPassword');
+                if (userPass && document.activeElement === userPass) {
+                    userLogin();
                 }
             }
         });
@@ -1293,4 +1113,4 @@
         init();
     </script>
 </body>
-  </html>
+</html>
