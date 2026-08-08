@@ -5,380 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CYBER VAULT | SECURE STORAGE</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #000;
-            font-family: 'Courier New', monospace;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        /* Matrix Background */
-        #matrixCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 0;
-            opacity: 0.15;
-        }
-
-        /* Scanlines */
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 255, 0, 0.02) 2px,
-                rgba(0, 255, 0, 0.02) 4px
-            );
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .main-container {
-            position: relative;
-            z-index: 10;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .terminal {
-            background: rgba(0, 0, 0, 0.92);
-            border: 2px solid #0f0;
-            border-radius: 15px;
-            padding: 30px;
-            width: 95%;
-            max-width: 900px;
-            box-shadow: 0 0 60px rgba(0, 255, 0, 0.3),
-                        inset 0 0 60px rgba(0, 255, 0, 0.05);
-            animation: pulse 2s infinite;
-            backdrop-filter: blur(20px);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 30px rgba(0, 255, 0, 0.2), inset 0 0 30px rgba(0, 255, 0, 0.05); }
-            50% { box-shadow: 0 0 80px rgba(0, 255, 0, 0.4), inset 0 0 80px rgba(0, 255, 0, 0.1); }
-        }
-
-        .glitch-text {
-            color: #0f0;
-            font-size: 26px;
-            font-weight: bold;
-            text-align: center;
-            text-transform: uppercase;
-            animation: glitch 1.5s infinite;
-            text-shadow: 3px 3px #003300;
-            margin-bottom: 20px;
-        }
-
-        @keyframes glitch {
-            0%, 100% { transform: translate(0); }
-            20% { transform: translate(-3px, 2px); }
-            40% { transform: translate(3px, -2px); }
-            60% { transform: translate(-2px, -3px); }
-            80% { transform: translate(2px, 3px); }
-        }
-
-        .subtitle {
-            color: #0a0;
-            text-align: center;
-            font-size: 13px;
-            margin: 10px 0 20px;
-            letter-spacing: 3px;
-        }
-
-        .cyber-input {
-            background: rgba(0, 25, 0, 0.7);
-            border: 1px solid #0f0;
-            color: #0f0;
-            padding: 14px;
-            width: 100%;
-            margin: 8px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 15px;
-            border-radius: 8px;
-            outline: none;
-            transition: all 0.3s;
-            letter-spacing: 1px;
-        }
-
-        .cyber-input:focus {
-            box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
-            background: rgba(0, 40, 0, 0.8);
-            border-color: #0f0;
-        }
-
-        .cyber-input::placeholder {
-            color: rgba(0, 255, 0, 0.3);
-        }
-
-        .cyber-btn {
-            background: rgba(0, 25, 0, 0.8);
-            border: 2px solid #0f0;
-            color: #0f0;
-            padding: 14px 28px;
-            font-family: 'Courier New', monospace;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s;
-            margin: 5px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cyber-btn:hover {
-            background: rgba(0, 255, 0, 0.15);
-            box-shadow: 0 0 40px rgba(0, 255, 0, 0.5);
-            transform: translateY(-3px);
-        }
-
-        .cyber-btn:active {
-            transform: translateY(0);
-        }
-
-        .cyber-btn.danger {
-            border-color: #ff0040;
-            color: #ff0040;
-            background: rgba(30, 0, 0, 0.8);
-        }
-
-        .cyber-btn.danger:hover {
-            background: rgba(255, 0, 0, 0.2);
-            box-shadow: 0 0 40px rgba(255, 0, 0, 0.5);
-        }
-
-        .cyber-btn.warning {
-            border-color: #ffaa00;
-            color: #ffaa00;
-            background: rgba(30, 20, 0, 0.8);
-        }
-
-        .file-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .file-card {
-            background: rgba(0, 20, 0, 0.5);
-            border: 1px solid #0f0;
-            padding: 20px;
-            border-radius: 10px;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .file-card:hover {
-            background: rgba(0, 255, 0, 0.1);
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
-            transform: translateY(-5px);
-        }
-
-        .file-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .file-icon {
-            font-size: 32px;
-        }
-
-        .file-name {
-            color: #0f0;
-            font-weight: bold;
-            font-size: 15px;
-            word-break: break-word;
-        }
-
-        .file-meta {
-            color: rgba(0, 255, 0, 0.5);
-            font-size: 11px;
-            margin-top: 8px;
-        }
-
-        .file-actions {
-            display: flex;
-            gap: 5px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-
-        .mini-btn {
-            padding: 6px 12px;
-            font-size: 11px;
-            border-radius: 5px;
-            letter-spacing: 1px;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 20, 0, 0.95);
-            border: 1px solid #0f0;
-            color: #0f0;
-            padding: 20px 30px;
-            border-radius: 10px;
-            z-index: 1000;
-            animation: slideIn 0.5s, fadeOut 0.5s 3s forwards;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
-            max-width: 400px;
-        }
-
-        .notification.error {
-            border-color: #ff0040;
-            color: #ff0040;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-
-        .spinner {
-            border: 3px solid rgba(0, 255, 0, 0.2);
-            border-top: 3px solid #0f0;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 0.8s linear infinite;
-            margin: 20px auto;
-            display: none;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            background: rgba(0, 10, 0, 0.95);
-            border: 2px solid #0f0;
-            border-radius: 15px;
-            padding: 30px;
-            width: 90%;
-            max-width: 550px;
-            box-shadow: 0 0 60px rgba(0, 255, 0, 0.4);
-            animation: modalIn 0.3s ease-out;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        @keyframes modalIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .status-bar {
-            color: #0a0;
-            font-size: 11px;
-            text-align: center;
-            margin-top: 20px;
-            letter-spacing: 2px;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        select.cyber-input {
-            appearance: none;
-            cursor: pointer;
-        }
-
-        select.cyber-input option {
-            background: #000;
-            color: #0f0;
-        }
-
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #000;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #0f0;
-            border-radius: 5px;
-        }
-
-        @media (max-width: 768px) {
-            .terminal {
-                padding: 20px;
-                width: 100%;
-            }
-            .glitch-text {
-                font-size: 20px;
-            }
-            .file-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; font-family: 'Courier New', monospace; height: 100vh; overflow-y: auto; }
+        #matrixCanvas { position: fixed; top: 0; left: 0; z-index: 0; opacity: 0.15; }
+        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.02) 2px, rgba(0,255,0,0.02) 4px); z-index: 2; pointer-events: none; }
+        .main-container { position: relative; z-index: 10; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .terminal { background: rgba(0,0,0,0.92); border: 2px solid #0f0; border-radius: 15px; padding: 30px; width: 95%; max-width: 900px; box-shadow: 0 0 60px rgba(0,255,0,0.3), inset 0 0 60px rgba(0,255,0,0.05); animation: pulse 2s infinite; backdrop-filter: blur(20px); max-height: 90vh; overflow-y: auto; }
+        @keyframes pulse { 0%,100% { box-shadow: 0 0 30px rgba(0,255,0,0.2),inset 0 0 30px rgba(0,255,0,0.05); } 50% { box-shadow: 0 0 80px rgba(0,255,0,0.4),inset 0 0 80px rgba(0,255,0,0.1); } }
+        .glitch-text { color: #0f0; font-size: 26px; font-weight: bold; text-align: center; text-transform: uppercase; animation: glitch 1.5s infinite; text-shadow: 3px 3px #003300; margin-bottom: 20px; }
+        @keyframes glitch { 0%,100% { transform: translate(0); } 20% { transform: translate(-3px,2px); } 40% { transform: translate(3px,-2px); } 60% { transform: translate(-2px,-3px); } 80% { transform: translate(2px,3px); } }
+        .subtitle { color: #0a0; text-align: center; font-size: 13px; margin: 10px 0 20px; letter-spacing: 3px; }
+        .cyber-input { background: rgba(0,25,0,0.7); border: 1px solid #0f0; color: #0f0; padding: 14px; width: 100%; margin: 8px 0; font-family: 'Courier New',monospace; font-size: 15px; border-radius: 8px; outline: none; transition: all 0.3s; letter-spacing: 1px; }
+        .cyber-input:focus { box-shadow: 0 0 25px rgba(0,255,0,0.4); background: rgba(0,40,0,0.8); border-color: #0f0; }
+        .cyber-input::placeholder { color: rgba(0,255,0,0.3); }
+        .cyber-btn { background: rgba(0,25,0,0.8); border: 2px solid #0f0; color: #0f0; padding: 14px 28px; font-family: 'Courier New',monospace; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: all 0.3s; margin: 5px; text-transform: uppercase; letter-spacing: 2px; position: relative; overflow: hidden; }
+        .cyber-btn:hover { background: rgba(0,255,0,0.15); box-shadow: 0 0 40px rgba(0,255,0,0.5); transform: translateY(-3px); }
+        .cyber-btn:active { transform: translateY(0); }
+        .cyber-btn.danger { border-color: #ff0040; color: #ff0040; background: rgba(30,0,0,0.8); }
+        .cyber-btn.danger:hover { background: rgba(255,0,0,0.2); box-shadow: 0 0 40px rgba(255,0,0,0.5); }
+        .cyber-btn.warning { border-color: #ffaa00; color: #ffaa00; background: rgba(30,20,0,0.8); }
+        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin: 20px 0; }
+        .file-card { background: rgba(0,20,0,0.5); border: 1px solid #0f0; padding: 20px; border-radius: 10px; transition: all 0.3s; cursor: pointer; }
+        .file-card:hover { background: rgba(0,255,0,0.1); box-shadow: 0 0 30px rgba(0,255,0,0.3); transform: translateY(-5px); }
+        .file-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .file-icon { font-size: 32px; }
+        .file-name { color: #0f0; font-weight: bold; font-size: 15px; word-break: break-word; }
+        .file-meta { color: rgba(0,255,0,0.5); font-size: 11px; margin-top: 8px; }
+        .file-actions { display: flex; gap: 5px; margin-top: 12px; flex-wrap: wrap; }
+        .mini-btn { padding: 6px 12px; font-size: 11px; border-radius: 5px; letter-spacing: 1px; }
+        .notification { position: fixed; top: 20px; right: 20px; background: rgba(0,20,0,0.95); border: 1px solid #0f0; color: #0f0; padding: 20px 30px; border-radius: 10px; z-index: 1000; animation: slideIn 0.5s, fadeOut 0.5s 3s forwards; backdrop-filter: blur(15px); box-shadow: 0 0 30px rgba(0,255,0,0.3); max-width: 400px; }
+        .notification.error { border-color: #ff0040; color: #ff0040; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        .spinner { border: 3px solid rgba(0,255,0,0.2); border-top: 3px solid #0f0; border-radius: 50%; width: 50px; height: 50px; animation: spin 0.8s linear infinite; margin: 20px auto; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); }
+        .modal-content { background: rgba(0,10,0,0.95); border: 2px solid #0f0; border-radius: 15px; padding: 30px; width: 90%; max-width: 550px; box-shadow: 0 0 60px rgba(0,255,0,0.4); animation: modalIn 0.3s ease-out; max-height: 85vh; overflow-y: auto; }
+        @keyframes modalIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .status-bar { color: #0a0; font-size: 11px; text-align: center; margin-top: 20px; letter-spacing: 2px; animation: blink 1s infinite; }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        select.cyber-input { appearance: none; cursor: pointer; }
+        textarea.cyber-input { resize: vertical; min-height: 80px; }
+        ::-webkit-scrollbar { width: 10px; } ::-webkit-scrollbar-track { background: #000; } ::-webkit-scrollbar-thumb { background: #0f0; border-radius: 5px; }
+        @media (max-width:768px) { .terminal { padding: 20px; width: 100%; } .glitch-text { font-size: 20px; } .file-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-
     <canvas id="matrixCanvas"></canvas>
     <div class="scanlines"></div>
     <div id="notificationContainer"></div>
     <div class="spinner" id="spinner"></div>
-
     <div class="main-container">
         <div class="terminal" id="terminal"></div>
     </div>
-
     <div class="modal-overlay" id="modal">
         <div class="modal-content" id="modalContent"></div>
     </div>
 
     <script>
-        // ==================== FIXED PASSWORDS (Code me hardcoded) ====================
+        // ==================== FIXED PASSWORDS ====================
         const MASTER_PASSWORD = 'Y@th@Rth';
         const BACKUP_PASSWORD = 'mann';
-        
+
         // ==================== APP STATE ====================
         const APP = {
             githubToken: '',
@@ -386,622 +74,339 @@
             repoName: '',
             files: [],
             currentFolder: 'root',
-            isAdminLoggedIn: false,
-            isUserLoggedIn: false
+            isAdmin: false,
+            isLoggedIn: false
         };
 
-        // ==================== ENCODING ====================
-        function b64Encode(str) {
-            try { return btoa(unescape(encodeURIComponent(str))); } 
-            catch (e) { return btoa(str); }
-        }
-        function b64Decode(str) {
-            try { return decodeURIComponent(escape(atob(str))); } 
-            catch (e) { return atob(str); }
-        }
-
-        // ==================== MATRIX RAIN ====================
-        const canvas = document.getElementById('matrixCanvas');
-        const ctx = canvas.getContext('2d');
+        // ==================== HELPERS ====================
+        function b64Encode(str) { try { return btoa(unescape(encodeURIComponent(str))); } catch(e) { return btoa(str); } }
+        function b64Decode(str) { try { return decodeURIComponent(escape(atob(str))); } catch(e) { return atob(str); } }
         
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        function notify(msg, err=false) {
+            const c = document.getElementById('notificationContainer');
+            const d = document.createElement('div');
+            d.className = `notification ${err?'error':''}`;
+            d.textContent = msg;
+            c.appendChild(d);
+            setTimeout(() => d.remove(), 3000);
         }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*{}[]|/\\';
-        const fontSize = 16;
-        let columns, drops;
-
-        function initMatrix() {
-            columns = Math.floor(canvas.width / fontSize);
-            drops = Array(columns).fill(1);
-        }
-        initMatrix();
-        window.addEventListener('resize', initMatrix);
-
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#0f0';
-            ctx.font = `${fontSize}px monospace`;
-
-            for (let i = 0; i < drops.length; i++) {
-                const char = chars[Math.floor(Math.random() * chars.length)];
-                ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
-            }
-        }
-        setInterval(drawMatrix, 50);
-
-        // ==================== UTILITIES ====================
-        function notify(message, isError = false) {
-            const container = document.getElementById('notificationContainer');
-            const el = document.createElement('div');
-            el.className = `notification ${isError ? 'error' : ''}`;
-            el.textContent = message;
-            container.appendChild(el);
-            setTimeout(() => el.remove(), 3000);
-        }
-
-        function showSpinner() { document.getElementById('spinner').style.display = 'block'; }
-        function hideSpinner() { document.getElementById('spinner').style.display = 'none'; }
-
-        function openModal(html) {
-            document.getElementById('modalContent').innerHTML = html;
+        
+        function spin(show) { document.getElementById('spinner').style.display = show?'block':'none'; }
+        
+        function openModal(h) {
+            document.getElementById('modalContent').innerHTML = h;
             document.getElementById('modal').style.display = 'flex';
         }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-        }
+        // ==================== MATRIX ====================
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const ch = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*';
+        const fs = 16;
+        let cols = Math.floor(canvas.width/fs);
+        let drops = Array(cols).fill(1);
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            cols = Math.floor(canvas.width/fs);
+            drops = Array(cols).fill(1);
+        });
+        setInterval(() => {
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = `${fs}px monospace`;
+            for(let i=0;i<drops.length;i++) {
+                ctx.fillText(ch[Math.floor(Math.random()*ch.length)], i*fs, drops[i]*fs);
+                if(drops[i]*fs > canvas.height && Math.random()>0.975) drops[i]=0;
+                drops[i]++;
+            }
+        }, 50);
 
         // ==================== GITHUB API ====================
-        async function githubAPI(endpoint, method = 'GET', body = null) {
+        async function gh(endpoint, method='GET', body=null) {
             const url = `https://api.github.com/repos/${APP.githubUsername}/${APP.repoName}${endpoint}`;
             const headers = {
                 'Authorization': `token ${APP.githubToken}`,
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             };
-            const options = { method, headers };
-            if (body) options.body = JSON.stringify(body);
-            
-            const response = await fetch(url, options);
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.message || `HTTP ${response.status}`);
-            }
-            return response.json();
+            const opts = { method, headers };
+            if(body) opts.body = JSON.stringify(body);
+            const res = await fetch(url, opts);
+            if(!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.message||`HTTP ${res.status}`); }
+            return res.json();
         }
 
-        // ==================== STORAGE FILE OPERATIONS ====================
-        async function getStorageFile() {
+        // ==================== STORAGE ====================
+        async function loadStorage() {
             try {
-                // Get storage/data.json from repo
-                const response = await githubAPI('/contents/storage/data.json');
-                const content = b64Decode(response.content);
-                return JSON.parse(content);
-            } catch (e) {
-                // File doesn't exist, create it
-                return { files: [], folders: [] };
+                const r = await gh('/contents/storage/data.json');
+                return JSON.parse(b64Decode(r.content));
+            } catch(e) {
+                return { files: [] };
             }
         }
 
-        async function saveStorageFile(data) {
+        async function saveStorage(data) {
             try {
-                // Check if file exists
-                const existing = await githubAPI('/contents/storage/data.json').catch(() => null);
-                
+                const existing = await gh('/contents/storage/data.json').catch(()=>null);
                 const body = {
-                    message: 'Update storage data',
+                    message: 'Update vault data',
                     content: b64Encode(JSON.stringify(data, null, 2)),
                     branch: 'main'
                 };
-
-                if (existing) {
-                    body.sha = existing.sha;
-                }
-
-                await githubAPI('/contents/storage/data.json', 'PUT', body);
-            } catch (e) {
-                throw new Error('Failed to save: ' + e.message);
+                if(existing) body.sha = existing.sha;
+                await gh('/contents/storage/data.json', 'PUT', body);
+            } catch(e) {
+                throw new Error('Save failed: ' + e.message);
             }
         }
 
         async function loadFiles() {
-            const data = await getStorageFile();
-            APP.files = data.files || [];
+            const d = await loadStorage();
+            APP.files = d.files || [];
         }
 
         async function saveFiles() {
-            const data = await getStorageFile();
-            data.files = APP.files;
-            await saveStorageFile(data);
+            const d = await loadStorage();
+            d.files = APP.files;
+            await saveStorage(d);
         }
 
-        async function addFile(name, type, content, folder, password = '') {
-            const fileId = Date.now().toString();
-            const fileData = {
-                id: fileId,
-                name: name,
-                type: type,
-                folder: folder || 'root',
-                password: password ? b64Encode(password) : '',
-                hasPassword: !!password,
-                content: content ? b64Encode(content) : '',
-                createdAt: new Date().toISOString(),
-                size: content ? Math.round(content.length * 0.75 / 1024) : 0 // Approximate KB
-            };
-
-            APP.files.push(fileData);
-            await saveFiles();
-            return fileData;
+        // ==================== SAVE/LOAD API ====================
+        function saveAPIToStorage() {
+            const data = { token: APP.githubToken, username: APP.githubUsername, repo: APP.repoName };
+            localStorage.setItem('vault_api', b64Encode(JSON.stringify(data)));
         }
 
-        async function deleteFile(fileId) {
-            APP.files = APP.files.filter(f => f.id !== fileId);
-            await saveFiles();
-        }
-
-        async function updateFilePassword(fileId, newPassword) {
-            const file = APP.files.find(f => f.id === fileId);
-            if (file) {
-                file.password = newPassword ? b64Encode(newPassword) : '';
-                file.hasPassword = !!newPassword;
-                await saveFiles();
+        function loadAPIFromStorage() {
+            const saved = localStorage.getItem('vault_api');
+            if(saved) {
+                try {
+                    const data = JSON.parse(b64Decode(saved));
+                    APP.githubToken = data.token;
+                    APP.githubUsername = data.username;
+                    APP.repoName = data.repo;
+                    return true;
+                } catch(e) { return false; }
             }
+            return false;
         }
 
-        async function updateFileContent(fileId, newContent) {
-            const file = APP.files.find(f => f.id === fileId);
-            if (file) {
-                file.content = newContent ? b64Encode(newContent) : '';
-                file.size = newContent ? Math.round(newContent.length * 0.75 / 1024) : 0;
-                await saveFiles();
-            }
-        }
-
-        // ==================== UI RENDERS ====================
-        function renderMainLogin() {
-            // First screen - User Login (for viewing files)
+        // ==================== RENDER ====================
+        function renderLogin() {
             document.getElementById('terminal').innerHTML = `
-                <div style="text-align: center;">
+                <div style="text-align:center;">
                     <h1 class="glitch-text">⚡ CYBER VAULT</h1>
                     <p class="subtitle">[ SECURE STORAGE SYSTEM ]</p>
-                    
-                    <div style="max-width: 400px; margin: 30px auto;">
-                        <input type="password" id="userPassword" class="cyber-input" 
-                               placeholder="ENTER PASSWORD" style="text-align: center;">
-                        
-                        <button class="cyber-btn" onclick="userLogin()" style="width: 100%; margin-top: 20px;">
-                            🔐 ACCESS VAULT
-                        </button>
-                        
-                        <button class="cyber-btn warning" onclick="renderAdminLogin()" 
-                                style="width: 100%; margin-top: 10px; font-size: 13px;">
-                            ⚙️ ADMIN ACCESS
-                        </button>
+                    <div style="max-width:400px;margin:30px auto;">
+                        <input type="password" id="userPassword" class="cyber-input" placeholder="ENTER PASSWORD" style="text-align:center;">
+                        <button class="cyber-btn" onclick="userLogin()" style="width:100%;margin-top:20px;">🔐 ACCESS VAULT</button>
+                        <button class="cyber-btn warning" onclick="renderAdminLogin()" style="width:100%;margin-top:10px;font-size:13px;">⚙️ ADMIN PANEL</button>
                     </div>
-                    
                     <div class="status-bar">[ MASTER PASSWORD REQUIRED ]</div>
-                </div>
-            `;
+                </div>`;
         }
 
         function renderAdminLogin() {
-            // Admin Login - API details & backup password
             document.getElementById('terminal').innerHTML = `
-                <div style="text-align: center;">
-                    <h1 class="glitch-text">⚙️ ADMIN PANEL</h1>
-                    <p class="subtitle">[ RESTRICTED ACCESS ]</p>
-                    
-                    <div style="text-align: left; max-width: 500px; margin: 0 auto;">
-                        <label style="color: #0f0; font-size: 14px;">🔑 GitHub Token</label>
-                        <input type="password" id="adminToken" class="cyber-input" 
-                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-                        
-                        <label style="color: #0f0; font-size: 14px;">👤 GitHub Username</label>
-                        <input type="text" id="adminUsername" class="cyber-input" 
-                               placeholder="your-username">
-                        
-                        <label style="color: #0f0; font-size: 14px;">📦 Repository Name</label>
-                        <input type="text" id="adminRepo" class="cyber-input" 
-                               placeholder="your-repo">
-                        
-                        <label style="color: #0f0; font-size: 14px;">🛡️ Backup Password</label>
-                        <input type="password" id="adminBackup" class="cyber-input" 
-                               placeholder="Enter backup password">
+                <div style="text-align:center;">
+                    <h1 class="glitch-text">⚙️ ADMIN SETUP</h1>
+                    <p class="subtitle">[ ONE-TIME CONFIGURATION ]</p>
+                    <div style="text-align:left;max-width:500px;margin:0 auto;">
+                        <label style="color:#0f0;">🔑 GitHub Token</label>
+                        <input type="password" id="adminToken" class="cyber-input" placeholder="ghp_xxx">
+                        <label style="color:#0f0;">👤 Username</label>
+                        <input type="text" id="adminUser" class="cyber-input" placeholder="username">
+                        <label style="color:#0f0;">📦 Repository</label>
+                        <input type="text" id="adminRepo" class="cyber-input" placeholder="repo-name">
+                        <label style="color:#0f0;">🛡️ Backup Password</label>
+                        <input type="password" id="adminBackup" class="cyber-input" placeholder="Backup password">
                     </div>
-                    
-                    <button class="cyber-btn" onclick="adminLogin()" style="width: 100%; margin-top: 20px;">
-                        🔐 ADMIN LOGIN
-                    </button>
-                    
-                    <button class="cyber-btn danger" onclick="renderMainLogin()" 
-                            style="width: 100%; margin-top: 10px;">
-                        ↩️ BACK TO USER LOGIN
-                    </button>
-                    
-                    <div class="status-bar">[ BACKUP PASSWORD: mann ]</div>
-                </div>
-            `;
+                    <button class="cyber-btn" onclick="adminSetup()" style="width:100%;margin-top:20px;">🚀 SAVE & ACCESS</button>
+                    <button class="cyber-btn danger" onclick="renderLogin()" style="width:100%;margin-top:10px;">↩️ BACK</button>
+                    <div class="status-bar">[ API DETAILS SAVE HOTE HAIN LOCAL STORAGE MEIN ]</div>
+                </div>`;
         }
 
-        function renderAdminDashboard() {
+        function renderDashboard() {
             const currentFiles = APP.files.filter(f => f.folder === APP.currentFolder);
             const folders = [...new Set(APP.files.map(f => f.folder))];
-            
             document.getElementById('terminal').innerHTML = `
                 <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                        <h1 class="glitch-text" style="font-size: 22px; margin: 0;">⚙️ ADMIN: ${APP.currentFolder.toUpperCase()}</h1>
-                        <span style="color: #0f0;">${currentFiles.length} files</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                        <h1 class="glitch-text" style="font-size:22px;margin:0;">📁 ${APP.currentFolder.toUpperCase()}</h1>
+                        <span style="color:#0f0;">${currentFiles.length} files</span>
                     </div>
-                    
-                    <div style="display: flex; gap: 8px; margin: 20px 0; flex-wrap: wrap;">
-                        <button class="cyber-btn" onclick="showUploadForm()">⬆️ UPLOAD FILE</button>
-                        <button class="cyber-btn" onclick="showCreateFolderForm()">📁 NEW FOLDER</button>
-                        <button class="cyber-btn warning" onclick="showPasswordManager()">🔑 PASSWORDS</button>
-                        ${APP.currentFolder !== 'root' ? 
-                            `<button class="cyber-btn" onclick="changeFolder('root')">↩️ ROOT</button>` : ''}
-                        <button class="cyber-btn danger" onclick="adminLogout()">🚪 EXIT</button>
+                    <div style="display:flex;gap:8px;margin:20px 0;flex-wrap:wrap;">
+                        ${APP.isAdmin ? `
+                            <button class="cyber-btn" onclick="showUploadForm()">⬆️ UPLOAD</button>
+                            <button class="cyber-btn warning" onclick="showPassManager()">🔑 PASSWORDS</button>
+                        ` : ''}
+                        ${APP.currentFolder !== 'root' ? `<button class="cyber-btn" onclick="changeFolder('root')">↩️ ROOT</button>` : ''}
+                        <button class="cyber-btn danger" onclick="logout()">🚪 ${APP.isAdmin ? 'EXIT' : 'LOCK'}</button>
                     </div>
-                    
-                    ${folders.length > 1 ? `
-                        <div style="margin-bottom: 15px;">
-                            <span style="color: #0a0;">📁 Folders: </span>
-                            ${folders.filter(f => f !== 'root').map(f => 
-                                `<button class="cyber-btn mini-btn" onclick="changeFolder('${f}')">📁 ${f}</button>`
-                            ).join(' ')}
-                        </div>
-                    ` : ''}
-                    
+                    ${folders.length > 1 ? `<div style="margin-bottom:15px;"><span style="color:#0a0;">📁 </span>${folders.filter(f=>f!=='root').map(f=>`<button class="cyber-btn mini-btn" onclick="changeFolder('${f}')">📁 ${f}</button>`).join(' ')}</div>` : ''}
                     <div class="file-grid">
-                        ${currentFiles.length === 0 ? 
-                            `<div style="color: rgba(0,255,0,0.4); text-align: center; grid-column: 1/-1; padding: 50px;">
-                                [ EMPTY ] - Upload files using ⬆️ button
-                            </div>` :
-                            currentFiles.map(file => `
-                                <div class="file-card">
+                        ${currentFiles.length === 0 ? `<div style="color:rgba(0,255,0,0.4);text-align:center;grid-column:1/-1;padding:50px;">[ EMPTY ]</div>` :
+                            currentFiles.map(f => `
+                                <div class="file-card" onclick="${f.hasPassword && !APP.isAdmin ? `promptPass('${f.id}')` : `viewFile('${f.id}')`}">
                                     <div class="file-header">
-                                        <span class="file-icon">
-                                            ${file.type === 'image' ? '🖼️' : file.type === 'video' ? '🎥' : '📄'}
-                                        </span>
-                                        ${file.hasPassword ? '<span style="color: #ff0040;">🔒</span>' : '<span style="color: #0f0;">🔓</span>'}
+                                        <span class="file-icon">${f.type==='image'?'🖼️':f.type==='video'?'🎥':'📄'}</span>
+                                        ${f.hasPassword ? '<span style="color:#ff0040;">🔒</span>' : '<span style="color:#0f0;">🔓</span>'}
                                     </div>
-                                    <div class="file-name">${file.name}</div>
-                                    <div class="file-meta">
-                                        ${file.type} | ${file.size}KB | ${new Date(file.createdAt).toLocaleDateString()}
-                                    </div>
-                                    <div class="file-actions">
-                                        <button class="cyber-btn mini-btn" onclick="viewFile('${file.id}')">👁️ VIEW</button>
-                                        <button class="cyber-btn warning mini-btn" onclick="changeFilePass('${file.id}')">🔄 PASS</button>
-                                        <button class="cyber-btn danger mini-btn" onclick="deleteFilePrompt('${file.id}')">🗑️</button>
-                                    </div>
+                                    <div class="file-name">${f.name}</div>
+                                    <div class="file-meta">${f.type} | ${f.size||0}KB</div>
+                                    ${APP.isAdmin ? `<div class="file-actions">
+                                        <button class="cyber-btn mini-btn" onclick="event.stopPropagation();viewFile('${f.id}')">👁️</button>
+                                        <button class="cyber-btn warning mini-btn" onclick="event.stopPropagation();changePass('${f.id}')">🔄</button>
+                                        <button class="cyber-btn danger mini-btn" onclick="event.stopPropagation();delFile('${f.id}')">🗑️</button>
+                                    </div>` : ''}
                                 </div>
                             `).join('')
                         }
                     </div>
-                    
-                    <div class="status-bar">[ ADMIN MODE ] [ ${APP.githubUsername}/${APP.repoName} ]</div>
-                </div>
-            `;
-        }
-
-        function renderUserDashboard() {
-            const currentFiles = APP.files.filter(f => f.folder === APP.currentFolder);
-            const folders = [...new Set(APP.files.map(f => f.folder))];
-            
-            document.getElementById('terminal').innerHTML = `
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                        <h1 class="glitch-text" style="font-size: 22px; margin: 0;">📁 ${APP.currentFolder.toUpperCase()}</h1>
-                        <span style="color: #0f0;">${currentFiles.length} files</span>
-                    </div>
-                    
-                    <div style="display: flex; gap: 8px; margin: 20px 0; flex-wrap: wrap;">
-                        ${APP.currentFolder !== 'root' ? 
-                            `<button class="cyber-btn" onclick="changeFolder('root')">↩️ ROOT</button>` : ''}
-                        <button class="cyber-btn danger" onclick="userLogout()">🚪 LOCK</button>
-                    </div>
-                    
-                    ${folders.length > 1 ? `
-                        <div style="margin-bottom: 15px;">
-                            <span style="color: #0a0;">📁 Folders: </span>
-                            ${folders.filter(f => f !== 'root').map(f => 
-                                `<button class="cyber-btn mini-btn" onclick="changeFolder('${f}')">📁 ${f}</button>`
-                            ).join(' ')}
-                        </div>
-                    ` : ''}
-                    
-                    <div class="file-grid">
-                        ${currentFiles.length === 0 ? 
-                            `<div style="color: rgba(0,255,0,0.4); text-align: center; grid-column: 1/-1; padding: 50px;">
-                                [ NO FILES ]
-                            </div>` :
-                            currentFiles.map(file => `
-                                <div class="file-card" onclick="${file.hasPassword ? `promptFilePassword('${file.id}')` : `viewFile('${file.id}')`}">
-                                    <div class="file-header">
-                                        <span class="file-icon">
-                                            ${file.type === 'image' ? '🖼️' : file.type === 'video' ? '🎥' : '📄'}
-                                        </span>
-                                        ${file.hasPassword ? '<span style="color: #ff0040;">🔒</span>' : '<span style="color: #0f0;">🔓</span>'}
-                                    </div>
-                                    <div class="file-name">${file.name}</div>
-                                    <div class="file-meta">
-                                        ${file.type} | ${file.size}KB | ${new Date(file.createdAt).toLocaleDateString()}
-                                    </div>
-                                    ${file.hasPassword ? '<div style="color: #ffaa00; font-size: 10px; margin-top: 5px;">🔒 Password Protected</div>' : ''}
-                                </div>
-                            `).join('')
-                        }
-                    </div>
-                    
-                    <div class="status-bar">[ USER MODE ] [ READ ONLY ]</div>
-                </div>
-            `;
+                    <div class="status-bar">[ ${APP.isAdmin ? 'ADMIN' : 'USER'} MODE ] [ ${APP.githubUsername}/${APP.repoName} ]</div>
+                </div>`;
         }
 
         function showUploadForm() {
             openModal(`
-                <h2 class="glitch-text" style="font-size: 20px;">⬆️ UPLOAD FILE</h2>
-                
-                <label style="color: #0f0; font-size: 13px;">📁 Folder (leave empty for root)</label>
-                <input type="text" id="uploadFolder" class="cyber-input" placeholder="e.g., documents">
-                
-                <label style="color: #0f0; font-size: 13px;">📄 File Name</label>
-                <input type="text" id="uploadName" class="cyber-input" placeholder="my-file">
-                
-                <label style="color: #0f0; font-size: 13px;">📂 File Type</label>
-                <select id="uploadType" class="cyber-input">
-                    <option value="document">📄 Document</option>
-                    <option value="image">🖼️ Image</option>
-                    <option value="video">🎥 Video</option>
-                </select>
-                
-                <label style="color: #0f0; font-size: 13px;">📝 Content (text or base64 for images/videos)</label>
-                <textarea id="uploadContent" class="cyber-input" rows="5" 
-                          placeholder="Enter text content or paste base64..."></textarea>
-                
-                <label style="color: #0f0; font-size: 13px;">🔒 File Password (optional)</label>
-                <input type="password" id="uploadPassword" class="cyber-input" placeholder="Set file password">
-                
-                <button class="cyber-btn" onclick="uploadFile()" style="width: 100%; margin-top: 15px;">
-                    🚀 UPLOAD TO STORAGE
-                </button>
-                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%;">CANCEL</button>
-            `);
+                <h2 class="glitch-text" style="font-size:20px;">⬆️ UPLOAD FILE</h2>
+                <label style="color:#0f0;">📁 Folder (empty = root)</label>
+                <input type="text" id="ufolder" class="cyber-input" placeholder="e.g. documents">
+                <label style="color:#0f0;">📄 File Name</label>
+                <input type="text" id="uname" class="cyber-input" placeholder="file-name">
+                <label style="color:#0f0;">📂 Type</label>
+                <select id="utype" class="cyber-input"><option value="document">📄 Document</option><option value="image">🖼️ Image</option><option value="video">🎥 Video</option></select>
+                <label style="color:#0f0;">📝 Content (text ya base64)</label>
+                <textarea id="ucontent" class="cyber-input" rows="5" placeholder="Content here..."></textarea>
+                <label style="color:#0f0;">🔒 Password (optional)</label>
+                <input type="password" id="upass" class="cyber-input" placeholder="File password">
+                <button class="cyber-btn" onclick="doUpload()" style="width:100%;margin-top:15px;">🚀 UPLOAD</button>
+                <button class="cyber-btn danger" onclick="closeModal()" style="width:100%;">CANCEL</button>`);
         }
 
-        function showCreateFolderForm() {
+        function showPassManager() {
+            const locked = APP.files.filter(f => f.hasPassword);
             openModal(`
-                <h2 class="glitch-text" style="font-size: 20px;">📁 CREATE FOLDER</h2>
-                <input type="text" id="newFolderName" class="cyber-input" placeholder="Folder Name">
-                <button class="cyber-btn" onclick="createFolder()" style="width: 100%;">CREATE FOLDER</button>
-                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%;">CANCEL</button>
-            `);
-        }
-
-        function showPasswordManager() {
-            const files = APP.files.filter(f => f.hasPassword);
-            openModal(`
-                <h2 class="glitch-text" style="font-size: 20px;">🔑 PASSWORD MANAGER</h2>
-                
-                <h3 style="color: #0f0; margin-top: 15px;">Locked Files (${files.length})</h3>
-                ${files.length === 0 ? 
-                    '<p style="color: #0a0;">No locked files</p>' :
-                    files.map(f => `
-                        <div style="background: rgba(0,20,0,0.5); padding: 10px; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
-                            <span style="color: #0f0;">🔒 ${f.name}</span>
-                            <button class="cyber-btn mini-btn" onclick="changeFilePass('${f.id}'); closeModal();">🔄 CHANGE</button>
-                        </div>
-                    `).join('')
-                }
-                
-                <h3 style="color: #0f0; margin-top: 20px;">Bulk Operations</h3>
-                <button class="cyber-btn warning" onclick="setAllPasswords()" style="width: 100%; margin: 5px 0;">
-                    SET PASSWORD FOR ALL FILES
-                </button>
-                <button class="cyber-btn" onclick="removeAllPasswords()" style="width: 100%; margin: 5px 0;">
-                    REMOVE ALL PASSWORDS
-                </button>
-                
-                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%; margin-top: 20px;">CLOSE</button>
-            `);
+                <h2 class="glitch-text" style="font-size:20px;">🔑 PASSWORD MANAGER</h2>
+                <p style="color:#0f0;">Locked Files: ${locked.length}</p>
+                ${locked.map(f => `<div style="background:rgba(0,20,0,0.5);padding:10px;margin:5px 0;border-radius:5px;display:flex;justify-content:space-between;"><span style="color:#0f0;">🔒 ${f.name}</span><button class="cyber-btn mini-btn" onclick="changePass('${f.id}');closeModal();">🔄</button></div>`).join('')}
+                <button class="cyber-btn warning" onclick="setAllPass()" style="width:100%;margin:10px 0;">SET ALL PASSWORDS</button>
+                <button class="cyber-btn" onclick="remAllPass()" style="width:100%;margin:5px 0;">REMOVE ALL</button>
+                <button class="cyber-btn danger" onclick="closeModal()" style="width:100%;margin-top:15px;">CLOSE</button>`);
         }
 
         // ==================== ACTIONS ====================
-        function userLogin() {
-            const password = document.getElementById('userPassword').value;
+        async function userLogin() {
+            const pass = document.getElementById('userPassword').value;
+            if(pass !== MASTER_PASSWORD) { notify('❌ WRONG PASSWORD!', true); return; }
             
-            if (password === MASTER_PASSWORD) {
-                APP.isUserLoggedIn = true;
+            // Check if API is configured
+            if(!loadAPIFromStorage()) {
+                notify('⚠️ Admin setup needed first! Use ⚙️ ADMIN PANEL button', true);
+                return;
+            }
+
+            spin(true);
+            try {
+                await loadFiles();
+                APP.isLoggedIn = true;
+                APP.isAdmin = false;
+                spin(false);
                 notify('✅ ACCESS GRANTED');
-                
-                // Check if we have API credentials stored
-                if (APP.githubToken && APP.githubUsername && APP.repoName) {
-                    showSpinner();
-                    loadFiles()
-                        .then(() => {
-                            hideSpinner();
-                            renderUserDashboard();
-                        })
-                        .catch(e => {
-                            hideSpinner();
-                            notify('❌ Failed to load files: ' + e.message, true);
-                            renderMainLogin();
-                        });
-                } else {
-                    notify('⚠️ Please login as Admin first to configure API', true);
-                    setTimeout(() => renderAdminLogin(), 1500);
-                }
-            } else {
-                notify('❌ WRONG PASSWORD!', true);
-                document.getElementById('userPassword').value = '';
+                renderDashboard();
+            } catch(e) {
+                spin(false);
+                notify('❌ Failed to load: ' + e.message, true);
             }
         }
 
-        async function adminLogin() {
+        async function adminSetup() {
             const token = document.getElementById('adminToken').value.trim();
-            const username = document.getElementById('adminUsername').value.trim();
+            const user = document.getElementById('adminUser').value.trim();
             const repo = document.getElementById('adminRepo').value.trim();
             const backup = document.getElementById('adminBackup').value;
 
-            if (!token || !username || !repo || !backup) {
-                notify('❌ All fields required!', true);
-                return;
-            }
-
-            if (backup !== BACKUP_PASSWORD) {
-                notify('❌ WRONG BACKUP PASSWORD!', true);
-                return;
-            }
+            if(!token || !user || !repo || !backup) { notify('❌ All fields required!', true); return; }
+            if(backup !== BACKUP_PASSWORD) { notify('❌ Wrong backup password!', true); return; }
 
             APP.githubToken = token;
-            APP.githubUsername = username;
+            APP.githubUsername = user;
             APP.repoName = repo;
 
-            showSpinner();
+            spin(true);
             try {
-                // Test connection
-                await githubAPI('/contents');
+                await gh('/contents');
                 await loadFiles();
-                APP.isAdminLoggedIn = true;
-                APP.isUserLoggedIn = true;
-                
-                // Save API details to localStorage for user mode
-                localStorage.setItem('vaultAPI', b64Encode(JSON.stringify({
-                    token, username, repo
-                })));
-                
-                hideSpinner();
-                notify('✅ ADMIN ACCESS GRANTED');
-                renderAdminDashboard();
-            } catch (e) {
-                hideSpinner();
-                notify('❌ Connection failed: ' + e.message, true);
-            }
-        }
-
-        async function uploadFile() {
-            const folder = document.getElementById('uploadFolder').value.trim() || 'root';
-            const name = document.getElementById('uploadName').value.trim();
-            const type = document.getElementById('uploadType').value;
-            const content = document.getElementById('uploadContent').value;
-            const password = document.getElementById('uploadPassword').value;
-
-            if (!name || !content) {
-                notify('❌ File name and content required!', true);
-                return;
-            }
-
-            showSpinner();
-            try {
-                await addFile(name, type, content, folder, password);
-                hideSpinner();
-                closeModal();
-                notify('✅ File uploaded to storage/data.json');
-                renderAdminDashboard();
-            } catch (e) {
-                hideSpinner();
-                notify('❌ Upload failed: ' + e.message, true);
-            }
-        }
-
-        function createFolder() {
-            const folderName = document.getElementById('newFolderName').value.trim();
-            if (folderName) {
-                APP.currentFolder = folderName;
-                closeModal();
-                renderAdminDashboard();
-                notify('📁 Switched to folder: ' + folderName);
-            }
-        }
-
-        function changeFolder(folder) {
-            APP.currentFolder = folder;
-            if (APP.isAdminLoggedIn) {
-                renderAdminDashboard();
-            } else {
-                renderUserDashboard();
-            }
-        }
-
-        function viewFile(fileId) {
-            const file = APP.files.find(f => f.id === fileId);
-            if (!file) return;
-
-            if (file.hasPassword && !APP.isAdminLoggedIn) {
-                promptFilePassword(fileId);
-                return;
-            }
-
-            const content = file.content ? b64Decode(file.content) : '';
-            
-            openModal(`
-                <h2 class="glitch-text" style="font-size: 18px;">📄 ${file.name}</h2>
-                <div style="color: #0a0; font-size: 12px; margin: 5px 0;">
-                    Type: ${file.type} | Size: ${file.size}KB | ${new Date(file.createdAt).toLocaleString()}
-                </div>
-                <div style="max-height: 60vh; overflow-y: auto; margin: 15px 0; background: rgba(0,20,0,0.5); padding: 15px; border-radius: 8px; border: 1px solid #0f0;">
-                    ${file.type === 'image' ? 
-                        `<img src="${content}" style="max-width: 100%;">` :
-                        file.type === 'video' ? 
-                        `<video controls style="max-width: 100%;"><source src="${content}"></video>` :
-                        `<pre style="color: #0f0; white-space: pre-wrap; font-family: 'Courier New', monospace;">${content}</pre>`
-                    }
-                </div>
-                ${APP.isAdminLoggedIn ? `
-                    <button class="cyber-btn warning" onclick="editFileContent('${fileId}')" style="width: 100%; margin: 5px 0;">
-                        ✏️ EDIT CONTENT
-                    </button>
-                ` : ''}
-                <button class="cyber-btn" onclick="closeModal()" style="width: 100%;">CLOSE</button>
-            `);
-        }
-
-        function editFileContent(fileId) {
-            const file = APP.files.find(f => f.id === fileId);
-            if (!file) return;
-            
-            const content = file.content ? b64Decode(file.content) : '';
-            
-            openModal(`
-                <h2 class="glitch-text" style="font-size: 18px;">✏️ EDIT: ${file.name}</h2>
-                <textarea id="editContent" class="cyber-input" rows="10">${content}</textarea>
-                <button class="cyber-btn" onclick="saveFileContent('${fileId}')" style="width: 100%; margin-top: 10px;">
-                    💾 SAVE CHANGES
-                </button>
-                <button class="cyber-btn danger" onclick="closeModal()" style="width: 100%;">CANCEL</button>
-            `);
-        }
-
-        async function saveFileContent(fileId) {
-            const newContent = document.getElementById('editContent').value;
-            showSpinner();
-            try {
-                await updateFileContent(fileId, newContent);
-                hideSpinner();
-                closeModal();
-                notify('✅ File updated!');
-                renderAdminDashboard();
-            } catch (e) {
-                hideSpinner();
+                saveAPIToStorage(); // ← YAHAN SAVE HO RAHA HAI!
+                APP.isLoggedIn = true;
+                APP.isAdmin = true;
+                spin(false);
+                notify('✅ Admin setup complete! API saved locally.');
+                renderDashboard();
+            } catch(e) {
+                spin(false);
                 notify('❌ Failed: ' + e.message, true);
             }
         }
 
-        function promptFilePassword(fileId) {
-            const password = prompt('🔒 This file is locked. Enter password:');
-            if (password) {
-                const file = APP.files.find(f => f.id === fileId);
-                if (file && b64Decode(file.password) === password) {
+        async function doUpload() {
+            const folder = document.getElementById('ufolder').value.trim() || 'root';
+            const name = document.getElementById('uname').value.trim();
+            const type = document.getElementById('utype').value;
+            const content = document.getElementById('ucontent').value;
+            const pass = document.getElementById('upass').value;
+
+            if(!name || !content) { notify('❌ Name & content required!', true); return; }
+
+            spin(true);
+            try {
+                const fileData = {
+                    id: Date.now().toString(),
+                    name, type,
+                    folder,
+                    password: pass ? b64Encode(pass) : '',
+                    hasPassword: !!pass,
+                    content: b64Encode(content),
+                    size: Math.round(content.length * 0.75 / 1024),
+                    createdAt: new Date().toISOString()
+                };
+                APP.files.push(fileData);
+                await saveFiles();
+                spin(false);
+                closeModal();
+                notify('✅ File uploaded!');
+                renderDashboard();
+            } catch(e) {
+                spin(false);
+                notify('❌ ' + e.message, true);
+            }
+        }
+
+        function viewFile(fileId) {
+            const f = APP.files.find(x => x.id === fileId);
+            if(!f) return;
+            const content = f.content ? b64Decode(f.content) : '';
+            openModal(`
+                <h2 class="glitch-text" style="font-size:18px;">📄 ${f.name}</h2>
+                <div style="color:#0a0;font-size:12px;">${f.type} | ${f.size}KB | ${new Date(f.createdAt).toLocaleString()}</div>
+                <div style="max-height:55vh;overflow-y:auto;margin:15px 0;background:rgba(0,20,0,0.5);padding:15px;border-radius:8px;border:1px solid #0f0;">
+                    ${f.type==='image'?`<img src="${content}" style="max-width:100%;">`:f.type==='video'?`<video controls style="max-width:100%;"><source src="${content}"></video>`:`<pre style="color:#0f0;white-space:pre-wrap;">${content}</pre>`}
+                </div>
+                <button class="cyber-btn" onclick="closeModal()" style="width:100%;">CLOSE</button>`);
+        }
+
+        function promptPass(fileId) {
+            const pass = prompt('🔒 Enter file password:');
+            if(pass) {
+                const f = APP.files.find(x => x.id === fileId);
+                if(f && b64Decode(f.password) === pass) {
                     viewFile(fileId);
                 } else {
                     notify('❌ Wrong password!', true);
@@ -1009,108 +414,73 @@
             }
         }
 
-        function changeFilePass(fileId) {
-            const file = APP.files.find(f => f.id === fileId);
-            if (!file) return;
-
-            const backup = prompt('Enter BACKUP PASSWORD to change file password:');
-            if (backup !== BACKUP_PASSWORD) {
-                notify('❌ Wrong backup password!', true);
-                return;
-            }
-
-            const newPass = prompt('Enter NEW password for this file (empty to remove):');
-            updateFilePassword(fileId, newPass || '')
-                .then(() => {
-                    notify(newPass ? '🔒 Password updated!' : '🔓 Password removed!');
-                    renderAdminDashboard();
-                })
-                .catch(e => notify('❌ Failed: ' + e.message, true));
-        }
-
-        async function deleteFilePrompt(fileId) {
-            if (confirm('⚠️ Delete this file permanently?')) {
-                try {
-                    await deleteFile(fileId);
-                    notify('🗑️ File deleted!');
-                    renderAdminDashboard();
-                } catch (e) {
-                    notify('❌ Failed: ' + e.message, true);
-                }
-            }
-        }
-
-        async function setAllPasswords() {
-            const newPass = prompt('Enter password for ALL files:');
-            if (newPass) {
-                APP.files.forEach(f => {
-                    f.password = b64Encode(newPass);
-                    f.hasPassword = true;
-                });
+        async function changePass(fileId) {
+            const backup = prompt('Enter BACKUP PASSWORD to change:');
+            if(backup !== BACKUP_PASSWORD) { notify('❌ Wrong backup password!', true); return; }
+            const newPass = prompt('New password (empty to remove):');
+            const f = APP.files.find(x => x.id === fileId);
+            if(f) {
+                f.password = newPass ? b64Encode(newPass) : '';
+                f.hasPassword = !!newPass;
                 await saveFiles();
-                notify('🔒 All files locked!');
-                renderAdminDashboard();
+                notify(newPass ? '🔒 Updated!' : '🔓 Removed!');
+                renderDashboard();
             }
         }
 
-        async function removeAllPasswords() {
-            if (confirm('Remove passwords from ALL files?')) {
-                APP.files.forEach(f => {
-                    f.password = '';
-                    f.hasPassword = false;
-                });
+        async function delFile(fileId) {
+            if(confirm('Delete?')) {
+                APP.files = APP.files.filter(f => f.id !== fileId);
                 await saveFiles();
-                notify('🔓 All passwords removed!');
-                renderAdminDashboard();
+                notify('🗑️ Deleted!');
+                renderDashboard();
             }
         }
 
-        function adminLogout() {
-            APP.isAdminLoggedIn = false;
-            APP.isUserLoggedIn = false;
+        async function setAllPass() {
+            const pass = prompt('Password for ALL files:');
+            if(pass) {
+                APP.files.forEach(f => { f.password = b64Encode(pass); f.hasPassword = true; });
+                await saveFiles();
+                notify('🔒 All locked!');
+                renderDashboard();
+            }
+        }
+
+        async function remAllPass() {
+            if(confirm('Remove ALL passwords?')) {
+                APP.files.forEach(f => { f.password = ''; f.hasPassword = false; });
+                await saveFiles();
+                notify('🔓 All unlocked!');
+                renderDashboard();
+            }
+        }
+
+        function changeFolder(folder) {
+            APP.currentFolder = folder;
+            renderDashboard();
+        }
+
+        function logout() {
+            APP.isLoggedIn = false;
+            APP.isAdmin = false;
             APP.files = [];
-            renderMainLogin();
+            APP.currentFolder = 'root';
+            renderLogin();
         }
 
-        function userLogout() {
-            APP.isUserLoggedIn = false;
-            renderMainLogin();
-        }
-
-        // ==================== INITIALIZATION ====================
-        function init() {
-            // Try to load API details from localStorage
-            const savedAPI = localStorage.getItem('vaultAPI');
-            if (savedAPI) {
-                try {
-                    const apiData = JSON.parse(b64Decode(savedAPI));
-                    APP.githubToken = apiData.token;
-                    APP.githubUsername = apiData.username;
-                    APP.repoName = apiData.repo;
-                } catch (e) {
-                    // Invalid saved data
-                }
-            }
-            
-            renderMainLogin();
-        }
-
-        // Enter key support
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const userPass = document.getElementById('userPassword');
-                if (userPass && document.activeElement === userPass) {
-                    userLogin();
-                }
+        // ==================== INIT ====================
+        document.addEventListener('keypress', e => {
+            if(e.key === 'Enter') {
+                const inp = document.getElementById('userPassword');
+                if(inp && document.activeElement === inp) userLogin();
             }
         });
-
-        // Modal close on overlay click
         document.getElementById('modal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
+            if(e.target === this) closeModal();
         });
 
-        init();
+        renderLogin();
     </script>
 </body>
 </html>
