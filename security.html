@@ -173,14 +173,14 @@
         // GitHub API
         async function gh(e,m='GET',b=null){if(!APP.token||!APP.user||!APP.repo)throw new Error('API not configured');const u=`https://api.github.com/repos/${APP.user}/${APP.repo}${e}`;const h={'Authorization':`token ${APP.token}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};const o={method:m,headers:h};if(b)o.body=JSON.stringify(b);const r=await fetch(u,o);if(!r.ok)throw new Error('API Error');return r.json()}
         async function loadStore(){try{const r=await gh('/contents/storage/data.json');return JSON.parse(b64d(r.content))}catch(e){return{files:[]}}}
-        async function saveStore(d){try{const ex=await gh('/contents/storage/data.json').catch(()=>null);const bd={message:'Update vault',content:b64e(JSON.stringify(d,null,2)),branch:'main'};if(ex)bd.sha=ex.sha;await gh('/contents/storage/data.json','PUT',bd)}catch(e){throw new Error('Save failed')}}
+        async function saveStore(d){try{const ex=await gh('/contents/storage/data.json').catch(()=>null);const bd={message:'Update vault',content:b64e(JSON.stringify(d,null,2)),branch:APP.branch||'main'};if(ex)bd.sha=ex.sha;await gh('/contents/storage/data.json','PUT',bd)}catch(e){throw new Error('Save failed')}}
         async function loadFiles(){const d=await loadStore();APP.files=d.files||[]}
         async function saveFiles(){const d=await loadStore();d.files=APP.files;await saveStore(d)}
-        function saveAPI(){localStorage.setItem('vault_api',b64e(JSON.stringify({token:APP.token,username:APP.user,repo:APP.repo})))}
-        function loadAPI(){const s=localStorage.getItem('vault_api');if(s){try{const d=JSON.parse(b64d(s));APP.token=d.token;APP.user=d.username;APP.repo=d.repo;APP.admin=!!d.token;return true}catch(e){return false}}return false}
+        function saveAPI(){localStorage.setItem('vault_api',b64e(JSON.stringify({token:APP.token,username:APP.user,repo:APP.repo,branch:APP.branch})))}
+        function loadAPI(){const s=localStorage.getItem('vault_api');if(s){try{const d=JSON.parse(b64d(s));APP.token=d.token;APP.user=d.username;APP.repo=d.repo;APP.branch=d.branch||'main';APP.admin=!!d.token;return true}catch(e){return false}}return false}
 
         function resetSession(){
-            APP.token='';APP.user='';APP.repo='';APP.files=[];APP.folder='root';APP.admin=false;
+            APP.token='';APP.user='';APP.repo='';APP.branch='';APP.files=[];APP.folder='root';APP.admin=false;
             localStorage.removeItem('vault_api');
             renderDashboard();
             notify('🔄 SESSION RESET');
@@ -635,8 +635,8 @@
             if(b!==BACKUP_PASS){notify('⛔ Wrong backup password',true);return}
             APP.token=t;APP.user=u;APP.repo=r;
             spin(true);
-            try{await gh('/contents');await loadFiles();saveAPI();APP.admin=true;spin(false);closeModal();renderDashboard();notify('✅ Admin configured!')}
-            catch(e){spin(false);notify('❌ Failed',true)}
+            try{const info=await gh('');APP.branch=info.default_branch||'main';await loadFiles();saveAPI();APP.admin=true;spin(false);closeModal();renderDashboard();notify('✅ Admin configured! Branch: '+APP.branch)}
+            catch(e){spin(false);notify('❌ Connection failed - check token/username/repo',true);APP.token='';APP.user='';APP.repo=''}
         }
 
         function showUploadForm(){
