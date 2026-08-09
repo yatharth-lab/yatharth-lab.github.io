@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER VAULT X | MULTI-TOOL SUITE</title>
+    <title>YATHARTH CYBER SECURITY | MULTI-TOOL SUITE</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{background:#000;font-family:'Courier New',monospace;height:100vh;overflow:hidden;cursor:crosshair}
@@ -54,6 +54,11 @@
         .tool-card.text-editor{border-color:#00aaff}
         .tool-card.encryption{border-color:#ff00ff}
         .tool-card.admin-panel{border-color:#ffaa00}
+        .tool-card.hash-tool{border-color:#00ffcc}
+        .tool-card.pass-gen{border-color:#ff66ff}
+        .tool-card.big-upload{border-color:#00ffff}
+        .progress-wrap{background:rgba(0,30,0,.5);border:1px solid #0f0;border-radius:6px;height:22px;margin:12px 0 4px;overflow:hidden}
+        .progress-bar{background:#0f0;height:100%;width:0%;transition:.2s}
 
         /* RECENT FILES */
         .section-title{color:#0f0;font-size:16px;margin-bottom:15px;letter-spacing:3px;border-bottom:1px solid rgba(0,255,0,.2);padding-bottom:8px}
@@ -85,6 +90,7 @@
         @keyframes fadeOut{from{opacity:1}to{opacity:0}}
         textarea.cyber-input{resize:vertical;min-height:100px}
         select.cyber-input{appearance:none;cursor:pointer}
+        .field-label{color:#0a0;font-size:12px;display:block;margin-top:8px}
         @media(max-width:768px){.tool-grid{grid-template-columns:repeat(2,1fr)}.header{padding:10px}.logo{font-size:16px}.tool-card{padding:20px}.tool-icon{font-size:35px}}
     </style>
 </head>
@@ -99,25 +105,14 @@
     <div id="notifyContainer"></div>
     <div class="spinner" id="spinner"></div>
 
-    <!-- LOGIN SCREEN -->
-    <div id="loginScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.95);">
-        <div style="background:rgba(0,0,0,.9);border:2px solid #0f0;border-radius:20px;padding:40px;text-align:center;box-shadow:0 0 80px rgba(0,255,0,.3);max-width:420px;width:90%;">
-            <h1 style="color:#0f0;font-size:32px;animation:glitch 1.5s infinite;letter-spacing:5px;">⚡ CYBER VAULT X</h1>
-            <p style="color:#0a0;margin:15px 0 25px;letter-spacing:3px;">[ MULTI-TOOL SUITE ]</p>
-            <input type="password" id="masterPass" class="cyber-input" placeholder="ENTER MASTER PASSWORD" style="text-align:center;font-size:18px;">
-            <button class="cyber-btn" onclick="login()" style="width:100%;margin-top:20px;padding:15px;">🔐 UNLOCK SYSTEM</button>
-            <p style="color:#0a0;font-size:10px;margin-top:15px;letter-spacing:2px;">[ AES-256 ENCRYPTED ] [ SECURE CHANNEL ]</p>
-        </div>
-    </div>
-
-    <!-- MAIN APP (Hidden until login) -->
+    <!-- MAIN APP -->
     <div class="app" id="mainApp" style="display:none;">
         <div class="header">
-            <span class="logo">⚡ CYBER VAULT X</span>
+            <span class="logo">⚡ YATHARTH CYBER SECURITY</span>
             <div class="header-actions">
                 <button class="icon-btn" onclick="refreshFiles()">🔄 SYNC</button>
                 <button class="icon-btn" onclick="showAdminSetup()">⚙️ ADMIN</button>
-                <button class="icon-btn danger" onclick="lockSystem()">🚪 LOCK</button>
+                <button class="icon-btn danger" onclick="resetSession()">🔄 RESET</button>
             </div>
         </div>
         <div class="content" id="mainContent"></div>
@@ -127,7 +122,6 @@
 
     <script>
         // ==================== CONFIG ====================
-        const MASTER_PASS = 'Y@th@Rth';
         const BACKUP_PASS = 'mann';
         const APP = { token:'', user:'', repo:'', files:[], folder:'root', admin:false };
 
@@ -138,12 +132,19 @@
         function openModal(h){document.getElementById('modalContent').innerHTML=h;document.getElementById('modal').style.display='flex'}
         function closeModal(){document.getElementById('modal').style.display='none'}
 
-        // Boot
+        // Boot -> straight into the app, no password gate
         (function(){
-            const l=['[BOOT] CYBER VAULT X...','[OK] Kernel v8.0','[OK] Encryption AES-256','[OK] Matrix Engine','[OK] Multi-Tool Framework','[OK] GitHub Bridge','[READY]','','> ENTER CREDENTIALS <'];
+            const l=['[BOOT] YATHARTH CYBER SECURITY...','[OK] Kernel v8.1','[OK] AES-256-GCM Engine','[OK] Matrix Engine','[OK] Multi-Tool Framework','[OK] GitHub Bridge','[READY]'];
             const e=document.getElementById('bootText');let i=0;
             function t(){if(i<l.length){e.innerHTML+=l[i]+'<br>';i++;setTimeout(t,Math.random()*180+80)}}
-            t();setTimeout(()=>{document.getElementById('bootScreen').style.display='none'},2200);
+            t();
+            setTimeout(()=>{
+                document.getElementById('bootScreen').style.display='none';
+                document.getElementById('mainApp').style.display='flex';
+                loadAPI();
+                renderDashboard();
+                if(APP.token)refreshFiles();
+            },2200);
         })();
 
         // Matrix
@@ -176,25 +177,13 @@
         async function loadFiles(){const d=await loadStore();APP.files=d.files||[]}
         async function saveFiles(){const d=await loadStore();d.files=APP.files;await saveStore(d)}
         function saveAPI(){localStorage.setItem('vault_api',b64e(JSON.stringify({token:APP.token,username:APP.user,repo:APP.repo})))}
-        function loadAPI(){const s=localStorage.getItem('vault_api');if(s){try{const d=JSON.parse(b64d(s));APP.token=d.token;APP.user=d.username;APP.repo=d.repo;return true}catch(e){return false}}return false}
+        function loadAPI(){const s=localStorage.getItem('vault_api');if(s){try{const d=JSON.parse(b64d(s));APP.token=d.token;APP.user=d.username;APP.repo=d.repo;APP.admin=!!d.token;return true}catch(e){return false}}return false}
 
-        // ==================== LOGIN ====================
-        function login(){
-            const p=document.getElementById('masterPass').value;
-            if(p!==MASTER_PASS){notify('⛔ ACCESS DENIED',true);return}
-            loadAPI();
-            document.getElementById('loginScreen').style.display='none';
-            document.getElementById('mainApp').style.display='flex';
-            notify('✅ ACCESS GRANTED - WELCOME TO CYBER VAULT X');
+        function resetSession(){
+            APP.token='';APP.user='';APP.repo='';APP.files=[];APP.folder='root';APP.admin=false;
+            localStorage.removeItem('vault_api');
             renderDashboard();
-            if(APP.token)refreshFiles();
-        }
-        function lockSystem(){
-            APP.files=[];APP.folder='root';APP.admin=false;
-            document.getElementById('mainApp').style.display='none';
-            document.getElementById('loginScreen').style.display='flex';
-            document.getElementById('masterPass').value='';
-            notify('🔒 SYSTEM LOCKED');
+            notify('🔄 SESSION RESET');
         }
 
         // ==================== DASHBOARD ====================
@@ -225,7 +214,22 @@
                     <div class="tool-card encryption" onclick="openEncryption()">
                         <div class="tool-icon">🔐</div>
                         <div class="tool-name">ENCRYPTION</div>
-                        <div class="tool-desc">AES-256 Encrypt/Decrypt</div>
+                        <div class="tool-desc">Real AES-256-GCM</div>
+                    </div>
+                    <div class="tool-card hash-tool" onclick="openHashTool()">
+                        <div class="tool-icon">🔢</div>
+                        <div class="tool-name">HASH GENERATOR</div>
+                        <div class="tool-desc">SHA-256 / SHA-1 / SHA-512</div>
+                    </div>
+                    <div class="tool-card pass-gen" onclick="openPassGen()">
+                        <div class="tool-icon">🔑</div>
+                        <div class="tool-name">PASSWORD GENERATOR</div>
+                        <div class="tool-desc">Secure Random Passwords</div>
+                    </div>
+                    <div class="tool-card big-upload" onclick="openBigUpload()">
+                        <div class="tool-icon">📦</div>
+                        <div class="tool-name">BIG FILE UPLOAD</div>
+                        <div class="tool-desc">Up to 2GB • Free (GitHub Releases)</div>
                     </div>
                     <div class="tool-card admin-panel" onclick="showAdminSetup()">
                         <div class="tool-icon">⚙️</div>
@@ -238,7 +242,7 @@
                 <div class="recent-grid">
                     ${recent.map(f=>`
                         <div class="recent-card" onclick="openRecentFile('${f.id}')">
-                            <span class="recent-icon">${f.type==='image'?'🖼️':f.type==='video'?'🎥':'📄'}</span>
+                            <span class="recent-icon">${f.type==='image'?'🖼️':f.type==='video'?'🎥':f.type==='large-file'?'📦':'📄'}</span>
                             <div class="recent-info">
                                 <div class="recent-name">${f.name}</div>
                                 <div class="recent-meta">${f.type} • ${f.size||0}KB ${f.hasPassword?'🔒':'🔓'}</div>
@@ -246,7 +250,7 @@
                         </div>
                     `).join('')}
                 </div>`:`<div style="color:rgba(0,255,0,.3);text-align:center;padding:40px;">[ NO FILES IN VAULT ]</div>`}
-                <div style="text-align:center;margin-top:25px;color:#0a0;font-size:10px;letter-spacing:3px;">[ CYBER VAULT X ] [ MULTI-TOOL SUITE ] [ SECURE CONNECTION ]</div>
+                <div style="text-align:center;margin-top:25px;color:#0a0;font-size:10px;letter-spacing:3px;">[ YATHARTH CYBER SECURITY ] [ MULTI-TOOL SUITE ] [ SECURE CONNECTION ]</div>
             `;
         }
 
@@ -260,6 +264,19 @@
             if(!APP.token){notify('⚠️ Admin setup required',true);return}
             const f=APP.files.find(x=>x.id===id);
             if(!f)return;
+            if(f.type==='large-file'){
+                openModal(`
+                    <h2 style="color:#00ffff;font-size:18px;">📦 ${f.name}</h2>
+                    <div style="color:#0a0;font-size:11px;">${(f.size/1024).toFixed(2)}MB ${f.hasPassword?'🔒 Password Protected':'🔓'}</div>
+                    <div id="dlProgressText" style="color:#0a0;font-size:11px;margin-top:10px;"></div>
+                    <div style="display:flex;gap:10px;margin-top:15px;">
+                        <button class="cyber-btn success" onclick="downloadLargeFile('${f.id}')" style="flex:1;">⬇️ DOWNLOAD</button>
+                        <button class="cyber-btn danger" onclick="deleteLargeFile('${f.id}')" style="flex:1;">🗑️ DELETE</button>
+                    </div>
+                    <button class="cyber-btn" onclick="closeModal()" style="width:100%;margin-top:10px;">CLOSE</button>
+                `);
+                return;
+            }
             if(f.hasPassword){const p=prompt('🔒 File password:');if(!p||b64d(f.password)!==p){notify('⛔ Wrong!',true);return}}
             const c=f.content?b64d(f.content):'';
             openModal(`<h2 style="color:#0f0;font-size:18px;">📄 ${f.name}</h2><div style="color:#0a0;font-size:11px;">${f.type} | ${f.size}KB</div><div style="max-height:50vh;overflow-y:auto;margin:15px 0;background:rgba(0,20,0,.5);padding:15px;border-radius:8px;border:1px solid #0f0;">${f.type==='image'?`<img src="${c}" style="max-width:100%;">`:f.type==='video'?`<video controls style="max-width:100%;"><source src="${c}"></video>`:`<pre style="color:#0f0;white-space:pre-wrap;">${c}</pre>`}</div><button class="cyber-btn" onclick="closeModal()" style="width:100%;">CLOSE</button>`);
@@ -280,7 +297,7 @@
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
                     ${current.length===0?'<div style="color:rgba(0,255,0,.3);text-align:center;grid-column:1/-1;padding:40px;">[ EMPTY ]</div>':current.map(f=>`
                         <div style="background:rgba(0,20,0,.4);border:1px solid rgba(0,255,0,.3);padding:12px;border-radius:8px;cursor:pointer;text-align:center;" onclick="event.stopPropagation();openRecentFile('${f.id}');closeModal();">
-                            <div style="font-size:30px;">${f.type==='image'?'🖼️':f.type==='video'?'🎥':'📄'}</div>
+                            <div style="font-size:30px;">${f.type==='image'?'🖼️':f.type==='video'?'🎥':f.type==='large-file'?'📦':'📄'}</div>
                             <div style="color:#0f0;font-size:12px;margin-top:5px;">${f.name}</div>
                             <div style="color:rgba(0,255,0,.4);font-size:10px;">${f.hasPassword?'🔒':'🔓'} ${f.size}KB</div>
                         </div>
@@ -333,35 +350,138 @@
             `);
         }
 
+        // ==================== REAL ENCRYPTION (AES-256-GCM via Web Crypto API) ====================
         function openEncryption(){
             openModal(`
                 <h2 style="color:#ff00ff;font-size:20px;">🔐 ENCRYPTION LAB</h2>
-                <textarea id="encText" class="cyber-input" rows="5" placeholder="Enter text..."></textarea>
+                <p style="color:#0a0;font-size:11px;">Real AES-256-GCM encryption, key derived with PBKDF2 (100k iterations). Runs 100% in your browser — nothing is sent anywhere.</p>
+                <span class="field-label">Text</span>
+                <textarea id="encText" class="cyber-input" rows="5" placeholder="Enter plain text to encrypt, or paste ciphertext to decrypt..."></textarea>
+                <span class="field-label">Password / Key</span>
                 <input type="password" id="encKey" class="cyber-input" placeholder="Encryption key">
                 <div style="display:flex;gap:10px;margin-top:10px;">
                     <button class="cyber-btn success" onclick="encryptText()">🔒 ENCRYPT</button>
                     <button class="cyber-btn warning" onclick="decryptText()">🔓 DECRYPT</button>
                 </div>
+                <span class="field-label">Result</span>
                 <textarea id="encResult" class="cyber-input" rows="5" placeholder="Result..." readonly></textarea>
+                <button class="cyber-btn" onclick="navigator.clipboard.writeText(document.getElementById('encResult').value);notify('📋 Copied!')" style="width:100%;">📋 COPY RESULT</button>
                 <button class="cyber-btn danger" onclick="closeModal()" style="width:100%;margin-top:10px;">CLOSE</button>
             `);
         }
 
-        function encryptText(){
-            const t=document.getElementById('encText').value;
-            const k=document.getElementById('encKey').value;
-            if(!t||!k){notify('❌ Text & key required',true);return}
-            document.getElementById('encResult').value=b64e(t+':'+k);
-            notify('🔒 Encrypted!');
+        async function deriveAesKey(password, salt){
+            const enc = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
+            return crypto.subtle.deriveKey(
+                {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
+                keyMaterial,
+                {name:'AES-GCM', length:256},
+                false,
+                ['encrypt','decrypt']
+            );
         }
 
-        function decryptText(){
+        async function encryptText(){
+            const text=document.getElementById('encText').value;
+            const pass=document.getElementById('encKey').value;
+            if(!text||!pass){notify('❌ Text & key required',true);return}
             try{
-                const d=b64d(document.getElementById('encResult').value||document.getElementById('encText').value);
-                const p=d.split(':');
-                document.getElementById('encResult').value=p[0];
-                notify('🔓 Decrypted! Key: '+p[1]);
-            }catch(e){notify('❌ Invalid',true)}
+                const enc=new TextEncoder();
+                const salt=crypto.getRandomValues(new Uint8Array(16));
+                const iv=crypto.getRandomValues(new Uint8Array(12));
+                const key=await deriveAesKey(pass,salt);
+                const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(text));
+                const combined=new Uint8Array(salt.length+iv.length+ct.byteLength);
+                combined.set(salt,0);combined.set(iv,salt.length);combined.set(new Uint8Array(ct),salt.length+iv.length);
+                let bin='';combined.forEach(b=>bin+=String.fromCharCode(b));
+                document.getElementById('encResult').value=btoa(bin);
+                notify('🔒 Encrypted with AES-256-GCM!');
+            }catch(e){notify('❌ Encryption failed',true)}
+        }
+
+        async function decryptText(){
+            const src=(document.getElementById('encResult').value||document.getElementById('encText').value).trim();
+            const pass=document.getElementById('encKey').value;
+            if(!src||!pass){notify('❌ Ciphertext & key required',true);return}
+            try{
+                const bin=atob(src);
+                const raw=new Uint8Array(bin.length);
+                for(let i=0;i<bin.length;i++)raw[i]=bin.charCodeAt(i);
+                const salt=raw.slice(0,16);
+                const iv=raw.slice(16,28);
+                const data=raw.slice(28);
+                const key=await deriveAesKey(pass,salt);
+                const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,data);
+                document.getElementById('encResult').value=new TextDecoder().decode(pt);
+                notify('🔓 Decrypted!');
+            }catch(e){notify('❌ Wrong key or invalid ciphertext',true)}
+        }
+
+        // ==================== HASH GENERATOR (new tool) ====================
+        function openHashTool(){
+            openModal(`
+                <h2 style="color:#00ffcc;font-size:20px;">🔢 HASH GENERATOR</h2>
+                <span class="field-label">Text to hash</span>
+                <textarea id="hashInput" class="cyber-input" rows="5" placeholder="Enter text..."></textarea>
+                <span class="field-label">Algorithm</span>
+                <select id="hashAlgo" class="cyber-input">
+                    <option value="SHA-256">SHA-256</option>
+                    <option value="SHA-1">SHA-1</option>
+                    <option value="SHA-512">SHA-512</option>
+                </select>
+                <button class="cyber-btn success" onclick="generateHash()" style="width:100%;margin-top:10px;">⚡ GENERATE HASH</button>
+                <span class="field-label">Output</span>
+                <textarea id="hashResult" class="cyber-input" rows="3" placeholder="Hash output..." readonly></textarea>
+                <button class="cyber-btn" onclick="navigator.clipboard.writeText(document.getElementById('hashResult').value);notify('📋 Copied!')" style="width:100%;">📋 COPY</button>
+                <button class="cyber-btn danger" onclick="closeModal()" style="width:100%;margin-top:10px;">CLOSE</button>
+            `);
+        }
+
+        async function generateHash(){
+            const text=document.getElementById('hashInput').value;
+            const algo=document.getElementById('hashAlgo').value;
+            if(!text){notify('❌ Enter text first',true);return}
+            try{
+                const enc=new TextEncoder().encode(text);
+                const buf=await crypto.subtle.digest(algo,enc);
+                const hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+                document.getElementById('hashResult').value=hex;
+                notify('✅ Hash generated');
+            }catch(e){notify('❌ Hash failed',true)}
+        }
+
+        // ==================== PASSWORD GENERATOR (new tool) ====================
+        function openPassGen(){
+            openModal(`
+                <h2 style="color:#ff66ff;font-size:20px;">🔑 PASSWORD GENERATOR</h2>
+                <span class="field-label">Length: <span id="pgLenVal">16</span></span>
+                <input type="range" id="pgLen" min="8" max="64" value="16" class="cyber-input" oninput="document.getElementById('pgLenVal').textContent=this.value">
+                <div style="color:#0a0;font-size:12px;margin-top:8px;">
+                    <label><input type="checkbox" id="pgNumbers" checked> Numbers</label>
+                    &nbsp;&nbsp;
+                    <label><input type="checkbox" id="pgSymbols" checked> Symbols</label>
+                </div>
+                <button class="cyber-btn success" onclick="generatePassword()" style="width:100%;margin-top:10px;">🎲 GENERATE</button>
+                <input id="pgResult" class="cyber-input" readonly style="text-align:center;font-size:16px;">
+                <button class="cyber-btn" onclick="navigator.clipboard.writeText(document.getElementById('pgResult').value);notify('📋 Copied!')" style="width:100%;">📋 COPY</button>
+                <button class="cyber-btn danger" onclick="closeModal()" style="width:100%;margin-top:10px;">CLOSE</button>
+            `);
+        }
+
+        function generatePassword(){
+            const len=parseInt(document.getElementById('pgLen').value);
+            const useSym=document.getElementById('pgSymbols').checked;
+            const useNum=document.getElementById('pgNumbers').checked;
+            let chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            if(useNum)chars+='0123456789';
+            if(useSym)chars+='!@#$%^&*()_+-=[]{}|;:,.<>?';
+            const arr=new Uint32Array(len);
+            crypto.getRandomValues(arr);
+            let pass='';
+            for(let i=0;i<len;i++)pass+=chars[arr[i]%chars.length];
+            document.getElementById('pgResult').value=pass;
+            notify('🔑 Password generated');
         }
 
         async function saveTextFile(){
@@ -376,6 +496,121 @@
                 spin(false);closeModal();renderDashboard();
                 notify('✅ Saved!');
             }catch(e){spin(false);notify('❌ Failed',true)}
+        }
+
+        // ==================== BIG FILE UPLOAD (GitHub Releases — free, up to 2GB per file) ====================
+        const RELEASE_TAG='vault-storage';
+        let cachedReleaseId=null;
+
+        async function getOrCreateRelease(){
+            if(cachedReleaseId)return cachedReleaseId;
+            try{
+                const d=await gh(`/releases/tags/${RELEASE_TAG}`);
+                cachedReleaseId=d.id;
+            }catch(e){
+                const d=await gh('/releases','POST',{tag_name:RELEASE_TAG,name:'Vault Storage (auto-managed, do not delete)',body:'Large files stored by Yatharth Cyber Security. Do not delete this release manually.',draft:false,prerelease:true});
+                cachedReleaseId=d.id;
+            }
+            return cachedReleaseId;
+        }
+
+        function uploadAssetXHR(file,releaseId,onProgress){
+            return new Promise((resolve,reject)=>{
+                const safeName=Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+                const url=`https://uploads.github.com/repos/${APP.user}/${APP.repo}/releases/${releaseId}/assets?name=${encodeURIComponent(safeName)}`;
+                const xhr=new XMLHttpRequest();
+                xhr.open('POST',url);
+                xhr.setRequestHeader('Authorization',`token ${APP.token}`);
+                xhr.setRequestHeader('Content-Type',file.type||'application/octet-stream');
+                xhr.upload.onprogress=(e)=>{if(e.lengthComputable&&onProgress)onProgress(Math.round(e.loaded/e.total*100))};
+                xhr.onload=()=>{if(xhr.status>=200&&xhr.status<300){resolve(JSON.parse(xhr.responseText))}else{reject(new Error('Upload failed ('+xhr.status+')'))}};
+                xhr.onerror=()=>reject(new Error('Network error during upload'));
+                xhr.send(file);
+            });
+        }
+
+        function openBigUpload(){
+            if(!APP.token){notify('⚠️ Admin setup required first',true);return}
+            openModal(`
+                <h2 style="color:#00ffff;font-size:20px;">📦 BIG FILE UPLOAD</h2>
+                <p style="color:#0a0;font-size:11px;">Free storage via GitHub Releases — supports files up to 2GB each. Upload time depends on your internet speed; keep this tab open until it finishes.</p>
+                <span class="field-label">Choose file</span>
+                <input type="file" id="bigFileInput" class="cyber-input">
+                <span class="field-label">Folder</span>
+                <input id="bigFileFolder" class="cyber-input" placeholder="Folder (default: root)">
+                <span class="field-label">Password (optional)</span>
+                <input type="password" id="bigFilePass" class="cyber-input" placeholder="Lock this file with a password">
+                <div class="progress-wrap"><div id="uploadProgressBar" class="progress-bar"></div></div>
+                <div id="uploadProgressText" style="color:#0a0;font-size:11px;text-align:center;min-height:14px;"></div>
+                <button id="bigUploadBtn" class="cyber-btn success" onclick="startBigUpload()" style="width:100%;margin-top:8px;">🚀 UPLOAD</button>
+                <button class="cyber-btn danger" onclick="closeModal()" style="width:100%;">CLOSE</button>
+            `);
+        }
+
+        async function startBigUpload(){
+            const fileInput=document.getElementById('bigFileInput');
+            const file=fileInput.files[0];
+            if(!file){notify('❌ Select a file first',true);return}
+            if(file.size>2*1024*1024*1024){notify('❌ Max 2GB per file (GitHub limit)',true);return}
+            const folder=document.getElementById('bigFileFolder').value.trim()||'root';
+            const pass=document.getElementById('bigFilePass').value;
+            const bar=document.getElementById('uploadProgressBar');
+            const txt=document.getElementById('uploadProgressText');
+            const btn=document.getElementById('bigUploadBtn');
+            btn.disabled=true;
+            try{
+                const releaseId=await getOrCreateRelease();
+                const asset=await uploadAssetXHR(file,releaseId,(pct)=>{bar.style.width=pct+'%';txt.textContent=pct+'% uploaded ('+(file.size/1024/1024).toFixed(1)+'MB total)'});
+                APP.files.push({
+                    id:Date.now().toString(),
+                    name:file.name,
+                    type:'large-file',
+                    folder:folder,
+                    assetId:asset.id,
+                    releaseId:releaseId,
+                    downloadApiUrl:asset.url,
+                    size:file.size/1024,
+                    hasPassword:!!pass,
+                    password:pass?b64e(pass):'',
+                    createdAt:new Date().toISOString()
+                });
+                await saveFiles();
+                notify('✅ Large file uploaded!');
+                closeModal();renderDashboard();
+            }catch(e){notify('❌ '+e.message,true)}
+            finally{btn.disabled=false}
+        }
+
+        async function downloadLargeFile(id){
+            const f=APP.files.find(x=>x.id===id);
+            if(!f)return;
+            if(f.hasPassword){const p=prompt('🔒 File password:');if(!p||b64d(f.password)!==p){notify('⛔ Wrong!',true);return}}
+            spin(true);
+            try{
+                const res=await fetch(f.downloadApiUrl,{headers:{'Authorization':`token ${APP.token}`,'Accept':'application/octet-stream'}});
+                if(!res.ok)throw new Error('failed');
+                const blob=await res.blob();
+                const url=URL.createObjectURL(blob);
+                const a=document.createElement('a');
+                a.href=url;a.download=f.name;document.body.appendChild(a);a.click();a.remove();
+                URL.revokeObjectURL(url);
+                spin(false);closeModal();
+                notify('✅ Downloaded!');
+            }catch(e){spin(false);notify('❌ Download failed',true)}
+        }
+
+        async function deleteLargeFile(id){
+            const f=APP.files.find(x=>x.id===id);
+            if(!f)return;
+            if(!confirm('Delete "'+f.name+'" permanently? This cannot be undone.'))return;
+            spin(true);
+            try{
+                await gh(`/releases/assets/${f.assetId}`,'DELETE');
+                APP.files=APP.files.filter(x=>x.id!==id);
+                await saveFiles();
+                spin(false);closeModal();renderDashboard();
+                notify('🗑️ Deleted');
+            }catch(e){spin(false);notify('❌ Delete failed',true)}
         }
 
         // ==================== ADMIN ====================
@@ -434,7 +669,6 @@
         }
 
         // Init
-        document.addEventListener('keypress',e=>{if(e.key==='Enter'){const i=document.getElementById('masterPass');if(i&&document.activeElement===i)login()}});
         document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
     </script>
 </body>
