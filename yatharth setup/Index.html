@@ -1,0 +1,1525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<meta name="theme-color" content="#111827">
+<meta name="description"
+content="Yatharth Web Studio — Affordable, modern and mobile-friendly websites for small businesses.">
+
+<title>Yatharth Web Studio | Business Websites</title>
+
+<style>
+:root{
+  --bg:#f8fafc;
+  --surface:#ffffff;
+  --ink:#111827;
+  --muted:#64748b;
+  --line:#e2e8f0;
+  --primary:#2563eb;
+  --primary-dark:#1d4ed8;
+  --soft:#eff6ff;
+  --success:#16a34a;
+  --shadow:0 16px 45px rgba(15,23,42,.09);
+  --radius:22px;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,
+  "Segoe UI",sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.6;
+}
+
+a{
+  text-decoration:none;
+  color:inherit;
+}
+
+.container{
+  width:min(1120px,92%);
+  margin:auto;
+}
+
+/* HEADER */
+
+header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(248,250,252,.92);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(226,232,240,.8);
+}
+
+.nav{
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.logo{
+  font-weight:900;
+  font-size:20px;
+  letter-spacing:-.5px;
+}
+
+.logo span{
+  color:var(--primary);
+}
+
+nav{
+  display:flex;
+  gap:24px;
+  align-items:center;
+}
+
+nav a{
+  font-size:14px;
+  font-weight:700;
+  color:#475569;
+}
+
+nav a:hover{
+  color:var(--primary);
+}
+
+.menu{
+  display:none;
+  border:0;
+  background:none;
+  font-size:25px;
+  cursor:pointer;
+}
+
+/* BUTTON */
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:13px 19px;
+  border-radius:13px;
+  font-weight:800;
+  font-size:14px;
+  transition:.2s;
+  border:1px solid transparent;
+  cursor:pointer;
+}
+
+.btn-primary{
+  background:var(--primary);
+  color:white;
+  box-shadow:0 8px 20px rgba(37,99,235,.2);
+}
+
+.btn-primary:hover{
+  background:var(--primary-dark);
+  transform:translateY(-1px);
+}
+
+.btn-light{
+  background:white;
+  border-color:var(--line);
+}
+
+/* HERO */
+
+.hero{
+  padding:82px 0 70px;
+}
+
+.hero-grid{
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:50px;
+  align-items:center;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:var(--soft);
+  color:var(--primary);
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:800;
+}
+
+h1{
+  font-size:clamp(42px,6vw,70px);
+  line-height:1.02;
+  letter-spacing:-2.8px;
+  margin:20px 0;
+}
+
+.hero p{
+  font-size:18px;
+  color:var(--muted);
+  max-width:650px;
+}
+
+.actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:28px;
+}
+
+/* MOCK WEBSITE */
+
+.hero-card{
+  background:linear-gradient(145deg,#111827,#1e293b);
+  color:white;
+  padding:28px;
+  border-radius:28px;
+  box-shadow:var(--shadow);
+}
+
+.browser{
+  background:#fff;
+  border-radius:18px;
+  overflow:hidden;
+  color:var(--ink);
+}
+
+.browser-top{
+  padding:11px 14px;
+  background:#e2e8f0;
+  display:flex;
+  gap:6px;
+}
+
+.dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#94a3b8;
+}
+
+.mock{
+  padding:25px;
+}
+
+.mock-line{
+  height:11px;
+  background:#e2e8f0;
+  border-radius:20px;
+  margin:10px 0;
+}
+
+.mock-line.big{
+  width:70%;
+  height:20px;
+  background:#dbeafe;
+}
+
+.mock-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+  margin-top:20px;
+}
+
+.mock-box{
+  height:80px;
+  background:#eff6ff;
+  border-radius:10px;
+}
+
+/* SECTIONS */
+
+section{
+  padding:78px 0;
+}
+
+.section-head{
+  max-width:700px;
+  margin-bottom:34px;
+}
+
+.eyebrow{
+  font-size:12px;
+  color:var(--primary);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+}
+
+h2{
+  font-size:clamp(30px,4vw,44px);
+  line-height:1.1;
+  letter-spacing:-1.5px;
+  margin:8px 0 12px;
+}
+
+.section-head p{
+  color:var(--muted);
+}
+
+/* CARDS */
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:25px;
+  box-shadow:0 8px 30px rgba(15,23,42,.04);
+}
+
+.icon{
+  width:45px;
+  height:45px;
+  border-radius:13px;
+  background:var(--soft);
+  display:grid;
+  place-items:center;
+  font-size:21px;
+  margin-bottom:17px;
+}
+
+.card h3{
+  font-size:19px;
+  margin-bottom:7px;
+}
+
+.card p{
+  color:var(--muted);
+  font-size:14px;
+}
+
+/* PORTFOLIO */
+
+.portfolio{
+  background:#fff;
+}
+
+.project{
+  overflow:hidden;
+  padding:0;
+}
+
+.project-img{
+  height:180px;
+  background:linear-gradient(135deg,#dbeafe,#f8fafc);
+  display:grid;
+  place-items:center;
+  font-size:42px;
+}
+
+.project-body{
+  padding:20px;
+}
+
+.project-body span{
+  font-size:11px;
+  color:var(--primary);
+  font-weight:900;
+  text-transform:uppercase;
+}
+
+.project-body h3{
+  margin:5px 0;
+}
+
+/* PRICING */
+
+.price-card{
+  position:relative;
+}
+
+.price{
+  font-size:38px;
+  font-weight:900;
+  letter-spacing:-1px;
+  margin:10px 0;
+}
+
+.price small{
+  font-size:13px;
+  color:var(--muted);
+  font-weight:600;
+}
+
+.features{
+  list-style:none;
+  margin:20px 0;
+}
+
+.features li{
+  padding:7px 0;
+  font-size:14px;
+  color:#475569;
+}
+
+.features li::before{
+  content:"✓";
+  color:var(--success);
+  font-weight:900;
+  margin-right:9px;
+}
+
+.featured{
+  border:2px solid var(--primary);
+  transform:translateY(-5px);
+}
+
+.popular{
+  position:absolute;
+  right:18px;
+  top:18px;
+  background:var(--primary);
+  color:white;
+  font-size:11px;
+  font-weight:900;
+  padding:6px 9px;
+  border-radius:999px;
+}
+
+/* PROCESS */
+
+.process .card{
+  text-align:center;
+}
+
+.process .icon{
+  margin:0 auto 15px;
+}
+
+/* CTA */
+
+.cta{
+  background:#111827;
+  color:white;
+  border-radius:30px;
+  padding:55px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:30px;
+}
+
+.cta p{
+  color:#cbd5e1;
+  margin-top:8px;
+}
+
+/* CONTACT */
+
+.contact-grid{
+  display:grid;
+  grid-template-columns:.8fr 1.2fr;
+  gap:22px;
+}
+
+.contact-info .card{
+  margin-bottom:15px;
+}
+
+form{
+  background:white;
+  border:1px solid var(--line);
+  padding:26px;
+  border-radius:var(--radius);
+}
+
+label{
+  display:block;
+  font-size:13px;
+  font-weight:800;
+  margin:0 0 6px;
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  padding:13px 14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  outline:none;
+  font:inherit;
+  margin-bottom:15px;
+  background:#fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+
+textarea{
+  min-height:120px;
+  resize:vertical;
+}
+
+/* FOOTER */
+
+footer{
+  padding:30px 0;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  font-size:13px;
+}
+
+.footer-row{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+/* MOBILE */
+
+@media(max-width:820px){
+
+  nav{
+    display:none;
+    position:absolute;
+    top:72px;
+    left:0;
+    right:0;
+    background:white;
+    padding:18px 4%;
+    border-bottom:1px solid var(--line);
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  nav.open{
+    display:flex;
+  }
+
+  .menu{
+    display:block;
+  }
+
+  .hero-grid,
+  .contact-grid{
+    grid-template-columns:1fr;
+  }
+
+  .hero{
+    padding-top:55px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .featured{
+    transform:none;
+  }
+
+  .cta{
+    padding:35px 25px;
+    display:block;
+  }
+
+  .cta .btn{
+    margin-top:20px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<header>
+  <div class="container nav">
+
+    <a class="logo" href="#">
+      Yatharth<span>Web</span>
+    </a>
+
+    <button
+      class="menu"
+      aria-label="Open menu"
+      onclick="toggleMenu()">
+      ☰
+    </button>
+
+    <nav id="nav">
+
+      <a href="#services">Services</a>
+      <a href="#work">Portfolio</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#process">Process</a>
+      <a href="#contact">Contact</a>
+
+      <a class="btn btn-primary" href="#contact">
+        Get Website
+      </a>
+
+    </nav>
+
+  </div>
+</header>
+
+
+<main>
+
+<!-- HERO -->
+
+<section class="hero">
+
+  <div class="container hero-grid">
+
+    <div>
+
+      <div class="badge">
+        🚀 Websites for Small Businesses
+      </div>
+
+      <h1>
+        Turn your business into a professional online brand.
+      </h1>
+
+      <p>
+        Modern, mobile-friendly and affordable websites designed
+        for shops, restaurants, coaching institutes, salons and
+        other small businesses.
+      </p>
+
+      <div class="actions">
+
+        <a class="btn btn-primary" href="#contact">
+          Get Your Website →
+        </a>
+
+        <a class="btn btn-light" href="#work">
+          View Portfolio
+        </a>
+
+      </div>
+
+    </div>
+
+
+    <!-- WEBSITE PREVIEW -->
+
+    <div class="hero-card">
+
+      <div class="browser">
+
+        <div class="browser-top">
+          <i class="dot"></i>
+          <i class="dot"></i>
+          <i class="dot"></i>
+        </div>
+
+        <div class="mock">
+
+          <div class="mock-line big"></div>
+
+          <div
+            class="mock-line"
+            style="width:90%">
+          </div>
+
+          <div
+            class="mock-line"
+            style="width:55%">
+          </div>
+
+          <div class="mock-grid">
+
+            <div class="mock-box"></div>
+            <div class="mock-box"></div>
+            <div class="mock-box"></div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- SERVICES -->
+
+<section id="services">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <div class="eyebrow">
+        Services
+      </div>
+
+      <h2>
+        Everything your business needs online.
+      </h2>
+
+      <p>
+        Simple websites that help customers discover your
+        business and contact you quickly.
+      </p>
+
+    </div>
+
+
+    <div class="grid">
+
+      <div class="card">
+
+        <div class="icon">🌐</div>
+
+        <h3>
+          Business Websites
+        </h3>
+
+        <p>
+          Professional websites that explain your business,
+          services and contact details.
+        </p>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="icon">📱</div>
+
+        <h3>
+          Mobile Responsive
+        </h3>
+
+        <p>
+          Your website looks clean and works smoothly on phones,
+          tablets and computers.
+        </p>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="icon">💬</div>
+
+        <h3>
+          WhatsApp Integration
+        </h3>
+
+        <p>
+          Customers can contact your business directly through
+          a WhatsApp button.
+        </p>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="icon">🛍️</div>
+
+        <h3>
+          Product Showcase
+        </h3>
+
+        <p>
+          Display products, services, galleries and important
+          business information.
+        </p>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="icon">📍</div>
+
+        <h3>
+          Google Maps
+        </h3>
+
+        <p>
+          Make it easier for local customers to find your
+          physical business.
+        </p>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="icon">🔎</div>
+
+        <h3>
+          SEO Basics
+        </h3>
+
+        <p>
+          Essential titles, descriptions and structure prepared
+          for search engines.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- PORTFOLIO -->
+
+<section id="work" class="portfolio">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <div class="eyebrow">
+        Portfolio
+      </div>
+
+      <h2>
+        Website concepts for different businesses.
+      </h2>
+
+      <p>
+        These are demo concepts. Replace the demo projects
+        with your real projects as your portfolio grows.
+      </p>
+
+    </div>
+
+
+    <div class="grid">
+
+
+      <div class="card project">
+
+        <div class="project-img">
+          👗
+        </div>
+
+        <div class="project-body">
+
+          <span>Fashion</span>
+
+          <h3>
+            Garments & Saree Store
+          </h3>
+
+          <p>
+            Product showcase, gallery, location and
+            WhatsApp enquiry.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="card project">
+
+        <div class="project-img">
+          🍽️
+        </div>
+
+        <div class="project-body">
+
+          <span>Restaurant</span>
+
+          <h3>
+            Restaurant Website
+          </h3>
+
+          <p>
+            Menu, gallery, location, opening information
+            and contact.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="card project">
+
+        <div class="project-img">
+          📚
+        </div>
+
+        <div class="project-body">
+
+          <span>Education</span>
+
+          <h3>
+            Coaching Institute
+          </h3>
+
+          <p>
+            Courses, faculty, results, enquiry form
+            and contact details.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="card project">
+
+        <div class="project-img">
+          💇
+        </div>
+
+        <div class="project-body">
+
+          <span>Local Business</span>
+
+          <h3>
+            Salon Website
+          </h3>
+
+          <p>
+            Services, pricing, gallery, location and
+            appointment enquiry.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- PRICING -->
+
+<section id="pricing">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <div class="eyebrow">
+        Pricing
+      </div>
+
+      <h2>
+        Simple packages for different needs.
+      </h2>
+
+      <p>
+        Final pricing can be customized according to pages,
+        features, domain and hosting requirements.
+      </p>
+
+    </div>
+
+
+    <div class="grid">
+
+
+      <!-- STARTER -->
+
+      <div class="card price-card">
+
+        <h3>
+          Starter
+        </h3>
+
+        <div class="price">
+          ₹1,499
+          <small>starting</small>
+        </div>
+
+        <ul class="features">
+
+          <li>1-page website</li>
+          <li>Mobile responsive</li>
+          <li>Call & WhatsApp buttons</li>
+          <li>Google Maps</li>
+          <li>Basic SEO</li>
+
+        </ul>
+
+        <a class="btn btn-light" href="#contact">
+          Choose Starter
+        </a>
+
+      </div>
+
+
+      <!-- BUSINESS -->
+
+      <div class="card price-card featured">
+
+        <div class="popular">
+          POPULAR
+        </div>
+
+        <h3>
+          Business
+        </h3>
+
+        <div class="price">
+          ₹2,999
+          <small>starting</small>
+        </div>
+
+        <ul class="features">
+
+          <li>4–5 pages</li>
+          <li>Products/services section</li>
+          <li>Gallery</li>
+          <li>WhatsApp & contact</li>
+          <li>Basic SEO</li>
+
+        </ul>
+
+        <a class="btn btn-primary" href="#contact">
+          Choose Business
+        </a>
+
+      </div>
+
+
+      <!-- PREMIUM -->
+
+      <div class="card price-card">
+
+        <h3>
+          Premium
+        </h3>
+
+        <div class="price">
+          ₹5,999
+          <small>starting</small>
+        </div>
+
+        <ul class="features">
+
+          <li>Custom design</li>
+          <li>Multiple pages</li>
+          <li>Product catalogue</li>
+          <li>Advanced sections</li>
+          <li>SEO setup</li>
+
+        </ul>
+
+        <a class="btn btn-light" href="#contact">
+          Choose Premium
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- PROCESS -->
+
+<section id="process">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <div class="eyebrow">
+        How it works
+      </div>
+
+      <h2>
+        Simple process from enquiry to launch.
+      </h2>
+
+    </div>
+
+
+    <div class="grid">
+
+      <div class="card" style="text-align:center">
+
+        <div class="icon" style="margin:auto auto 15px">
+          1
+        </div>
+
+        <h3>
+          Tell us about your business
+        </h3>
+
+        <p>
+          Share your business details, photos, logo
+          and requirements.
+        </p>
+
+      </div>
+
+
+      <div class="card" style="text-align:center">
+
+        <div class="icon" style="margin:auto auto 15px">
+          2
+        </div>
+
+        <h3>
+          Choose your package
+        </h3>
+
+        <p>
+          Pick a package or request a custom quotation.
+        </p>
+
+      </div>
+
+
+      <div class="card" style="text-align:center">
+
+        <div class="icon" style="margin:auto auto 15px">
+          3
+        </div>
+
+        <h3>
+          We build your website
+        </h3>
+
+        <p>
+          Your website is designed, tested and optimized
+          for mobile.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- CTA -->
+
+<section>
+
+  <div class="container">
+
+    <div class="cta">
+
+      <div>
+
+        <div
+          class="eyebrow"
+          style="color:#93c5fd">
+          Ready to go online?
+        </div>
+
+        <h2>
+          Let's build your business website.
+        </h2>
+
+        <p>
+          Send your requirements and get a suitable
+          package recommendation.
+        </p>
+
+      </div>
+
+      <a class="btn btn-primary" href="#contact">
+        Start a Project →
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- CONTACT -->
+
+<section id="contact">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <div class="eyebrow">
+        Contact
+      </div>
+
+      <h2>
+        Tell us what you need.
+      </h2>
+
+      <p>
+        Fill the form or contact us directly on WhatsApp.
+      </p>
+
+    </div>
+
+
+    <div class="contact-grid">
+
+
+      <div class="contact-info">
+
+        <div class="card">
+
+          <div class="icon">
+            💬
+          </div>
+
+          <h3>
+            WhatsApp
+          </h3>
+
+          <p>
+            Fastest way to discuss your project.
+          </p>
+
+          <br>
+
+          <a
+            id="waDirect"
+            class="btn btn-primary"
+            href="#"
+            target="_blank">
+            Chat on WhatsApp
+          </a>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="icon">
+            📧
+          </div>
+
+          <h3>
+            Email
+          </h3>
+
+          <p>
+            Add your business email here before publishing.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- LEAD FORM -->
+
+      <form id="leadForm">
+
+        <label for="name">
+          Your Name
+        </label>
+
+        <input
+          id="name"
+          required
+          placeholder="Enter your name">
+
+
+        <label for="business">
+          Business Name
+        </label>
+
+        <input
+          id="business"
+          required
+          placeholder="e.g. Sharma Garments">
+
+
+        <label for="type">
+          Business Type
+        </label>
+
+        <select id="type">
+
+          <option>
+            Shop / Store
+          </option>
+
+          <option>
+            Restaurant / Cafe
+          </option>
+
+          <option>
+            Coaching / Institute
+          </option>
+
+          <option>
+            Salon / Beauty
+          </option>
+
+          <option>
+            Professional Service
+          </option>
+
+          <option>
+            Other
+          </option>
+
+        </select>
+
+
+        <label for="package">
+          Interested Package
+        </label>
+
+        <select id="package">
+
+          <option>
+            Starter — ₹1,499
+          </option>
+
+          <option>
+            Business — ₹2,999
+          </option>
+
+          <option>
+            Premium — ₹5,999
+          </option>
+
+          <option>
+            Custom
+          </option>
+
+        </select>
+
+
+        <label for="message">
+          Requirements
+        </label>
+
+        <textarea
+          id="message"
+          placeholder="Tell us about your website...">
+        </textarea>
+
+
+        <button
+          class="btn btn-primary"
+          type="submit">
+
+          Send Enquiry on WhatsApp →
+
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+
+<!-- FOOTER -->
+
+<footer>
+
+  <div class="container footer-row">
+
+    <div>
+      © <span id="year"></span>
+      Yatharth Web Studio
+    </div>
+
+    <div>
+      Affordable websites for small businesses.
+    </div>
+
+  </div>
+
+</footer>
+
+
+<script>
+
+/* ==========================================
+   BUSINESS CONFIGURATION
+
+   अपना WhatsApp number यहाँ डालो।
+
+   India example:
+   919876543210
+
+   + या spaces मत लगाना।
+========================================== */
+
+const CONFIG = {
+
+  whatsapp: "919838583027",
+
+  businessName: "Yatharth Web Studio"
+
+};
+
+
+/* MOBILE MENU */
+
+function toggleMenu(){
+
+  document
+    .getElementById("nav")
+    .classList
+    .toggle("open");
+
+}
+
+
+/* MENU CLOSE */
+
+document
+  .querySelectorAll("nav a")
+  .forEach(a => {
+
+    a.addEventListener("click", () => {
+
+      document
+        .getElementById("nav")
+        .classList
+        .remove("open");
+
+    });
+
+  });
+
+
+/* WHATSAPP URL */
+
+function waUrl(message){
+
+  return "https://wa.me/"
+    + CONFIG.whatsapp
+    + "?text="
+    + encodeURIComponent(message);
+
+}
+
+
+/* DIRECT WHATSAPP */
+
+document
+  .getElementById("waDirect")
+  .href = waUrl(
+    "Hello, I am interested in getting a website for my business."
+  );
+
+
+/* CONTACT FORM */
+
+document
+  .getElementById("leadForm")
+  .addEventListener("submit", function(e){
+
+    e.preventDefault();
+
+
+    const name =
+      document
+      .getElementById("name")
+      .value
+      .trim();
+
+
+    const business =
+      document
+      .getElementById("business")
+      .value
+      .trim();
+
+
+    const type =
+      document
+      .getElementById("type")
+      .value;
+
+
+    const pkg =
+      document
+      .getElementById("package")
+      .value;
+
+
+    const message =
+      document
+      .getElementById("message")
+      .value
+      .trim();
+
+
+    const text =
+
+`Hello ${CONFIG.businessName},
+
+I want a website for my business.
+
+Name: ${name}
+Business: ${business}
+Business Type: ${type}
+Package: ${pkg}
+Requirements: ${message || "Not specified"}
+
+Please share the next steps.`;
+
+
+    window.open(
+      waUrl(text),
+      "_blank"
+    );
+
+  });
+
+
+/* YEAR */
+
+document
+  .getElementById("year")
+  .textContent =
+  new Date().getFullYear();
+
+</script>
+
+</body>
+        </html>
