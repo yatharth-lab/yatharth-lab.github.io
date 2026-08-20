@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <meta name="theme-color" content="#FF8C00">
     <title>Submit Biodata - Gayatri Vivah Sutra </title>
+
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',Roboto,sans-serif;background:linear-gradient(180deg,#fff7e0,#fff);min-height:100vh;padding:15px}
@@ -16,6 +17,7 @@
         input:focus,select:focus,textarea:focus{border-color:#FF8C00}
         button{width:100%;padding:15px;background:linear-gradient(135deg,#FF8C00,#FFB300);color:#fff;border:none;border-radius:12px;font-size:1.1rem;font-weight:700;margin-top:15px;cursor:pointer}
         button:active{transform:scale(.97)}
+        button:disabled{opacity:.55;cursor:not-allowed}
         #msg{text-align:center;margin-top:12px;font-weight:700;font-size:.9rem}
         .note{text-align:center;font-size:.7rem;color:#aaa;margin-top:12px}
         .photo-section{text-align:center;margin-bottom:15px}
@@ -25,123 +27,1294 @@
         #photoPreview span{font-size:2rem;color:#aaa}
         .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .full{grid-column:1/-1}
+
+        /* PROCESS VIEW BOX */
+        #processBox{
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.45);
+            display:none;
+            align-items:center;
+            justify-content:center;
+            z-index:9999;
+            padding:20px;
+        }
+
+        #processCard{
+            width:100%;
+            max-width:360px;
+            background:#fff;
+            border-radius:20px;
+            padding:25px 20px;
+            text-align:center;
+            box-shadow:0 15px 50px rgba(0,0,0,.25);
+            border:2px solid #FFB300;
+        }
+
+        #processIcon{
+            font-size:3rem;
+            margin-bottom:10px;
+        }
+
+        #processTitle{
+            color:#FF6F00;
+            font-size:1.15rem;
+            font-weight:800;
+            margin-bottom:7px;
+        }
+
+        #processText{
+            color:#777;
+            font-size:.85rem;
+            line-height:1.5;
+            min-height:40px;
+        }
+
+        #processBar{
+            width:100%;
+            height:9px;
+            background:#ffe8c7;
+            border-radius:20px;
+            overflow:hidden;
+            margin-top:18px;
+        }
+
+        #processProgress{
+            width:0%;
+            height:100%;
+            background:linear-gradient(90deg,#FF8C00,#FFB300);
+            border-radius:20px;
+            transition:width .35s ease;
+        }
+
+        #processPercent{
+            color:#FF8C00;
+            font-weight:700;
+            font-size:.8rem;
+            margin-top:7px;
+        }
+
+        #tryAgainBtn{
+            display:none;
+            background:linear-gradient(135deg,#FF8C00,#FFB300);
+            margin-top:18px;
+        }
+
+        #closeProcessBtn{
+            display:none;
+            background:#f5f5f5;
+            color:#666;
+            margin-top:10px;
+            padding:10px;
+            font-size:.9rem;
+        }
     </style>
 </head>
+
 <body>
+
     <div class="container">
+
         <h2>Gayatri Vivah Sutra</h2>
         <p class="sub">Submit Your Biodata</p>
-        
+
         <form onsubmit="submitBiodata(event)">
+
             <!-- PHOTO -->
             <div class="photo-section">
+
                 <label>📸 Profile Photo</label>
-                <div id="photoPreview" onclick="document.getElementById('photoInput').click()">
+
+                <div id="photoPreview"
+                     onclick="openPhotoPicker()">
+
                     <span>📷 Tap to select</span>
+
                 </div>
-                <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(event)">
+
+                <input
+                    type="file"
+                    id="photoInput"
+                    accept="image/*"
+                    style="display:none"
+                    onchange="previewPhoto(event)"
+                >
+
             </div>
-            
+
+
             <div class="row">
-                <div><label>👤 Full Name *</label><input type="text" id="name" required></div>
-                <div><label>⚧ Gender *</label><select id="gender" required><option value="">Select</option><option>Groom</option><option>Bride</option></select></div>
-                <div><label>🎂 Age *</label><input type="number" id="age" required min="18" max="60"></div>
-                <div><label>📏 Height</label><input type="text" id="height" placeholder="5'8''"></div>
-                <div><label>⚖️ Weight</label><input type="text" id="weight" placeholder="70 kg"></div>
-                <div><label>💍 Status</label><select id="marital"><option value="">Select</option><option>Never Married</option><option>Divorced</option><option>Widowed</option></select></div>
-                <div><label>🕉️ Gotra</label><input type="text" id="gotra" placeholder="Kashyap"></div>
-                <div><label>👨 Father</label><input type="text" id="father"></div>
-                <div><label>👩 Mother</label><input type="text" id="mother"></div>
-                <div><label>💼 Profession *</label><input type="text" id="profession" required></div>
-                <div><label>📍 Location *</label><input type="text" id="location" required></div>
-                <div><label>👥 Community *</label><input type="text" id="community" required></div>
-                <div><label>📞 Mobile</label><input type="tel" id="mobile" placeholder="9876543210"></div>
-                <div><label>🎓 Education</label><input type="text" id="education"></div>
-                <div><label>💰 Income</label><input type="text" id="income" placeholder="10 LPA"></div>
-                <div class="full"><label>📝 About</label><textarea id="about" rows="3" placeholder="Brief description..."></textarea></div>
+
+                <div>
+                    <label>👤 Full Name *</label>
+                    <input type="text" id="name" required>
+                </div>
+
+                <div>
+                    <label>⚧ Gender *</label>
+                    <select id="gender" required>
+                        <option value="">Select</option>
+                        <option>Groom</option>
+                        <option>Bride</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>🎂 Age *</label>
+                    <input type="number" id="age" required min="18" max="60">
+                </div>
+
+                <div>
+                    <label>📏 Height</label>
+                    <input type="text" id="height" placeholder="5'8''">
+                </div>
+
+                <div>
+                    <label>⚖️ Weight</label>
+                    <input type="text" id="weight" placeholder="70 kg">
+                </div>
+
+                <div>
+                    <label>💍 Status</label>
+                    <select id="marital">
+                        <option value="">Select</option>
+                        <option>Never Married</option>
+                        <option>Divorced</option>
+                        <option>Widowed</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>🕉️ Gotra</label>
+                    <input type="text" id="gotra" placeholder="Kashyap">
+                </div>
+
+                <div>
+                    <label>👨 Father</label>
+                    <input type="text" id="father">
+                </div>
+
+                <div>
+                    <label>👩 Mother</label>
+                    <input type="text" id="mother">
+                </div>
+
+                <div>
+                    <label>💼 Profession *</label>
+                    <input type="text" id="profession" required>
+                </div>
+
+                <div>
+                    <label>📍 Location *</label>
+                    <input type="text" id="location" required>
+                </div>
+
+                <div>
+                    <label>👥 Community *</label>
+                    <input type="text" id="community" required>
+                </div>
+
+                <div>
+                    <label>📞 Mobile</label>
+                    <input type="tel" id="mobile" placeholder="9876543210">
+                </div>
+
+                <div>
+                    <label>🎓 Education</label>
+                    <input type="text" id="education">
+                </div>
+
+                <div>
+                    <label>💰 Income</label>
+                    <input type="text" id="income" placeholder="10 LPA">
+                </div>
+
+                <div class="full">
+                    <label>📝 About</label>
+                    <textarea id="about" rows="3" placeholder="Brief description..."></textarea>
+                </div>
+
             </div>
-            
-            <button type="submit">📤 Submit Biodata</button>
+
+
+            <button
+                type="submit"
+                id="submitButton"
+            >
+                📤 Submit Biodata
+            </button>
+
         </form>
+
+
         <div id="msg"></div>
-        <p class="note">🔒 Your data is safe & private</p>
+
+        <p class="note">
+            🔒 Your data is safe & private
+        </p>
+
     </div>
 
-    <script>
-        let photoData = null;
-        
-        function previewPhoto(e) {
-            const f = e.target.files[0];
-            if (!f) return;
-            if (f.size > 5*1024*1024) { alert('Max 5MB'); return; }
-            const reader = new FileReader();
-            reader.onload = ev => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ratio = 400 / img.width;
-                    canvas.width = 400;
-                    canvas.height = img.height * ratio;
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    photoData = canvas.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('photoPreview').innerHTML = `<img src="${photoData}">`;
-                };
-                img.src = ev.target.result;
-            };
-            reader.readAsDataURL(f);
+
+    <!-- PROCESS VIEW BOX -->
+
+    <div id="processBox">
+
+        <div id="processCard">
+
+            <div id="processIcon">⏳</div>
+
+            <div id="processTitle">
+                Processing...
+            </div>
+
+            <div id="processText">
+                Please wait.
+            </div>
+
+            <div id="processBar">
+                <div id="processProgress"></div>
+            </div>
+
+            <div id="processPercent">
+                0%
+            </div>
+
+            <button
+                id="tryAgainBtn"
+                type="button"
+                onclick="tryAgain()"
+            >
+                🔄 Try Again
+            </button>
+
+            <button
+                id="closeProcessBtn"
+                type="button"
+                onclick="closeProcessBox()"
+            >
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+
+<script>
+
+    let photoData = null;
+    let photoProcessing = false;
+    let submitting = false;
+    let lastSubmitData = null;
+
+
+    const photoInput =
+        document.getElementById('photoInput');
+
+    const photoPreview =
+        document.getElementById('photoPreview');
+
+    const submitButton =
+        document.getElementById('submitButton');
+
+    const msg =
+        document.getElementById('msg');
+
+
+    const processBox =
+        document.getElementById('processBox');
+
+    const processIcon =
+        document.getElementById('processIcon');
+
+    const processTitle =
+        document.getElementById('processTitle');
+
+    const processText =
+        document.getElementById('processText');
+
+    const processProgress =
+        document.getElementById('processProgress');
+
+    const processPercent =
+        document.getElementById('processPercent');
+
+    const tryAgainBtn =
+        document.getElementById('tryAgainBtn');
+
+    const closeProcessBtn =
+        document.getElementById('closeProcessBtn');
+
+
+    /* =========================================
+       PHOTO PICKER
+    ========================================= */
+
+    function openPhotoPicker() {
+
+        if (photoProcessing || submitting) {
+            return;
         }
-        
-        async function submitBiodata(e) {
-            e.preventDefault();
-            const msg = document.getElementById('msg');
-            msg.style.color = '#FF8C00';
-            msg.textContent = '⏳ Submitting...';
-            
-            const data = {
-                id: Date.now(),
-                name: document.getElementById('name').value,
-                gender: document.getElementById('gender').value,
-                age: parseInt(document.getElementById('age').value),
-                height: document.getElementById('height').value || '',
-                weight: document.getElementById('weight').value || '',
-                maritalStatus: document.getElementById('marital').value || '',
-                gotra: document.getElementById('gotra').value || '',
-                fatherName: document.getElementById('father').value || '',
-                motherName: document.getElementById('mother').value || '',
-                profession: document.getElementById('profession').value,
-                location: document.getElementById('location').value,
-                community: document.getElementById('community').value,
-                mobile: document.getElementById('mobile').value || '',
-                education: document.getElementById('education').value || '',
-                income: document.getElementById('income').value || '',
-                about: document.getElementById('about').value || '',
-                image: photoData,
-                createdAt: new Date().toISOString()
-            };
-            
-            try {
-                const res = await fetch('https://long-dream-947d.yatharthg833.workers.dev/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                
-                if (result.success) {
-                    msg.style.color = 'green';
-                    msg.textContent = '✅ Biodata Submitted Successfully!';
-                    e.target.reset();
-                    document.getElementById('photoPreview').innerHTML = '<span>📷 Tap to select</span>';
-                    photoData = null;
-                } else {
-                    msg.style.color = 'red';
-                    msg.textContent = '❌ Error: ' + (result.result?.message || 'Try again');
+
+        photoInput.click();
+    }
+
+
+    /* =========================================
+       PROCESS BOX
+    ========================================= */
+
+    function showProcess(
+        icon,
+        title,
+        text,
+        percent
+    ) {
+
+        processBox.style.display = 'flex';
+
+        processIcon.textContent = icon;
+        processTitle.textContent = title;
+        processText.textContent = text;
+
+        processProgress.style.width =
+            percent + '%';
+
+        processPercent.textContent =
+            percent + '%';
+
+        tryAgainBtn.style.display = 'none';
+        closeProcessBtn.style.display = 'none';
+    }
+
+
+    function updateProcess(
+        icon,
+        title,
+        text,
+        percent
+    ) {
+
+        processIcon.textContent = icon;
+        processTitle.textContent = title;
+        processText.textContent = text;
+
+        processProgress.style.width =
+            percent + '%';
+
+        processPercent.textContent =
+            percent + '%';
+    }
+
+
+    function showProcessError(text) {
+
+        processIcon.textContent = '❌';
+
+        processTitle.textContent =
+            'Upload Failed';
+
+        processText.textContent =
+            text;
+
+        processProgress.style.width =
+            '0%';
+
+        processPercent.textContent =
+            'Failed';
+
+        tryAgainBtn.style.display =
+            'block';
+
+        closeProcessBtn.style.display =
+            'block';
+    }
+
+
+    function showProcessSuccess(text) {
+
+        processIcon.textContent = '✅';
+
+        processTitle.textContent =
+            'Successfully Submitted!';
+
+        processText.textContent =
+            text;
+
+        processProgress.style.width =
+            '100%';
+
+        processPercent.textContent =
+            '100%';
+
+        closeProcessBtn.style.display =
+            'block';
+
+        tryAgainBtn.style.display =
+            'none';
+    }
+
+
+    function closeProcessBox() {
+
+        processBox.style.display =
+            'none';
+    }
+
+
+    /* =========================================
+       TRY AGAIN
+    ========================================= */
+
+    function tryAgain() {
+
+    tryAgainBtn.style.display = 'none';
+    closeProcessBtn.style.display = 'none';
+
+    if (!photoData) {
+        closeProcessBox();
+
+        msg.style.color = 'red';
+        msg.textContent = '❌ Photo missing. Please select photo again.';
+
+        submitButton.disabled = false;
+        submitButton.style.opacity = '1';
+
+        return;
+    }
+
+    /*
+     * Current form data dobara create karo
+     * taaki user ne failure ke baad jo changes kiye hain
+     * wahi submit hon.
+     */
+    lastSubmitData = createBiodataData();
+
+    submitStoredData();
+    }
+
+    /* =========================================
+       PHOTO PROCESSING
+    ========================================= */
+
+    function previewPhoto(e) {
+
+        const file =
+            e.target.files[0];
+
+        if (!file) {
+            return;
+        }
+
+
+        photoData = null;
+
+        photoProcessing = true;
+
+        submitButton.disabled = true;
+
+        submitButton.style.opacity =
+            '0.55';
+
+
+        showProcess(
+            '📷',
+            'Processing Photo',
+            'Please wait while your photo is being compressed...',
+            10
+        );
+
+
+        /* Original maximum = 5 MB */
+
+        if (file.size > 5 * 1024 * 1024) {
+
+            photoProcessing = false;
+
+            showProcessError(
+                'Image 5 MB se badi hai. Please smaller photo select karein.'
+            );
+
+            return;
+        }
+
+
+        /* Validate file */
+
+        if (!file.type.startsWith('image/')) {
+
+            photoProcessing = false;
+
+            showProcessError(
+                'Please select a valid image.'
+            );
+
+            return;
+        }
+
+
+        updateProcess(
+            '📖',
+            'Reading Photo',
+            'Image read ki ja rahi hai...',
+            25
+        );
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload = function(event) {
+
+            updateProcess(
+                '⚙️',
+                'Compressing Photo',
+                'Photo ko suitable size mein convert kiya ja raha hai...',
+                45
+            );
+
+
+            const img =
+                new Image();
+
+
+            img.onload = function() {
+
+                try {
+
+                    const MAX_SIZE = 400;
+
+                    let width =
+                        img.width;
+
+                    let height =
+                        img.height;
+
+
+                    /*
+                     * Maximum 400 x 400
+                     * aspect ratio preserved
+                     */
+
+                    if (width > height) {
+
+                        if (width > MAX_SIZE) {
+
+                            height =
+                                Math.round(
+                                    height *
+                                    MAX_SIZE /
+                                    width
+                                );
+
+                            width =
+                                MAX_SIZE;
+                        }
+
+                    } else {
+
+                        if (height > MAX_SIZE) {
+
+                            width =
+                                Math.round(
+                                    width *
+                                    MAX_SIZE /
+                                    height
+                                );
+
+                            height =
+                                MAX_SIZE;
+                        }
+                    }
+
+
+                    const canvas =
+                        document.createElement('canvas');
+
+
+                    canvas.width =
+                        width;
+
+                    canvas.height =
+                        height;
+
+
+                    const ctx =
+                        canvas.getContext(
+                            '2d',
+                            { alpha:false }
+                        );
+
+
+                    ctx.fillStyle =
+                        '#ffffff';
+
+                    ctx.fillRect(
+                        0,
+                        0,
+                        width,
+                        height
+                    );
+
+
+                    ctx.drawImage(
+                        img,
+                        0,
+                        0,
+                        width,
+                        height
+                    );
+
+
+                    /*
+                     * Compression
+                     */
+
+                    let quality =
+                        0.75;
+
+                    let result =
+                        '';
+
+
+                    for (
+                        let i = 0;
+                        i < 7;
+                        i++
+                    ) {
+
+                        result =
+                            canvas.toDataURL(
+                                'image/jpeg',
+                                quality
+                            );
+
+
+                        const bytes =
+                            Math.ceil(
+                                result.length * 3 / 4
+                            );
+
+
+                        /*
+                         * Target:
+                         * approximately <= 300 KB
+                         */
+
+                        if (
+                            bytes <=
+                            300 * 1024
+                        ) {
+                            break;
+                        }
+
+
+                        quality -=
+                            0.08;
+
+
+                        if (
+                            quality < 0.25
+                        ) {
+                            quality = 0.25;
+                            break;
+                        }
+                    }
+
+
+                    if (
+                        !result ||
+                        result.length < 100
+                    ) {
+
+                        throw new Error(
+                            'Compression failed'
+                        );
+                    }
+
+
+                    photoData =
+                        result;
+
+
+                    const finalKB =
+                        Math.round(
+                            (
+                                photoData.length *
+                                3 /
+                                4
+                            ) / 1024
+                        );
+
+
+                    /*
+                     * Show preview
+                     */
+
+                    photoPreview.innerHTML =
+                        `<img src="${photoData}" alt="Profile Photo">`;
+
+
+                    updateProcess(
+                        '✅',
+                        'Photo Ready',
+                        'Photo successfully compressed. Ab submit kiya ja sakta hai.',
+                        100
+                    );
+
+
+                    photoProcessing =
+                        false;
+
+
+                    submitButton.disabled =
+                        false;
+
+                    submitButton.style.opacity =
+                        '1';
+
+
+                    console.log(
+                        'PHOTO READY:',
+                        finalKB + ' KB'
+                    );
+
+
+                    setTimeout(
+                        () => {
+                            closeProcessBox();
+                        },
+                        900
+                    );
+
+
+                } catch(error) {
+
+                    console.error(
+                        'Photo processing error:',
+                        error
+                    );
+
+
+                    photoData =
+                        null;
+
+                    photoProcessing =
+                        false;
+
+
+                    showProcessError(
+                        'Photo process nahi ho paayi. Try Again karein.'
+                    );
                 }
-            } catch (err) {
-                msg.style.color = 'red';
-                msg.textContent = '❌ Network Error. Try again.';
+            };
+
+
+            img.onerror =
+                function() {
+
+                    photoData =
+                        null;
+
+                    photoProcessing =
+                        false;
+
+
+                    showProcessError(
+                        'Image open nahi ho paayi. Dusri image try karein.'
+                    );
+                };
+
+
+            img.src =
+                event.target.result;
+        };
+
+
+        reader.onerror =
+            function() {
+
+                photoData =
+                    null;
+
+                photoProcessing =
+                    false;
+
+
+                showProcessError(
+                    'Photo read nahi ho paayi. Try Again karein.'
+                );
+            };
+
+
+        reader.readAsDataURL(file);
+    }
+
+
+    /* =========================================
+       CREATE BIODATA DATA
+    ========================================= */
+
+    function createBiodataData() {
+
+        return {
+
+            id: Date.now(),
+
+            name:
+                document.getElementById('name').value.trim(),
+
+            gender:
+                document.getElementById('gender').value,
+
+            age:
+                parseInt(
+                    document.getElementById('age').value
+                ),
+
+            height:
+                document.getElementById('height').value.trim() || '',
+
+            weight:
+                document.getElementById('weight').value.trim() || '',
+
+            maritalStatus:
+                document.getElementById('marital').value || '',
+
+            gotra:
+                document.getElementById('gotra').value.trim() || '',
+
+            fatherName:
+                document.getElementById('father').value.trim() || '',
+
+            motherName:
+                document.getElementById('mother').value.trim() || '',
+
+            profession:
+                document.getElementById('profession').value.trim(),
+
+            location:
+                document.getElementById('location').value.trim(),
+
+            community:
+                document.getElementById('community').value.trim(),
+
+            mobile:
+                document.getElementById('mobile').value.trim() || '',
+
+            education:
+                document.getElementById('education').value.trim() || '',
+
+            income:
+                document.getElementById('income').value.trim() || '',
+
+            about:
+                document.getElementById('about').value.trim() || '',
+
+            image:
+                photoData,
+
+            createdAt:
+                new Date().toISOString()
+        };
+    }
+
+
+    /* =========================================
+       MAIN SUBMIT
+    ========================================= */
+
+    async function submitBiodata(e) {
+
+        e.preventDefault();
+
+
+        /*
+         * Never allow multiple requests
+         */
+
+        if (submitting) {
+            return;
+        }
+
+
+        /*
+         * Photo still processing
+         */
+
+        if (photoProcessing) {
+
+            msg.style.color =
+                '#FF8C00';
+
+            msg.textContent =
+                '⏳ Photo processing ho rahi hai...';
+
+            return;
+        }
+
+
+        /*
+         * IMPORTANT:
+         * Do NOT send image:null
+         */
+
+        if (!photoData) {
+
+            msg.style.color =
+                'red';
+
+            msg.textContent =
+                '❌ Please select a profile photo first.';
+
+
+            showProcess(
+                '📷',
+                'Photo Required',
+                'Submit karne se pehle profile photo select karein.',
+                0
+            );
+
+
+            tryAgainBtn.style.display =
+                'block';
+
+            closeProcessBtn.style.display =
+                'block';
+
+
+            return;
+        }
+
+
+        /*
+         * Validate Base64
+         */
+
+        if (
+            typeof photoData !== 'string' ||
+            !photoData.startsWith(
+                'data:image/jpeg;base64,'
+            )
+        ) {
+
+            msg.style.color =
+                'red';
+
+            msg.textContent =
+                '❌ Photo invalid hai. Please photo dobara select karein.';
+
+
+            photoData =
+                null;
+
+
+            return;
+        }
+
+
+        /*
+         * Create data
+         */
+
+        const data =
+            createBiodataData();
+
+
+        /*
+         * Final safety check
+         */
+
+        if (!data.image) {
+
+            msg.style.color =
+                'red';
+
+            msg.textContent =
+                '❌ Photo data missing. Please select photo again.';
+
+            return;
+        }
+
+
+        /*
+         * Save data for Try Again
+         */
+
+        lastSubmitData =
+            data;
+
+
+        /*
+         * Start submit
+         */
+
+        submitStoredData();
+    }
+
+
+    /* =========================================
+       ACTUAL WORKER SUBMIT
+    ========================================= */
+
+    async function submitStoredData() {
+
+        if (!lastSubmitData) {
+            return;
+        }
+
+
+        if (submitting) {
+            return;
+        }
+
+
+        submitting = true;
+
+
+        submitButton.disabled =
+            true;
+
+        submitButton.style.opacity =
+            '0.55';
+
+
+        showProcess(
+            '📤',
+            'Submitting Biodata',
+            'Your biodata is being sent securely...',
+            20
+        );
+
+
+        try {
+
+            updateProcess(
+                '📦',
+                'Preparing Data',
+                'Photo aur biodata prepare kiya ja raha hai...',
+                35
+            );
+
+
+            /*
+             * FINAL IMAGE CHECK
+             */
+
+            if (
+                !lastSubmitData.image ||
+                typeof lastSubmitData.image !== 'string'
+            ) {
+
+                throw new Error(
+                    'IMAGE_MISSING'
+                );
+            }
+
+
+            updateProcess(
+                '🚀',
+                'Uploading',
+                'Biodata server par upload ho raha hai...',
+                55
+            );
+
+
+            const res =
+                await fetch(
+                    'https://long-dream-947d.yatharthg833.workers.dev/',
+                    {
+                        method:'POST',
+
+                        headers:{
+                            'Content-Type':
+                                'application/json'
+                        },
+
+                        body:
+                            JSON.stringify(
+                                lastSubmitData
+                            )
+                    }
+                );
+
+
+            updateProcess(
+                '🔍',
+                'Checking Response',
+                'Server response check kiya ja raha hai...',
+                80
+            );
+
+
+            if (!res.ok) {
+
+                throw new Error(
+                    'HTTP_' + res.status
+                );
+            }
+
+
+            const result =
+                await res.json();
+
+
+            console.log(
+                'WORKER RESPONSE:',
+                result
+            );
+
+
+            /*
+             * Worker must return success:true
+             */
+
+            if (!result.success) {
+
+                throw new Error(
+                    result.result?.message ||
+                    result.message ||
+                    'Server rejected submission'
+                );
+            }
+
+
+            /*
+             * SUCCESS
+             */
+
+            updateProcess(
+                '🎉',
+                'Success',
+                'Biodata successfully submit ho gaya!',
+                100
+            );
+
+
+            msg.style.color =
+                'green';
+
+            msg.textContent =
+                '✅ Biodata Submitted Successfully!';
+
+
+            /*
+             * ONLY NOW reset form
+             */
+
+            document
+                .querySelector('form')
+                .reset();
+
+
+            photoData =
+                null;
+
+            photoProcessing =
+                false;
+
+            lastSubmitData =
+                null;
+
+
+            photoPreview.innerHTML =
+                '<span>📷 Tap to select</span>';
+
+
+            showProcessSuccess(
+                'Biodata successfully submit ho gaya. Thank you!'
+            );
+
+
+            /*
+             * Close after 1.5 sec
+             */
+
+            setTimeout(
+                () => {
+
+                    closeProcessBox();
+
+                },
+                1500
+            );
+
+
+        } catch(error) {
+
+            console.error(
+                'SUBMIT ERROR:',
+                error
+            );
+
+
+            /*
+             * IMPORTANT:
+             * Form reset nahi hoga.
+             * Photo bhi nahi hatayenge.
+             */
+
+            submitting =
+                false;
+
+
+            submitButton.disabled =
+                false;
+
+            submitButton.style.opacity =
+                '1';
+
+
+            msg.style.color =
+                'red';
+
+
+            if (
+                error.message ===
+                'IMAGE_MISSING'
+            ) {
+
+                msg.textContent =
+                    '❌ Photo missing. Please select photo again.';
+
+                showProcessError(
+                    'Photo data missing ho gaya. Please Try Again karein.'
+                );
+
+            } else {
+
+                msg.textContent =
+                    '❌ Upload failed. Your data is still here.';
+
+                showProcessError(
+                    'Upload complete nahi hua. Aapka bhara hua data safe hai. Try Again karein.'
+                );
             }
         }
-    </script>
+    }
+
+
+    /* =========================================
+       PREVENT ACCIDENTAL CLOSING
+       DURING SUBMISSION
+    ========================================= */
+
+    window.addEventListener(
+        'beforeunload',
+        function(e) {
+
+            if (submitting) {
+
+                e.preventDefault();
+
+                e.returnValue = '';
+            }
+        }
+    );
+
+</script>
+
 </body>
 </html>
