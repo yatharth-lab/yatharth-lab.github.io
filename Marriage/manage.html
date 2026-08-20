@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=yes">
+<meta name="theme-color" content="#FF8C00">
+<title>Gayatri Vivah Sutra - Management</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Roboto,sans-serif;background:linear-gradient(180deg,#fff7e0,#fff);min-height:100vh;padding:15px;color:#333}
+.container{max-width:900px;margin:0 auto}
+.card{background:#fff;padding:20px;border-radius:20px;box-shadow:0 10px 30px rgba(255,140,0,.15);border:2px solid #FFB300;margin-bottom:15px}
+h1,h2{text-align:center;color:#FF6F00}
+h1{font-size:1.45rem;margin-bottom:4px}
+h2{font-size:1.2rem;margin-bottom:12px}
+.sub{text-align:center;color:#888;font-size:.8rem;margin-bottom:15px}
+label{font-weight:700;font-size:.75rem;color:#FF6F00;display:block;margin:8px 0 3px}
+input,select,textarea{width:100%;padding:10px;border:2px solid #ffe0b2;border-radius:10px;font-size:.9rem;outline:none;background:#fffdf7;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:#FF8C00}
+button{padding:12px 15px;background:linear-gradient(135deg,#FF8C00,#FFB300);color:#fff;border:none;border-radius:11px;font-size:.95rem;font-weight:700;cursor:pointer}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.secondary{background:#f3f3f3;color:#666}
+.danger{background:linear-gradient(135deg,#e53935,#ef5350)}
+.smallBtn{padding:8px 11px;font-size:.8rem}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.full{grid-column:1/-1}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+#loginView{max-width:500px;margin:8vh auto 0}
+#appView{display:none}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.topbar h1{text-align:left}
+.repoInfo{font-size:.75rem;color:#777;margin-top:3px}
+.toolbar{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:12px}
+.issueList{display:grid;gap:10px}
+.issueCard{border:2px solid #ffe0b2;border-radius:15px;padding:13px;background:#fffdf7}
+.issueHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.issueName{font-weight:800;color:#FF6F00;font-size:1rem}
+.issueMeta{font-size:.7rem;color:#888;margin-top:3px}
+.issuePreview{display:flex;gap:10px;margin-top:9px;align-items:center}
+.issuePreview img{width:62px;height:78px;object-fit:cover;border-radius:9px;border:2px solid #FFB300}
+.issuePreviewText{font-size:.8rem;line-height:1.5}
+.empty{text-align:center;color:#999;padding:25px}
+#editor{display:none}
+.back{margin-bottom:10px}
+.editorPhoto{text-align:center;margin-bottom:10px}
+#editPhotoPreview{width:150px;height:190px;margin:8px auto;border:3px dashed #FFB300;border-radius:15px;background:#fff7e0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer}
+#editPhotoPreview img{width:100%;height:100%;object-fit:cover}
+#editPhotoPreview span{font-size:1.7rem;color:#aaa}
+.photoStatus{text-align:center;font-size:.78rem;font-weight:700;min-height:20px;margin-top:5px}
+.publishArea{margin-top:15px}
+#editProcessBox{display:none;margin-top:12px;border:2px solid #FFB300;border-radius:15px;background:#fffaf0;padding:15px;text-align:center}
+#editProcessIcon{font-size:2rem}
+#editProcessTitle{color:#FF6F00;font-weight:800;margin:4px 0}
+#editProcessText{font-size:.78rem;color:#777;line-height:1.45}
+#editProcessBar{height:8px;background:#ffe8c7;border-radius:20px;overflow:hidden;margin-top:12px}
+#editProcessProgress{height:100%;width:0;background:linear-gradient(90deg,#FF8C00,#FFB300);transition:width .35s}
+#editProcessPercent{font-size:.75rem;color:#FF8C00;font-weight:700;margin-top:5px}
+.processButtons{display:flex;justify-content:center;gap:8px;margin-top:10px}
+#retryEditBtn,#closeEditProcessBtn{display:none}
+.notice{font-size:.72rem;color:#888;line-height:1.5;margin-top:8px}
+.errorText{color:#d32f2f}
+.successText{color:#2e7d32}
+.loading{padding:20px;text-align:center;color:#FF8C00;font-weight:700}
+.hidden{display:none!important}
+@media(max-width:600px){
+ .row{grid-template-columns:1fr}
+ .full{grid-column:auto}
+ .toolbar{grid-template-columns:1fr 1fr}
+ .toolbar input{grid-column:1/-1}
+ .topbar h1{font-size:1.2rem}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginView" class="card">
+    <h1>Gayatri Vivah Sutra</h1>
+    <p class="sub">🔐 Biodata Management Login</p>
+
+    <label>GitHub Username *</label>
+    <input id="ghUser" type="text" placeholder="your-github-username" autocomplete="username">
+
+    <label>Repository *</label>
+    <input id="ghRepo" type="text" placeholder="biodata-repository">
+
+    <label>GitHub Personal Access Token *</label>
+    <input id="ghToken" type="password" placeholder="ghp_... / github_pat_..." autocomplete="current-password">
+
+    <button id="loginBtn" style="width:100%;margin-top:15px" onclick="login()">🔐 Login & Load Biodata</button>
+
+    <div id="loginMsg" class="notice" style="text-align:center"></div>
+
+    <p class="notice">
+        Token source code mein hard-code nahi hai. Login ke baad username, repository aur token
+        localStorage mein cache kiye ja sakte hain. Logout par cache clear kiya ja sakta hai.
+    </p>
+</div>
+
+
+<!-- ================= MAIN APP ================= -->
+<div id="appView" class="container">
+
+    <div class="card">
+        <div class="topbar">
+            <div>
+                <h1>Gayatri Vivah Sutra</h1>
+                <div id="repoInfo" class="repoInfo"></div>
+            </div>
+            <div class="actions">
+                <button class="smallBtn" onclick="loadIssues()">🔄 Refresh</button>
+                <button class="smallBtn secondary" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIST -->
+    <div id="listView" class="card">
+        <h2>📋 Biodata Management</h2>
+
+        <div class="toolbar">
+            <input id="searchBox" type="search" placeholder="🔎 Search name, profession, location, community..." oninput="renderIssues()">
+            <select id="stateFilter" onchange="loadIssues()">
+                <option value="open">Open</option>
+                <option value="closed">Closed</option>
+                <option value="all">All</option>
+            </select>
+            <button onclick="loadIssues()">Load</button>
+        </div>
+
+        <div id="listMsg"></div>
+        <div id="issueList" class="issueList"></div>
+    </div>
+
+
+    <!-- EDIT -->
+    <div id="editor" class="card">
+        <button class="smallBtn secondary back" onclick="closeEditor()">← Back to Biodata</button>
+
+        <h2>✏️ Edit Biodata</h2>
+        <div id="editIssueInfo" class="repoInfo" style="text-align:center;margin-bottom:10px"></div>
+
+        <!-- IMAGE -->
+        <div class="editorPhoto">
+            <label>📸 Profile Photo</label>
+
+            <div id="editPhotoPreview" onclick="openEditPhotoPicker()">
+                <span>📷 Tap to select / replace</span>
+            </div>
+
+            <input id="editPhotoInput" type="file" accept="image/*" style="display:none" onchange="processEditPhoto(event)">
+
+            <div id="photoStatus" class="photoStatus"></div>
+
+            <div class="actions" style="justify-content:center">
+                <button type="button" class="smallBtn secondary" onclick="removeEditPhoto()">🗑️ Remove Image</button>
+            </div>
+        </div>
+
+        <!-- FORM -->
+        <div class="row">
+
+            <div>
+                <label>👤 Full Name *</label>
+                <input id="e_name" type="text" required>
+            </div>
+
+            <div>
+                <label>⚧ Gender *</label>
+                <select id="e_gender">
+                    <option value="">Select</option>
+                    <option>Groom</option>
+                    <option>Bride</option>
+                </select>
+            </div>
+
+            <div>
+                <label>🎂 Age *</label>
+                <input id="e_age" type="number" min="18" max="60">
+            </div>
+
+            <div>
+                <label>📏 Height</label>
+                <input id="e_height" type="text" placeholder="5'8''">
+            </div>
+
+            <div>
+                <label>⚖️ Weight</label>
+                <input id="e_weight" type="text" placeholder="70 kg">
+            </div>
+
+            <div>
+                <label>💍 Status</label>
+                <select id="e_maritalStatus">
+                    <option value="">Select</option>
+                    <option>Never Married</option>
+                    <option>Divorced</option>
+                    <option>Widowed</option>
+                </select>
+            </div>
+
+            <div>
+                <label>🕉️ Gotra</label>
+                <input id="e_gotra" type="text">
+            </div>
+
+            <div>
+                <label>👨 Father</label>
+                <input id="e_fatherName" type="text">
+            </div>
+
+            <div>
+                <label>👩 Mother</label>
+                <input id="e_motherName" type="text">
+            </div>
+
+            <div>
+                <label>💼 Profession *</label>
+                <input id="e_profession" type="text">
+            </div>
+
+            <div>
+                <label>📍 Location *</label>
+                <input id="e_location" type="text">
+            </div>
+
+            <div>
+                <label>👥 Community *</label>
+                <input id="e_community" type="text">
+            </div>
+
+            <div>
+                <label>📞 Mobile</label>
+                <input id="e_mobile" type="tel">
+            </div>
+
+            <div>
+                <label>🎓 Education</label>
+                <input id="e_education" type="text">
+            </div>
+
+            <div>
+                <label>💰 Income</label>
+                <input id="e_income" type="text">
+            </div>
+
+            <div class="full">
+                <label>📝 About</label>
+                <textarea id="e_about" rows="4"></textarea>
+            </div>
+
+        </div>
+
+        <div class="publishArea">
+            <button id="publishEditBtn" type="button" style="width:100%" onclick="publishEdit()">
+                📤 Publish Edit
+            </button>
+
+            <!-- PROCESS BOX DIRECTLY UNDER PUBLISH -->
+            <div id="editProcessBox">
+
+                <div id="editProcessIcon">⏳</div>
+
+                <div id="editProcessTitle">Processing...</div>
+
+                <div id="editProcessText">Please wait.</div>
+
+                <div id="editProcessBar">
+                    <div id="editProcessProgress"></div>
+                </div>
+
+                <div id="editProcessPercent">0%</div>
+
+                <div class="processButtons">
+                    <button id="retryEditBtn" type="button" class="smallBtn" onclick="publishEdit()">🔄 Try Again</button>
+                    <button id="closeEditProcessBtn" type="button" class="smallBtn secondary" onclick="hideEditProcess()">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <p class="notice">
+            Edit publish hone tak form ka data yahin rahega. Error aane par reset nahi hoga.
+            Success ke baad hi list refresh hogi.
+        </p>
+
+        <div class="actions" style="margin-top:15px">
+            <button type="button" class="danger" onclick="deleteCurrentIssue()">🗑️ Permanently Delete Issue</button>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+/* =========================================================
+   CONFIG
+   Worker is intentionally NOT used here.
+   Management communicates directly with GitHub API.
+========================================================= */
+
+const GH_API = 'https://api.github.com';
+const GH_GRAPHQL = 'https://api.github.com/graphql';
+const API_VERSION = '2026-03-10';
+
+let config = {
+    username: '',
+    repo: '',
+    token: ''
+};
+
+let issues = [];
+let currentIssue = null;
+let currentData = null;
+let editImageData = null;
+let editImageProcessing = false;
+let publishing = false;
+let deleting = false;
+
+
+/* =========================================================
+   LOCAL STORAGE
+========================================================= */
+
+function saveConfig() {
+    localStorage.setItem('gvs_gh_username', config.username);
+    localStorage.setItem('gvs_gh_repo', config.repo);
+    localStorage.setItem('gvs_gh_token', config.token);
+}
+
+function loadConfigCache() {
+    return {
+        username: localStorage.getItem('gvs_gh_username') || '',
+        repo: localStorage.getItem('gvs_gh_repo') || '',
+        token: localStorage.getItem('gvs_gh_token') || ''
+    };
+}
+
+function clearConfigCache() {
+    localStorage.removeItem('gvs_gh_username');
+    localStorage.removeItem('gvs_gh_repo');
+    localStorage.removeItem('gvs_gh_token');
+}
+
+
+/* =========================================================
+   STARTUP
+========================================================= */
+
+(function init() {
+    const cached = loadConfigCache();
+
+    document.getElementById('ghUser').value = cached.username;
+    document.getElementById('ghRepo').value = cached.repo;
+    document.getElementById('ghToken').value = cached.token;
+
+    if (cached.username && cached.repo && cached.token) {
+        config = cached;
+        // Cached login is used only after validating the token.
+        login(true);
+    }
+})();
+
+
+/* =========================================================
+   GITHUB HELPERS
+========================================================= */
+
+function ghHeaders() {
+    return {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': 'Bearer ' + config.token,
+        'X-GitHub-Api-Version': API_VERSION,
+        'Content-Type': 'application/json'
+    };
+}
+
+function repoBase() {
+    return GH_API + '/repos/' +
+        encodeURIComponent(config.username) + '/' +
+        encodeURIComponent(config.repo);
+}
+
+async function ghFetch(url, options = {}) {
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            ...ghHeaders(),
+            ...(options.headers || {})
+        }
+    });
+
+    let payload = null;
+    const text = await response.text();
+
+    try {
+        payload = text ? JSON.parse(text) : null;
+    } catch (_) {
+        payload = null;
+    }
+
+    if (!response.ok) {
+        const message =
+            payload?.message ||
+            payload?.errors?.map(x => x.message || x.message).join(', ') ||
+            ('HTTP ' + response.status);
+
+        throw new Error(message);
+    }
+
+    return payload;
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+async function login(fromCache = false) {
+
+    const loginBtn = document.getElementById('loginBtn');
+    const loginMsg = document.getElementById('loginMsg');
+
+    if (!fromCache) {
+        config.username = document.getElementById('ghUser').value.trim();
+        config.repo = document.getElementById('ghRepo').value.trim();
+        config.token = document.getElementById('ghToken').value.trim();
+    }
+
+    if (!config.username || !config.repo || !config.token) {
+        loginMsg.className = 'notice errorText';
+        loginMsg.textContent = '❌ Username, repository aur token required hain.';
+        return;
+    }
+
+    loginBtn.disabled = true;
+    loginMsg.className = 'notice';
+    loginMsg.textContent = '⏳ GitHub access verify ho raha hai...';
+
+    try {
+
+        await ghFetch(repoBase());
+
+        saveConfig();
+
+        document.getElementById('loginView').style.display = 'none';
+        document.getElementById('appView').style.display = 'block';
+
+        document.getElementById('repoInfo').textContent =
+            'Repository: ' + config.username + '/' + config.repo;
+
+        await loadIssues();
+
+    } catch (error) {
+
+        console.error(error);
+
+        if (fromCache) {
+            clearConfigCache();
+        }
+
+        loginMsg.className = 'notice errorText';
+        loginMsg.textContent =
+            '❌ Login failed: ' + error.message;
+
+        if (fromCache) {
+            document.getElementById('ghToken').value = '';
+        }
+
+    } finally {
+        loginBtn.disabled = false;
+    }
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function logout() {
+    clearConfigCache();
+
+    issues = [];
+    currentIssue = null;
+    currentData = null;
+    editImageData = null;
+
+    document.getElementById('appView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'block';
+
+    document.getElementById('ghToken').value = '';
+}
+
+
+/* =========================================================
+   LOAD ISSUES
+========================================================= */
+
+async function loadIssues() {
+
+    const list = document.getElementById('issueList');
+    const listMsg = document.getElementById('listMsg');
+    const state = document.getElementById('stateFilter').value;
+
+    list.innerHTML = '<div class="loading">⏳ Biodata Issues load ho rahe hain...</div>';
+    listMsg.textContent = '';
+
+    try {
+
+        let page = 1;
+        let all = [];
+
+        // Multiple pages are loaded so old biodata is not silently missed.
+        while (page <= 10) {
+
+            const url =
+                repoBase() +
+                '/issues?state=' + encodeURIComponent(state) +
+                '&per_page=100&page=' + page +
+                '&sort=created&direction=desc';
+
+            const batch = await ghFetch(url);
+
+            if (!Array.isArray(batch) || batch.length === 0) {
+                break;
+            }
+
+            all.push(...batch);
+
+            if (batch.length < 100) {
+                break;
+            }
+
+            page++;
+        }
+
+        // REST returns pull requests as issues too. Exclude them.
+        issues = all.filter(issue => !issue.pull_request);
+
+        renderIssues();
+
+        listMsg.className = 'notice successText';
+        listMsg.textContent = '✅ ' + issues.length + ' issue(s) loaded.';
+
+    } catch (error) {
+
+        console.error(error);
+
+        list.innerHTML = '';
+        listMsg.className = 'notice errorText';
+        listMsg.textContent =
+            '❌ Issues load nahi hue: ' + error.message;
+    }
+}
+
+
+/* =========================================================
+   ISSUE BODY PARSER
+========================================================= */
+
+function parseIssueBody(body) {
+
+    if (!body) return null;
+
+    let text = String(body).trim();
+
+    // Support ```json ... ``` if body was fenced.
+    if (text.startsWith('```')) {
+        text = text.replace(/^```(?:json)?\s*/i, '');
+        text = text.replace(/\s*```$/i, '').trim();
+    }
+
+    // Direct JSON
+    try {
+        const parsed = JSON.parse(text);
+
+        if (parsed && typeof parsed === 'object') {
+            return parsed;
+        }
+    } catch (_) {}
+
+    // Try extracting the largest JSON object from surrounding text.
+    const first = text.indexOf('{');
+    const last = text.lastIndexOf('}');
+
+    if (first !== -1 && last > first) {
+        try {
+            const parsed = JSON.parse(text.slice(first, last + 1));
+
+            if (parsed && typeof parsed === 'object') {
+                return parsed;
+            }
+        } catch (_) {}
+    }
+
+    return null;
+}
+
+
+/* =========================================================
+   LIST RENDER
+========================================================= */
+
+function renderIssues() {
+
+    const list = document.getElementById('issueList');
+    const search = document.getElementById('searchBox').value.trim().toLowerCase();
+
+    const filtered = issues.filter(issue => {
+
+        const data = parseIssueBody(issue.body);
+
+        const text = [
+            issue.title,
+            data?.name,
+            data?.profession,
+            data?.location,
+            data?.community,
+            data?.mobile
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        return text.includes(search);
+    });
+
+    if (!filtered.length) {
+        list.innerHTML = '<div class="empty">📭 No biodata found.</div>';
+        return;
+    }
+
+    list.innerHTML = filtered.map(issue => {
+
+        const data = parseIssueBody(issue.body);
+
+        const name = escapeHTML(data?.name || issue.title || 'Unnamed');
+        const profession = escapeHTML(data?.profession || '—');
+        const location = escapeHTML(data?.location || '—');
+        const community = escapeHTML(data?.community || '—');
+
+        let image = '';
+
+        if (isValidImageData(data?.image)) {
+            image =
+                '<img src="' + data.image +
+                '" alt="Profile" loading="lazy">';
+        }
+
+        return `
+            <div class="issueCard">
+                <div class="issueHead">
+                    <div>
+                        <div class="issueName">${name}</div>
+                        <div class="issueMeta">
+                            Issue #${issue.number} • ${issue.state}
+                        </div>
+                    </div>
+
+                    <button class="smallBtn" onclick="openEditor(${issue.number})">
+                        ✏️ Edit
+                    </button>
+                </div>
+
+                <div class="issuePreview">
+                    ${image}
+                    <div class="issuePreviewText">
+                        💼 ${profession}<br>
+                        📍 ${location}<br>
+                        👥 ${community}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+
+/* =========================================================
+   OPEN EDITOR
+========================================================= */
+
+async function openEditor(issueNumber) {
+
+    const issue = issues.find(x => x.number === issueNumber);
+
+    if (!issue) {
+        alert('Issue not found.');
+        return;
+    }
+
+    currentIssue = issue;
+
+    const data = parseIssueBody(issue.body);
+
+    if (!data) {
+        alert('❌ Is Issue ka body valid JSON format mein nahi hai.');
+        return;
+    }
+
+    currentData = JSON.parse(JSON.stringify(data));
+    editImageData = isValidImageData(data.image) ? data.image : null;
+
+    document.getElementById('listView').style.display = 'none';
+    document.getElementById('editor').style.display = 'block';
+
+    document.getElementById('editIssueInfo').textContent =
+        'Issue #' + issue.number + ' • ' + (issue.title || '');
+
+    fillEditForm(data);
+    updateEditPhotoPreview();
+    hideEditProcess();
+}
+
+
+/* =========================================================
+   FILL FORM
+========================================================= */
+
+function setValue(id, value) {
+    document.getElementById(id).value =
+        value === null || value === undefined ? '' : value;
+}
+
+function fillEditForm(data) {
+
+    setValue('e_name', data.name);
+    setValue('e_gender', data.gender);
+    setValue('e_age', data.age);
+    setValue('e_height', data.height);
+    setValue('e_weight', data.weight);
+    setValue('e_maritalStatus', data.maritalStatus);
+    setValue('e_gotra', data.gotra);
+    setValue('e_fatherName', data.fatherName);
+    setValue('e_motherName', data.motherName);
+    setValue('e_profession', data.profession);
+    setValue('e_location', data.location);
+    setValue('e_community', data.community);
+    setValue('e_mobile', data.mobile);
+    setValue('e_education', data.education);
+    setValue('e_income', data.income);
+    setValue('e_about', data.about);
+}
+
+
+/* =========================================================
+   CLOSE EDITOR
+========================================================= */
+
+function closeEditor() {
+
+    if (publishing || editImageProcessing) {
+        return;
+    }
+
+    document.getElementById('editor').style.display = 'none';
+    document.getElementById('listView').style.display = 'block';
+
+    currentIssue = null;
+    currentData = null;
+    editImageData = null;
+    hideEditProcess();
+}
+
+
+/* =========================================================
+   IMAGE PICKER
+========================================================= */
+
+function openEditPhotoPicker() {
+
+    if (publishing || editImageProcessing) {
+        return;
+    }
+
+    document.getElementById('editPhotoInput').click();
+}
+
+
+/* =========================================================
+   IMAGE VALIDATION
+========================================================= */
+
+function isValidImageData(value) {
+    return typeof value === 'string' &&
+           /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(value);
+}
+
+
+/* =========================================================
+   IMAGE PROCESSING
+   Target is intentionally kept small because the image is
+   stored INSIDE the GitHub Issue body as Base64.
+========================================================= */
+
+async function processEditPhoto(event) {
+
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    editImageProcessing = true;
+
+    const status = document.getElementById('photoStatus');
+
+    status.className = 'photoStatus';
+    status.style.color = '#FF8C00';
+    status.textContent = '⏳ Photo processing...';
+
+    try {
+
+        if (!file.type.startsWith('image/')) {
+            throw new Error('Please select a valid image.');
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            throw new Error('Original image 5 MB se badi hai.');
+        }
+
+        const source = await readFileAsDataURL(file);
+        const result = await compressImage(source);
+
+        if (!isValidImageData(result.data)) {
+            throw new Error('Compressed image invalid hai.');
+        }
+
+        editImageData = result.data;
+
+        updateEditPhotoPreview();
+
+        status.style.color = '#2e7d32';
+        status.textContent =
+            '✅ Image ready successfully • ' + result.kb + ' KB';
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.style.color = '#d32f2f';
+        status.textContent =
+            '❌ ' + error.message + ' Try another image.';
+
+    } finally {
+
+        editImageProcessing = false;
+
+        // Allows selecting the same file again.
+        event.target.value = '';
+    }
+}
+
+
+/* =========================================================
+   FILE READER
+========================================================= */
+
+function readFileAsDataURL(file) {
+
+    return new Promise((resolve, reject) => {
+
+        const reader = new FileReader();
+
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Photo read nahi ho paayi.'));
+
+        reader.readAsDataURL(file);
+    });
+}
+
+
+/* =========================================================
+   IMAGE COMPRESSOR
+========================================================= */
+
+function compressImage(source) {
+
+    return new Promise((resolve, reject) => {
+
+        const img = new Image();
+
+        img.onload = () => {
+
+            try {
+
+                let maxDimension = 400;
+                let quality = 0.72;
+
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height && width > maxDimension) {
+                    height = Math.round(height * maxDimension / width);
+                    width = maxDimension;
+                } else if (height >= width && height > maxDimension) {
+                    width = Math.round(width * maxDimension / height);
+                    height = maxDimension;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d', {alpha:false});
+
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0,0,width,height);
+                ctx.drawImage(img,0,0,width,height);
+
+                let output = '';
+
+                // Keep Base64 reasonably small.
+                // GitHub Issue bodies have a finite size limit.
+                for (let i = 0; i < 10; i++) {
+
+                    output = canvas.toDataURL('image/jpeg', quality);
+
+                    const bytes = Math.ceil(output.length * 3 / 4);
+
+                    if (bytes <= 38000) {
+                        break;
+                    }
+
+                    quality -= 0.07;
+
+                    if (quality < 0.20) {
+                        quality = 0.20;
+                        break;
+                    }
+                }
+
+                const kb =
+                    Math.round((output.length * 3 / 4) / 1024);
+
+                resolve({
+                    data: output,
+                    kb: kb
+                });
+
+            } catch (error) {
+                reject(new Error('Image compression failed.'));
+            }
+        };
+
+        img.onerror = () =>
+            reject(new Error('Image open nahi ho paayi.'));
+
+        img.src = source;
+    });
+}
+
+
+/* =========================================================
+   PHOTO PREVIEW
+========================================================= */
+
+function updateEditPhotoPreview() {
+
+    const preview = document.getElementById('editPhotoPreview');
+
+    if (isValidImageData(editImageData)) {
+
+        preview.innerHTML =
+            '<img src="' + editImageData + '" alt="Profile Photo">';
+
+    } else {
+
+        preview.innerHTML =
+            '<span>📷 Tap to select / replace</span>';
+    }
+}
+
+
+/* =========================================================
+   REMOVE IMAGE
+========================================================= */
+
+function removeEditPhoto() {
+
+    if (publishing) return;
+
+    editImageData = null;
+
+    updateEditPhotoPreview();
+
+    const status = document.getElementById('photoStatus');
+    status.style.color = '#d32f2f';
+    status.textContent = '🗑️ Image will be removed on Publish Edit.';
+}
+
+
+/* =========================================================
+   COLLECT EDITED DATA
+========================================================= */
+
+function createEditedData() {
+
+    const old = currentData || {};
+
+    return {
+        ...old,
+
+        id: old.id || Date.now(),
+
+        name: document.getElementById('e_name').value.trim(),
+        gender: document.getElementById('e_gender').value,
+        age: parseInt(document.getElementById('e_age').value,10),
+
+        height: document.getElementById('e_height').value.trim(),
+        weight: document.getElementById('e_weight').value.trim(),
+
+        maritalStatus:
+            document.getElementById('e_maritalStatus').value,
+
+        gotra: document.getElementById('e_gotra').value.trim(),
+        fatherName: document.getElementById('e_fatherName').value.trim(),
+        motherName: document.getElementById('e_motherName').value.trim(),
+
+        profession:
+            document.getElementById('e_profession').value.trim(),
+
+        location:
+            document.getElementById('e_location').value.trim(),
+
+        community:
+            document.getElementById('e_community').value.trim(),
+
+        mobile:
+            document.getElementById('e_mobile').value.trim(),
+
+        education:
+            document.getElementById('e_education').value.trim(),
+
+        income:
+            document.getElementById('e_income').value.trim(),
+
+        about:
+            document.getElementById('e_about').value.trim(),
+
+        image: editImageData || null,
+
+        // Keep original creation date when available.
+        createdAt: old.createdAt || new Date().toISOString()
+    };
+}
+
+
+/* =========================================================
+   EDIT PROCESS BOX
+========================================================= */
+
+function showEditProcess(icon,title,text,percent) {
+
+    const box = document.getElementById('editProcessBox');
+
+    box.style.display = 'block';
+
+    document.getElementById('editProcessIcon').textContent = icon;
+    document.getElementById('editProcessTitle').textContent = title;
+    document.getElementById('editProcessText').textContent = text;
+
+    setEditProgress(percent);
+
+    document.getElementById('retryEditBtn').style.display = 'none';
+    document.getElementById('closeEditProcessBtn').style.display = 'none';
+}
+
+function updateEditProcess(icon,title,text,percent) {
+
+    document.getElementById('editProcessIcon').textContent = icon;
+    document.getElementById('editProcessTitle').textContent = title;
+    document.getElementById('editProcessText').textContent = text;
+
+    setEditProgress(percent);
+}
+
+function setEditProgress(percent) {
+
+    document.getElementById('editProcessProgress').style.width =
+        percent + '%';
+
+    document.getElementById('editProcessPercent').textContent =
+        percent + '%';
+}
+
+function showEditError(text) {
+
+    updateEditProcess(
+        '❌',
+        'Publish Failed',
+        text,
+        0
+    );
+
+    document.getElementById('retryEditBtn').style.display = 'inline-block';
+    document.getElementById('closeEditProcessBtn').style.display = 'inline-block';
+}
+
+function showEditSuccess(text) {
+
+    updateEditProcess(
+        '🎉',
+        'Publish Successfully!',
+        text,
+        100
+    );
+
+    document.getElementById('closeEditProcessBtn').style.display = 'inline-block';
+}
+
+function hideEditProcess() {
+
+    document.getElementById('editProcessBox').style.display = 'none';
+}
+
+
+/* =========================================================
+   PUBLISH EDIT
+========================================================= */
+
+async function publishEdit() {
+
+    if (publishing) return;
+
+    if (!currentIssue || !currentData) {
+        return;
+    }
+
+    if (editImageProcessing) {
+
+        showEditProcess(
+            '📷',
+            'Image Processing',
+            'Photo processing complete hone ka wait karein.',
+            20
+        );
+
+        showEditError(
+            'Photo abhi process ho rahi hai. Process complete hone ke baad Try Again karein.'
+        );
+
+        return;
+    }
+
+    const data = createEditedData();
+
+    if (!data.name || !data.gender || !data.profession ||
+        !data.location || !data.community || !Number.isFinite(data.age)) {
+
+        showEditProcess(
+            '⚠️',
+            'Missing Information',
+            'Required fields (*) complete karein.',
+            0
+        );
+
+        showEditError(
+            'Required information missing hai. Form ko check karke Try Again karein.'
+        );
+
+        return;
+    }
+
+    const body = JSON.stringify(data);
+
+    // Prevent a predictable GitHub Issue body overflow.
+    if (body.length > 60000) {
+
+        showEditProcess(
+            '⚠️',
+            'Data Too Large',
+            'Issue body bahut bada ho gaya hai. Image ko aur compress/replace karein.',
+            0
+        );
+
+        showEditError(
+            'Updated data GitHub Issue body limit ke bahut close/above hai. Chhoti image select karein.'
+        );
+
+        return;
+    }
+
+    publishing = true;
+
+    const button = document.getElementById('publishEditBtn');
+    button.disabled = true;
+
+    showEditProcess(
+        '📦',
+        'Preparing Edit',
+        'Updated biodata aur Base64 image prepare ho rahi hai...',
+        20
+    );
+
+    try {
+
+        await wait(250);
+
+        updateEditProcess(
+            '🔍',
+            'Checking Data',
+            'Image aur required fields verify ho rahe hain...',
+            35
+        );
+
+        if (data.image !== null && !isValidImageData(data.image)) {
+            throw new Error('Image data invalid hai.');
+        }
+
+        await wait(250);
+
+        updateEditProcess(
+            '🚀',
+            'Publishing Edit',
+            'GitHub Issue mein updated biodata publish ho raha hai...',
+            55
+        );
+
+        const updated = await ghFetch(
+            repoBase() + '/issues/' + currentIssue.number,
+            {
+                method:'PATCH',
+                body:JSON.stringify({
+                    body: body
+                })
+            }
+        );
+
+        updateEditProcess(
+            '🔍',
+            'Verifying',
+            'GitHub response verify kiya ja raha hai...',
+            80
+        );
+
+        if (!updated || !updated.number) {
+            throw new Error('GitHub update response invalid hai.');
+        }
+
+        await wait(250);
+
+        showEditSuccess(
+            'Issue #' + currentIssue.number +
+            ' successfully update ho gaya.'
+        );
+
+        currentIssue = {
+            ...currentIssue,
+            body: body
+        };
+
+        currentData = data;
+
+        // Refresh local issue copy without losing the editor.
+        const index = issues.findIndex(x => x.number === currentIssue.number);
+
+        if (index !== -1) {
+            issues[index] = {
+                ...issues[index],
+                body: body
+            };
+        }
+
+        document.getElementById('photoStatus').style.color = '#2e7d32';
+        document.getElementById('photoStatus').textContent =
+            isValidImageData(editImageData)
+                ? '✅ Image saved successfully.'
+                : 'ℹ️ Image removed successfully.';
+
+        // Close process after success, but DO NOT clear the edited form.
+        setTimeout(() => {
+            hideEditProcess();
+        }, 1800);
+
+    } catch (error) {
+
+        console.error('PUBLISH EDIT ERROR:',error);
+
+        showEditError(
+            'GitHub update nahi hua. Data form mein safe hai. Error: ' +
+            error.message
+        );
+
+    } finally {
+
+        publishing = false;
+        button.disabled = false;
+    }
+}
+
+
+/* =========================================================
+   PERMANENT DELETE
+   REST API does not expose a delete-issue endpoint.
+   GitHub GraphQL provides deleteIssue.
+========================================================= */
+
+async function deleteCurrentIssue() {
+
+    if (!currentIssue || deleting || publishing) {
+        return;
+    }
+
+    const ok = confirm(
+        'WARNING!\n\nIssue #' + currentIssue.number +
+        ' ko permanently delete karna hai?\n\n' +
+        'Ye normal close nahi hoga. Delete operation irreversible hai.'
+    );
+
+    if (!ok) return;
+
+    deleting = true;
+
+    try {
+
+        const issueNodeId = await getIssueNodeId(currentIssue.number);
+
+        if (!issueNodeId) {
+            throw new Error('Issue GraphQL ID nahi mili.');
+        }
+
+        const mutation = `
+            mutation DeleteIssue($issueId: ID!) {
+                deleteIssue(input: {issueId: $issueId}) {
+                    clientMutationId
+                    repository {
+                        id
+                        name
+                    }
+                }
+            }
+        `;
+
+        const response = await fetch(GH_GRAPHQL, {
+            method:'POST',
+            headers:ghHeaders(),
+            body:JSON.stringify({
+                query:mutation,
+                variables:{
+                    issueId:issueNodeId
+                }
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result?.message || ('HTTP ' + response.status)
+            );
+        }
+
+        if (result.errors?.length) {
+            throw new Error(
+                result.errors.map(e => e.message).join(', ')
+            );
+        }
+
+        if (!result.data?.deleteIssue) {
+            throw new Error('Delete response invalid hai.');
+        }
+
+        alert('✅ Issue permanently deleted.');
+
+        issues = issues.filter(x => x.number !== currentIssue.number);
+
+        closeEditor();
+        renderIssues();
+
+    } catch (error) {
+
+        console.error('DELETE ERROR:',error);
+
+        alert(
+            '❌ Delete failed.\n\n' +
+            error.message +
+            '\n\nCheck token permissions.'
+        );
+
+    } finally {
+
+        deleting = false;
+    }
+}
+
+
+/* =========================================================
+   GET GRAPHQL NODE ID
+========================================================= */
+
+async function getIssueNodeId(issueNumber) {
+
+    const data = await ghFetch(
+        repoBase() + '/issues/' + issueNumber
+    );
+
+    return data?.node_id || null;
+}
+
+
+/* =========================================================
+   UTILITIES
+========================================================= */
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve,ms));
+}
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
+}
+
+
+/* =========================================================
+   KEEP DATA SAFE DURING PUBLISH
+========================================================= */
+
+window.addEventListener('beforeunload',function(e){
+
+    if (publishing || editImageProcessing) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+</script>
+
+</body>
+</html>
