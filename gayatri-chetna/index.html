@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#f28c00"
+  >
+
+  <title>
+    गायत्री चेतना केन्द्र — पंजीकरण
+  </title>
+
+  <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+<header class="site-header">
+
+  <div class="header-logo">
+
+    <!-- अपना logo लगाने के लिए यहाँ logo.png रख सकते हो -->
+    <img
+      src="logo.png"
+      alt="Gayatri Logo"
+      onerror="this.style.display='none'"
+    >
+
+    <div class="logo-fallback">
+      ॐ
+    </div>
+
+  </div>
+
+
+  <div class="header-text">
+
+    <h1>
+      गायत्री चेतना केन्द्र
+    </h1>
+
+    <p>
+      गायत्री परिवार, शान्तिकुञ्ज
+    </p>
+
+  </div>
+
+</header>
+
+
+<main class="container">
+
+
+  <!-- =========================
+       ऊपर का Matter
+  ========================== -->
+
+  <section class="notice-box">
+
+    <div class="notice-icon">
+      ॐ
+    </div>
+
+    <div>
+
+      <h2>
+        पंजीकरण हेतु आवश्यक सूचना
+      </h2>
+
+      <p>
+        यहाँ अपना matter लिखें। यह स्थान आपके
+        निर्देश, परिचय अथवा आवश्यक सूचना के लिए है।
+      </p>
+
+      <p>
+        कृपया सभी विवरण सावधानीपूर्वक एवं सही-सही भरें।
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       FORM
+  ========================== -->
+
+  <form id="registrationForm">
+
+
+    <div class="form-heading">
+
+      <span>॥</span>
+
+      <h2>
+        पंजीकरण प्रपत्र
+      </h2>
+
+      <span>॥</span>
+
+    </div>
+
+
+    <!-- PHOTO -->
+
+    <section class="photo-area">
+
+      <div
+        class="photo-preview"
+        id="photoPreview"
+      >
+
+        <span id="photoText">
+          फोटो
+        </span>
+
+        <img
+          id="previewImage"
+          alt="Preview"
+        >
+
+      </div>
+
+
+      <label class="upload-button">
+
+        📷 फोटो चुनें
+
+        <input
+          type="file"
+          id="imageInput"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+        >
+
+      </label>
+
+      <small>
+        JPG / PNG / WebP — अधिकतम 5 MB
+      </small>
+
+    </section>
+
+
+    <!-- NAME -->
+
+    <div class="field">
+
+      <label for="name">
+        नाम <span>*</span>
+      </label>
+
+      <input
+        id="name"
+        type="text"
+        placeholder="पूरा नाम"
+        maxlength="100"
+        required
+      >
+
+    </div>
+
+
+    <!-- AGE -->
+
+    <div class="field">
+
+      <label for="age">
+        आयु <span>*</span>
+      </label>
+
+      <input
+        id="age"
+        type="number"
+        min="1"
+        max="120"
+        placeholder="आयु"
+        required
+      >
+
+    </div>
+
+
+    <!-- DIKSHA DATE -->
+
+    <div class="field">
+
+      <label for="dikshaDate">
+        दीक्षा की तिथि <span>*</span>
+      </label>
+
+      <input
+        id="dikshaDate"
+        type="date"
+        required
+      >
+
+    </div>
+
+
+    <!-- DIKSHA PLACE -->
+
+    <div class="field">
+
+      <label for="dikshaPlace">
+        दीक्षा का स्थान <span>*</span>
+      </label>
+
+      <input
+        id="dikshaPlace"
+        type="text"
+        maxlength="150"
+        placeholder="दीक्षा का स्थान"
+        required
+      >
+
+    </div>
+
+
+    <!-- LOCATION -->
+
+    <div class="location-box">
+
+      <h3>
+        📍 स्थान
+      </h3>
+
+
+      <div class="field">
+
+        <label>
+          जिला
+        </label>
+
+        <input
+          type="text"
+          value="प्रतापगढ़ (उ.प्र.)"
+          readonly
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="city">
+          शहर / कस्बा / ग्राम <span>*</span>
+        </label>
+
+        <input
+          id="city"
+          type="text"
+          maxlength="100"
+          placeholder="प्रतापगढ़ के अंदर अपना स्थान"
+          required
+        >
+
+      </div>
+
+    </div>
+
+
+    <!-- EDUCATION -->
+
+    <div class="field">
+
+      <label for="education">
+        शिक्षा <span>*</span>
+      </label>
+
+      <input
+        id="education"
+        type="text"
+        maxlength="200"
+        placeholder="जैसे — स्नातक, 12वीं आदि"
+        required
+      >
+
+    </div>
+
+
+    <!-- INCOME -->
+
+    <div class="field">
+
+      <label for="income">
+        आय / Income <span>*</span>
+      </label>
+
+      <input
+        id="income"
+        type="text"
+        maxlength="100"
+        placeholder="मासिक / वार्षिक आय"
+        required
+      >
+
+    </div>
+
+
+    <button
+      id="submitButton"
+      type="submit"
+    >
+
+      पंजीकरण जमा करें
+
+    </button>
+
+
+  </form>
+
+
+  <!-- =========================
+       PROCESS BOX
+  ========================== -->
+
+  <section class="process-box">
+
+    <div class="process-title">
+
+      <span>⚙</span>
+
+      <h2>
+        प्रक्रिया स्थिति
+      </h2>
+
+    </div>
+
+
+    <div
+      id="statusMessage"
+      class="status-message"
+    >
+
+      अभी कोई प्रक्रिया शुरू नहीं हुई।
+
+    </div>
+
+
+    <div class="progress">
+
+      <div
+        id="progressBar"
+        class="progress-bar"
+      ></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       SUCCESS
+  ========================== -->
+
+  <section
+    id="successBox"
+    class="success-box hidden"
+  >
+
+    <div class="success-icon">
+      ✓
+    </div>
+
+    <h2>
+      पंजीकरण सफल!
+    </h2>
+
+    <p>
+      आपका Registration ID:
+    </p>
+
+    <strong id="registrationId">
+    </strong>
+
+    <p class="success-note">
+      आपका विवरण सफलतापूर्वक GitHub private repository
+      में भेज दिया गया है।
+    </p>
+
+  </section>
+
+
+</main>
+
+
+<footer>
+
+  <div>
+    गायत्री चेतना केन्द्र
+  </div>
+
+  <small>
+    गायत्री परिवार, शान्तिकुञ्ज
+  </small>
+
+</footer>
+
+
+<script
+  type="module"
+  src="app.js"
+></script>
+
+</body>
+
+</html>
