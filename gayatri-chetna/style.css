@@ -769,3 +769,36 @@ footer small {
   }
 
 }
+
+/* तुम्हारी बाकी सारी CSS ऊपर... */
+
+
+/* =========================
+   DONATION TEXTAREA
+========================= */
+
+.donation-box textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 15px;
+}
+
+/* =========================
+   TABLET / DESKTOP
+========================= */
+
+@media (min-width: 700px) {
+
+  .donation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+}
