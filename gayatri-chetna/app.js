@@ -1,94 +1,75 @@
-import { getGitHubConfig }
-from "./api/config.js";
-
+import { getGitHubConfig } from "./api/config.js";
 
 const config = getGitHubConfig();
 
-
-const form =
-  document.getElementById(
-    "registrationForm"
-  );
-
-
-const imageInput =
-  document.getElementById(
-    "imageInput"
-  );
-
-
-const previewImage =
-  document.getElementById(
-    "previewImage"
-  );
-
-
-const photoText =
-  document.getElementById(
-    "photoText"
-  );
-
-
-const submitButton =
-  document.getElementById(
-    "submitButton"
-  );
-
-
-const statusMessage =
-  document.getElementById(
-    "statusMessage"
-  );
-
-
-const progressBar =
-  document.getElementById(
-    "progressBar"
-  );
-
-
-const successBox =
-  document.getElementById(
-    "successBox"
-  );
-
-
-const registrationIdElement =
-  document.getElementById(
-    "registrationId"
-  );
-
+const form = document.getElementById("registrationForm");
+const imageInput = document.getElementById("imageInput");
+const previewImage = document.getElementById("previewImage");
+const photoText = document.getElementById("photoText");
+const submitButton = document.getElementById("submitButton");
+const statusMessage = document.getElementById("statusMessage");
+const progressBar = document.getElementById("progressBar");
+const successBox = document.getElementById("successBox");
+const registrationIdElement = document.getElementById("registrationId");
 
 let imageBase64 = null;
 
 
-/* =================================
-   STATUS
-================================= */
+/* =========================================
+   STATUS SYSTEM
+========================================= */
 
-function status(
-  message,
-  progress = 0
-) {
+function status(message, progress = 0, type = "normal") {
 
-  statusMessage.textContent =
-    message;
+  statusMessage.textContent = message;
 
-  progressBar.style.width =
-    progress + "%";
+  progressBar.style.width = `${progress}%`;
+
+  statusMessage.dataset.status = type;
 
 }
 
 
-/* =================================
+/* =========================================
+   ERROR MESSAGE
+========================================= */
+
+function showError(message, progress = 0) {
+
+  status(
+    `❌ ${message}`,
+    progress,
+    "error"
+  );
+
+  successBox.classList.add("hidden");
+
+}
+
+
+/* =========================================
+   SUCCESS MESSAGE
+========================================= */
+
+function showSuccess(message) {
+
+  status(
+    `✓ ${message}`,
+    100,
+    "success"
+  );
+
+}
+
+
+/* =========================================
    REGISTRATION ID
-================================= */
+========================================= */
 
 function createRegistrationId() {
 
   const year =
-    new Date()
-      .getFullYear();
+    new Date().getFullYear();
 
   const time =
     Date.now()
@@ -106,214 +87,180 @@ function createRegistrationId() {
 }
 
 
-/* =================================
+/* =========================================
    IMAGE COMPRESSION
-================================= */
+========================================= */
 
 function compressImage(file) {
 
-  return new Promise(
-    (resolve, reject) => {
+  return new Promise((resolve, reject) => {
 
-      const reader =
-        new FileReader();
+    const reader = new FileReader();
+
+    reader.onload = event => {
+
+      const img = new Image();
+
+      img.onload = () => {
+
+        let width = img.width;
+        let height = img.height;
+
+        const MAX = 900;
+
+        if (
+          width > MAX ||
+          height > MAX
+        ) {
+
+          const ratio =
+            Math.min(
+              MAX / width,
+              MAX / height
+            );
+
+          width =
+            Math.round(width * ratio);
+
+          height =
+            Math.round(height * ratio);
+
+        }
 
 
-      reader.onload =
-        event => {
+        const canvas =
+          document.createElement("canvas");
 
-          const img =
-            new Image();
-
-
-          img.onload =
-            () => {
-
-              let width =
-                img.width;
-
-              let height =
-                img.height;
+        canvas.width = width;
+        canvas.height = height;
 
 
-              const MAX =
-                900;
+        const ctx =
+          canvas.getContext("2d");
+
+        ctx.drawImage(
+          img,
+          0,
+          0,
+          width,
+          height
+        );
+
+
+        let quality = 0.82;
+
+
+        function compress() {
+
+          canvas.toBlob(
+            blob => {
+
+              if (!blob) {
+
+                reject(
+                  new Error(
+                    "फोटो को JPEG में convert नहीं किया जा सका।"
+                  )
+                );
+
+                return;
+
+              }
 
 
               if (
-                width > MAX ||
-                height > MAX
+                blob.size <= 500 * 1024 ||
+                quality <= 0.45
               ) {
 
-                const ratio =
-                  Math.min(
-                    MAX / width,
-                    MAX / height
+                const fileReader =
+                  new FileReader();
+
+
+                fileReader.onload = () => {
+
+                  resolve(
+                    fileReader.result
                   );
 
-                width =
-                  Math.round(
-                    width * ratio
+                };
+
+
+                fileReader.onerror = () => {
+
+                  reject(
+                    new Error(
+                      "Compressed फोटो पढ़ी नहीं जा सकी।"
+                    )
                   );
 
-                height =
-                  Math.round(
-                    height * ratio
-                  );
+                };
+
+
+                fileReader.readAsDataURL(blob);
+
+                return;
 
               }
 
 
-              const canvas =
-                document.createElement(
-                  "canvas"
-                );
-
-
-              canvas.width =
-                width;
-
-              canvas.height =
-                height;
-
-
-              const ctx =
-                canvas.getContext(
-                  "2d"
-                );
-
-
-              ctx.drawImage(
-                img,
-                0,
-                0,
-                width,
-                height
-              );
-
-
-              let quality =
-                0.82;
-
-
-              function compress() {
-
-                canvas.toBlob(
-                  blob => {
-
-                    if (!blob) {
-
-                      reject(
-                        new Error(
-                          "फोटो process नहीं हो सकी।"
-                        )
-                      );
-
-                      return;
-
-                    }
-
-
-                    /*
-                      GitHub Issue body की limit
-                      को देखते हुए image छोटी
-                      रख रहे हैं।
-                    */
-
-                    if (
-                      blob.size <=
-                        500 * 1024 ||
-                      quality <= 0.45
-                    ) {
-
-                      const fr =
-                        new FileReader();
-
-
-                      fr.onload =
-                        () =>
-                          resolve(
-                            fr.result
-                          );
-
-
-                      fr.onerror =
-                        () =>
-                          reject(
-                            new Error(
-                              "फोटो पढ़ने में समस्या।"
-                            )
-                          );
-
-
-                      fr.readAsDataURL(
-                        blob
-                      );
-
-                      return;
-
-                    }
-
-
-                    quality -=
-                      0.07;
-
-
-                    compress();
-
-                  },
-
-                  "image/jpeg",
-
-                  quality
-
-                );
-
-              }
-
+              quality -= 0.07;
 
               compress();
 
-            };
+            },
 
+            "image/jpeg",
 
-          img.onerror =
-            () =>
-              reject(
-                new Error(
-                  "Invalid image."
-                )
-              );
+            quality
 
-
-          img.src =
-            event.target.result;
-
-        };
-
-
-      reader.onerror =
-        () =>
-          reject(
-            new Error(
-              "फोटो पढ़ी नहीं जा सकी।"
-            )
           );
 
+        }
 
-      reader.readAsDataURL(
-        file
+
+        compress();
+
+      };
+
+
+      img.onerror = () => {
+
+        reject(
+          new Error(
+            "यह valid image file नहीं है।"
+          )
+        );
+
+      };
+
+
+      img.src = event.target.result;
+
+    };
+
+
+    reader.onerror = () => {
+
+      reject(
+        new Error(
+          "फोटो पढ़ने में समस्या हुई।"
+        )
       );
 
-    }
-  );
+    };
+
+
+    reader.readAsDataURL(file);
+
+  });
 
 }
 
 
-/* =================================
+/* =========================================
    IMAGE SELECT
-================================= */
+========================================= */
 
 imageInput.addEventListener(
   "change",
@@ -335,12 +282,11 @@ imageInput.addEventListener(
       5 * 1024 * 1024
     ) {
 
-      alert(
-        "फोटो अधिकतम 5 MB की होनी चाहिए।"
+      showError(
+        "फोटो 5 MB से बड़ी है। कृपया छोटी फोटो चुनें।"
       );
 
-      imageInput.value =
-        "";
+      imageInput.value = "";
 
       return;
 
@@ -356,47 +302,40 @@ imageInput.addEventListener(
 
 
       imageBase64 =
-        await compressImage(
-          file
-        );
+        await compressImage(file);
 
 
       previewImage.src =
         imageBase64;
 
-
       previewImage.style.display =
         "block";
-
 
       photoText.style.display =
         "none";
 
 
-      status(
-        "✓ फोटो सफलतापूर्वक तैयार है।",
-        25
+      showSuccess(
+        "फोटो सफलतापूर्वक तैयार हो गई।"
       );
+
+
+      progressBar.style.width = "25%";
 
 
     } catch (error) {
 
-      imageBase64 =
-        null;
-
+      imageBase64 = null;
 
       previewImage.style.display =
         "none";
-
 
       photoText.style.display =
         "block";
 
 
-      status(
-        "❌ " +
-        error.message,
-        0
+      showError(
+        `फोटो Error: ${error.message}`
       );
 
     }
@@ -405,9 +344,9 @@ imageInput.addEventListener(
 );
 
 
-/* =================================
+/* =========================================
    GITHUB API
-================================= */
+========================================= */
 
 async function createGitHubIssue(
   title,
@@ -416,59 +355,116 @@ async function createGitHubIssue(
 
   const url =
     "https://api.github.com/repos/" +
-    encodeURIComponent(
-      config.owner
-    ) +
+    encodeURIComponent(config.owner) +
     "/" +
-    encodeURIComponent(
-      config.repo
-    ) +
+    encodeURIComponent(config.repo) +
     "/issues";
 
 
-  const response =
-    await fetch(
-      url,
-      {
+  let response;
 
-        method: "POST",
 
-        headers: {
+  try {
 
-          "Accept":
-            "application/vnd.github+json",
+    response =
+      await fetch(
+        url,
+        {
+          method: "POST",
 
-          "Authorization":
-            "Bearer " +
-            config.token,
+          headers: {
 
-          "Content-Type":
-            "application/json",
+            "Accept":
+              "application/vnd.github+json",
 
-          "X-GitHub-Api-Version":
-            "2022-11-28"
+            "Authorization":
+              `Bearer ${config.token}`,
 
-        },
+            "Content-Type":
+              "application/json",
 
-        body:
-          JSON.stringify({
-            title: title,
-            body: body
-          })
+            "X-GitHub-Api-Version":
+              "2022-11-28"
 
-      }
+          },
+
+          body:
+            JSON.stringify({
+              title,
+              body
+            })
+
+        }
+      );
+
+  } catch (networkError) {
+
+    throw new Error(
+      `GitHub से connection नहीं हो सका। Network/CORS समस्या हो सकती है। (${networkError.message})`
     );
 
+  }
 
-  const data =
-    await response.json();
+
+  let data = null;
+
+
+  try {
+
+    data =
+      await response.json();
+
+  } catch {
+
+    data = null;
+
+  }
 
 
   if (!response.ok) {
 
+    const githubMessage =
+      data?.message ||
+      "GitHub ने कोई स्पष्ट error message नहीं दिया।";
+
+
+    let extra = "";
+
+
+    if (response.status === 401) {
+
+      extra =
+        " Token गलत, expired या invalid हो सकता है।";
+
+    }
+
+
+    else if (response.status === 403) {
+
+      extra =
+        " Token के पास आवश्यक permission नहीं है या GitHub ने request को रोक दिया है।";
+
+    }
+
+
+    else if (response.status === 404) {
+
+      extra =
+        " Repository/owner गलत हो सकता है या token को repository दिखाई नहीं दे रही है।";
+
+    }
+
+
+    else if (response.status === 422) {
+
+      extra =
+        " GitHub ने request data को स्वीकार नहीं किया।";
+
+    }
+
+
     throw new Error(
-      data.message ||
-      "GitHub API error"
+      `GitHub API ${response.status}: ${githubMessage}.${extra}`
     );
 
   }
@@ -479,9 +475,9 @@ async function createGitHubIssue(
 }
 
 
-/* =================================
+/* =========================================
    SUBMIT
-================================= */
+========================================= */
 
 form.addEventListener(
   "submit",
@@ -495,11 +491,14 @@ form.addEventListener(
     );
 
 
+    /* =========================
+       PHOTO
+    ========================== */
+
     if (!imageBase64) {
 
-      status(
-        "❌ कृपया पहले फोटो चुनें।",
-        0
+      showError(
+        "पहले फोटो चुनें और फोटो के सफलतापूर्वक तैयार होने का संदेश आने दें।"
       );
 
       return;
@@ -507,70 +506,80 @@ form.addEventListener(
     }
 
 
+    /* =========================
+       FORM DATA
+    ========================== */
+
     const name =
       document
-        .getElementById(
-          "name"
-        )
+        .getElementById("name")
+        .value
+        .trim();
+
+
+    const fatherName =
+      document
+        .getElementById("fatherName")
+        .value
+        .trim();
+
+
+    const mobile =
+      document
+        .getElementById("mobile")
         .value
         .trim();
 
 
     const age =
       document
-        .getElementById(
-          "age"
-        )
+        .getElementById("age")
         .value
         .trim();
 
 
     const dikshaDate =
       document
-        .getElementById(
-          "dikshaDate"
-        )
+        .getElementById("dikshaDate")
         .value;
 
 
     const dikshaPlace =
       document
-        .getElementById(
-          "dikshaPlace"
-        )
+        .getElementById("dikshaPlace")
         .value
         .trim();
 
 
     const city =
       document
-        .getElementById(
-          "city"
-        )
+        .getElementById("city")
         .value
         .trim();
 
 
     const education =
       document
-        .getElementById(
-          "education"
-        )
+        .getElementById("education")
         .value
         .trim();
 
 
     const income =
       document
-        .getElementById(
-          "income"
-        )
+        .getElementById("income")
         .value
         .trim();
 
 
+    /* =========================
+       REQUIRED
+    ========================== */
+
     if (
       !name ||
+      !fatherName ||
+      !mobile ||
       !age ||
       !dikshaDate ||
       !dikshaPlace ||
@@ -579,9 +588,8 @@ form.addEventListener(
       !income
     ) {
 
-      status(
-        "❌ सभी आवश्यक विवरण भरें।",
-        0
+      showError(
+        "सभी आवश्यक विवरण भरना जरूरी है।"
       );
 
       return;
@@ -589,35 +597,79 @@ form.addEventListener(
     }
 
 
-    submitButton.disabled =
-      true;
+    /* =========================
+       MOBILE
+    ========================== */
+
+    if (
+      !/^[6-9][0-9]{9}$/.test(mobile)
+    ) {
+
+      showError(
+        "मोबाइल नंबर गलत है। 10 अंकों का भारतीय मोबाइल नंबर डालें।"
+      );
+
+      return;
+
+    }
+
+
+    /* =========================
+       AGE
+    ========================== */
+
+    const numericAge =
+      Number(age);
+
+
+    if (
+      numericAge < 1 ||
+      numericAge > 120
+    ) {
+
+      showError(
+        "आयु 1 से 120 वर्ष के बीच होनी चाहिए।"
+      );
+
+      return;
+
+    }
+
+
+    submitButton.disabled = true;
 
 
     try {
 
       /* =========================
-         ID
+         STEP 1
       ========================== */
+
+      status(
+        "पंजीकरण क्रमांक बनाया जा रहा है…",
+        30
+      );
+
 
       const id =
         createRegistrationId();
 
 
+      /* =========================
+         STEP 2
+      ========================== */
+
       status(
-        "पंजीकरण ID बनाई जा रही है…",
-        30
+        "पंजीकरण विवरण तैयार किया जा रहा है…",
+        40
       );
 
 
-      /* =========================
-         ISSUE BODY
-      ========================== */
-
-      const issueBody = `# गायत्री चेतना केन्द्र
+      const issueBody = `# गायत्री चेतना केन्द्र चिलबिला, प्रतापगढ़
 
 ## पंजीकरण विवरण
 
-**Registration ID:** \`${id}\`
+**पंजीकरण क्रमांक:** \`${id}\`
 
 ---
 
@@ -625,15 +677,27 @@ form.addEventListener(
 
 **नाम:** ${name}
 
+**पिता का नाम:** ${fatherName}
+
+**मोबाइल नंबर:** ${mobile}
+
 **आयु:** ${age}
 
 **दीक्षा की तिथि:** ${dikshaDate}
 
 **दीक्षा का स्थान:** ${dikshaPlace}
 
+---
+
+### स्थान
+
 **जिला:** प्रतापगढ़ (उ.प्र.)
 
 **शहर / कस्बा / ग्राम:** ${city}
+
+---
+
+### शिक्षा एवं आय
 
 **शिक्षा:** ${education}
 
@@ -642,8 +706,6 @@ form.addEventListener(
 ---
 
 ## फोटो
-
-नीचे Base64 encoded image data सुरक्षित रूप से रखा गया है।
 
 **Format:** JPEG
 
@@ -655,21 +717,20 @@ ${imageBase64}
 
 ---
 
-**Registration ID:** \`${id}\`
+**पंजीकरण क्रमांक:** \`${id}\`
 
 `;
 
 
+      /* =========================
+         STEP 3
+      ========================== */
 
       status(
         "GitHub से connection किया जा रहा है…",
-        50
+        55
       );
 
-
-      /* =========================
-         CREATE ISSUE
-      ========================== */
 
       const issue =
         await createGitHubIssue(
@@ -678,54 +739,56 @@ ${imageBase64}
         );
 
 
-      status(
-        "✓ GitHub Issue सफलतापूर्वक बन गई।",
-        100
+      /* =========================
+         SUCCESS
+      ========================== */
+
+      showSuccess(
+        "पंजीकरण सफलतापूर्वक जमा हो गया।"
       );
 
 
-      registrationIdElement
-        .textContent =
+      registrationIdElement.textContent =
         id;
 
 
-      successBox
-        .classList
-        .remove("hidden");
+      successBox.classList.remove(
+        "hidden"
+      );
 
+
+      /* =========================
+         RESET
+      ========================== */
 
       form.reset();
 
-
-      imageBase64 =
-        null;
-
+      imageBase64 = null;
 
       previewImage.style.display =
         "none";
-
 
       photoText.style.display =
         "block";
 
 
       console.log(
-        "GitHub Issue:",
-        issue.html_url
+        "GitHub Issue Created:",
+        issue?.html_url || issue
       );
 
 
     } catch (error) {
 
       console.error(
+        "REGISTRATION ERROR:",
         error
       );
 
 
-      status(
-        "❌ Error: " +
-        error.message,
-        0
+      showError(
+        error.message ||
+        "अज्ञात error हुआ।"
       );
 
 
