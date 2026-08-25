@@ -26,11 +26,15 @@
 
 <body>
 
+
+<!-- =========================
+     HEADER
+========================= -->
+
 <header class="site-header">
 
   <div class="header-logo">
 
-    <!-- अपना logo लगाने के लिए logo.png रखें -->
     <img
       src="logo.png"
       alt="गायत्री चेतना केन्द्र लोगो"
@@ -59,405 +63,486 @@
 </header>
 
 
+
 <main class="container">
 
 
-  <!-- =========================
-       ऊपर का Matter
-  ========================== -->
+<!-- =========================
+     ऊपर का MATTER
+========================= -->
 
-  <section class="notice-box">
+<section class="notice-box">
 
-    <div class="notice-icon">
-      ॐ
-    </div>
+  <div class="notice-icon">
+    ॐ
+  </div>
 
-    <div>
-
-      <h2>
-        पंजीकरण हेतु आवश्यक सूचना
-      </h2>
-
-      <p>
-        यहाँ अपना matter लिखें। यह स्थान आपके
-        निर्देश, परिचय अथवा आवश्यक सूचना के लिए है।
-      </p>
-
-      <p>
-        कृपया सभी विवरण सावधानीपूर्वक एवं सही-सही भरें।
-      </p>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================
-       FORM
-  ========================== -->
-
-  <form id="registrationForm">
-
-
-    <div class="form-heading">
-
-      <span>॥</span>
-
-      <h2>
-        पंजीकरण प्रपत्र
-      </h2>
-
-      <span>॥</span>
-
-    </div>
-
-
-    <!-- =========================
-         PHOTO
-    ========================== -->
-
-    <section class="photo-area">
-
-      <div
-        class="photo-preview"
-        id="photoPreview"
-      >
-
-        <span id="photoText">
-          फोटो
-        </span>
-
-        <img
-          id="previewImage"
-          alt="फोटो पूर्वावलोकन"
-        >
-
-      </div>
-
-
-      <label class="upload-button">
-
-        📷 फोटो चुनें
-
-        <input
-          type="file"
-          id="imageInput"
-          accept="image/jpeg,image/png,image/webp"
-          hidden
-        >
-
-      </label>
-
-      <small>
-        JPG / PNG / WebP — अधिकतम 5 MB
-      </small>
-
-    </section>
-
-
-    <!-- =========================
-         NAME
-    ========================== -->
-
-    <div class="field">
-
-      <label for="name">
-        नाम <span>*</span>
-      </label>
-
-      <input
-        id="name"
-        type="text"
-        placeholder="पूरा नाम"
-        maxlength="100"
-        required
-      >
-
-    </div>
-
-
-    <!-- =========================
-         FATHER NAME
-    ========================== -->
-
-    <div class="field">
-
-      <label for="fatherName">
-        पिता का नाम <span>*</span>
-      </label>
-
-      <input
-        id="fatherName"
-        type="text"
-        placeholder="पिता का पूरा नाम"
-        maxlength="100"
-        required
-      >
-
-    </div>
-
-
-    <!-- =========================
-         MOBILE
-    ========================== -->
-
-    <div class="field">
-
-      <label for="mobile">
-        मोबाइल नंबर <span>*</span>
-      </label>
-
-      <input
-        id="mobile"
-        type="tel"
-        inputmode="numeric"
-        maxlength="10"
-        pattern="[6-9][0-9]{9}"
-        placeholder="10 अंकों का मोबाइल नंबर"
-        required
-      >
-
-    </div>
-
-
-    <!-- =========================
-         AGE
-    ========================== -->
-
-    <div class="field">
-
-      <label for="age">
-        आयु <span>*</span>
-      </label>
-
-      <input
-        id="age"
-        type="number"
-        min="1"
-        max="120"
-        placeholder="आयु"
-        required
-      >
-
-    </div>
-
-
-    <!-- =========================
-         DIKSHA DATE
-    ========================== -->
-
-    <div class="field">
-
-      <label for="dikshaDate">
-        दीक्षा की तिथि <span>*</span>
-      </label>
-
-      <input
-        id="dikshaDate"
-        type="date"
-        required
-      >
-
-    </div>
-
-
-    <!-- =========================
-         DIKSHA PLACE
-    ========================== -->
-
-    <div class="field">
-
-      <label for="dikshaPlace">
-        दीक्षा का स्थान <span>*</span>
-      </label>
-
-      <input
-        id="dikshaPlace"
-        type="text"
-        maxlength="150"
-        placeholder="दीक्षा का स्थान"
-        required
-      >
-
-    </div>
-
-
-    <!-- =========================
-         LOCATION
-    ========================== -->
-
-    <div class="location-box">
-
-      <h3>
-        📍 स्थान
-      </h3>
-
-
-      <div class="field">
-
-        <label>
-          जिला
-        </label>
-
-        <input
-          type="text"
-          value="प्रतापगढ़ (उ.प्र.)"
-          readonly
-        >
-
-      </div>
-
-
-      <div class="field">
-
-        <label for="city">
-          शहर / कस्बा / ग्राम <span>*</span>
-        </label>
-
-        <input
-          id="city"
-          type="text"
-          maxlength="100"
-          placeholder="प्रतापगढ़ के अंदर अपना स्थान"
-          required
-        >
-
-      </div>
-
-    </div>
-
-
-    <!-- =========================
-         EDUCATION
-    ========================== -->
-
-    <div class="field">
-
-      <label for="education">
-        शिक्षा <span>*</span>
-      </label>
-
-      <input
-        id="education"
-        type="text"
-        maxlength="200"
-        placeholder="जैसे — स्नातक, 12वीं आदि"
-        required
-      >
-
-    </div>
-
-
-    <!-- =========================
-         INCOME
-    ========================== -->
-
-    <div class="field">
-
-      <label for="income">
-        आय / Income <span>*</span>
-      </label>
-
-      <input
-        id="income"
-        type="text"
-        maxlength="100"
-        placeholder="मासिक / वार्षिक आय"
-        required
-      >
-
-    </div>
-
-
-    <!-- =========================
-         SUBMIT
-    ========================== -->
-
-    <button
-      id="submitButton"
-      type="submit"
-    >
-
-      पंजीकरण जमा करें
-
-    </button>
-
-
-  </form>
-
-
-  <!-- =========================
-       PROCESS BOX
-  ========================== -->
-
-  <section class="process-box">
-
-    <div class="process-title">
-
-      <span>⚙</span>
-
-      <h2>
-        प्रक्रिया स्थिति
-      </h2>
-
-    </div>
-
-
-    <div
-      id="statusMessage"
-      class="status-message"
-    >
-
-      अभी कोई प्रक्रिया शुरू नहीं हुई।
-
-    </div>
-
-
-    <div class="progress">
-
-      <div
-        id="progressBar"
-        class="progress-bar"
-      ></div>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================
-       SUCCESS
-  ========================== -->
-
-  <section
-    id="successBox"
-    class="success-box hidden"
-  >
-
-    <div class="success-icon">
-      ✓
-    </div>
+  <div>
 
     <h2>
-      पंजीकरण सफल!
+      पंजीकरण हेतु आवश्यक सूचना
     </h2>
 
     <p>
-      आपका पंजीकरण क्रमांक:
+     आप सभी प्रतापगढ़ निवासियों को सूचित किया जाता है कि आपमें से जिन्होंने भी गायत्री परिवार शांतिकुंज से ली है अथवा गायत्री परिवार का कार्य करते हैं वे सभी इस फॉर्म को भर दे|
+     अधिक जानकारी के लिए संपर्क करें:- 9839483742
+    </p>
+<br>
+    <p>
+      कृपया सभी विवरण सावधानीपूर्वक एवं सही-सही भरें।
     </p>
 
-    <strong id="registrationId">
-    </strong>
+  </div>
 
-    <p class="success-note">
-      आपका विवरण सफलतापूर्वक सुरक्षित किया गया है।
-    </p>
+</section>
+
+
+
+<!-- =========================
+     REGISTRATION FORM
+========================= -->
+
+<form id="registrationForm">
+
+
+  <div class="form-heading">
+
+    <span>॥</span>
+
+    <h2>
+      पंजीकरण प्रपत्र
+    </h2>
+
+    <span>॥</span>
+
+  </div>
+
+
+
+  <!-- =========================
+       PHOTO
+  ========================== -->
+
+  <section class="photo-area">
+
+    <div
+      class="photo-preview"
+      id="photoPreview"
+    >
+
+      <span id="photoText">
+        फोटो
+      </span>
+
+      <img
+        id="previewImage"
+        alt="फोटो पूर्वावलोकन"
+      >
+
+    </div>
+
+
+    <label class="upload-button">
+
+      📷 फोटो चुनें
+
+      <input
+        type="file"
+        id="imageInput"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+      >
+
+    </label>
+
+
+    <small>
+      JPG / PNG / WebP — अधिकतम 5 MB
+    </small>
 
   </section>
+
+
+
+  <!-- =========================
+       NAME
+  ========================== -->
+
+  <div class="field">
+
+    <label for="name">
+      नाम <span>*</span>
+    </label>
+
+    <input
+      id="name"
+      type="text"
+      maxlength="100"
+      placeholder="पूरा नाम"
+      required
+    >
+
+  </div>
+
+
+
+  <!-- =========================
+       FATHER NAME
+  ========================== -->
+
+  <div class="field">
+
+    <label for="fatherName">
+      पिता का नाम <span>*</span>
+    </label>
+
+    <input
+      id="fatherName"
+      type="text"
+      maxlength="100"
+      placeholder="पिता का पूरा नाम"
+      required
+    >
+
+  </div>
+
+
+
+  <!-- =========================
+       MOBILE
+  ========================== -->
+
+  <div class="field">
+
+    <label for="mobile">
+      मोबाइल नंबर <span>*</span>
+    </label>
+
+    <input
+      id="mobile"
+      type="tel"
+      inputmode="numeric"
+      maxlength="10"
+      placeholder="10 अंकों का मोबाइल नंबर"
+      required
+    >
+
+  </div>
+
+
+
+  <!-- =========================
+       AGE
+  ========================== -->
+
+  <div class="field">
+
+    <label for="age">
+      आयु <span>*</span>
+    </label>
+
+    <input
+      id="age"
+      type="number"
+      min="1"
+      max="120"
+      placeholder="आयु"
+      required
+    >
+
+  </div>
+
+
+
+  <!-- =========================
+       DIKSHA DATE
+  ========================== -->
+
+  <div class="field">
+
+    <label for="dikshaDate">
+      दीक्षा की तिथि <span>*</span>
+    </label>
+
+    <input
+      id="dikshaDate"
+      type="date"
+      required
+    >
+
+  </div>
+
+
+
+  <!-- =========================
+       DIKSHA PLACE
+  ========================== -->
+
+  <div class="field">
+
+    <label for="dikshaPlace">
+      दीक्षा का स्थान <span>*</span>
+    </label>
+
+    <input
+      id="dikshaPlace"
+      type="text"
+      maxlength="150"
+      placeholder="दीक्षा का स्थान"
+      required
+    >
+
+  </div>
+
+
+
+  <!-- =========================
+       LOCATION
+  ========================== -->
+
+  <div class="location-box">
+
+    <h3>
+      📍 स्थान
+    </h3>
+
+
+    <div class="field">
+
+      <label>
+        जिला
+      </label>
+
+      <input
+        type="text"
+        value="प्रतापगढ़ (उ.प्र.)"
+        readonly
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label for="city">
+        शहर / कस्बा / ग्राम <span>*</span>
+      </label>
+
+      <input
+        id="city"
+        type="text"
+        maxlength="100"
+        placeholder="प्रतापगढ़ के अंदर अपना स्थान"
+        required
+      >
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =========================
+       EDUCATION
+  ========================== -->
+
+  <div class="field">
+
+    <label for="education">
+      शिक्षा <span>*</span>
+    </label>
+
+    <input
+      id="education"
+      type="text"
+      maxlength="200"
+      placeholder="जैसे — स्नातक, 12वीं आदि"
+      required
+    >
+
+  </div>
+
+
+
+  <!-- =========================
+       INCOME
+  ========================== -->
+
+  <div class="field">
+
+    <label for="income">
+      आय / Income <span>*</span>
+    </label>
+
+    <input
+      id="income"
+      type="text"
+      maxlength="100"
+      placeholder="मासिक / वार्षिक आय"
+      required
+    >
+
+  </div>
+
+
+
+  <!-- =========================
+       DONATION
+  ========================== -->
+
+  <section class="donation-section">
+
+    <h2 class="donation-heading">
+      आपके द्वारा किया गया दान
+    </h2>
+
+
+    <div class="donation-grid">
+
+
+      <!-- ANSHDAAN -->
+
+      <div class="donation-box">
+
+        <label for="anshdaan">
+          अंशदान
+        </label>
+
+        <textarea
+          id="anshdaan"
+          maxlength="500"
+          rows="5"
+          placeholder="आपके द्वारा किए गए अंशदान के बारे में लिखें..."
+        ></textarea>
+
+      </div>
+
+
+
+      <!-- SAMAYDAAN -->
+
+      <div class="donation-box">
+
+        <label for="samaydaan">
+          समयदान
+        </label>
+
+        <textarea
+          id="samaydaan"
+          maxlength="500"
+          rows="5"
+          placeholder="आपके द्वारा किए गए समयदान के बारे में लिखें..."
+        ></textarea>
+
+      </div>
+
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =========================
+       SUBMIT
+  ========================== -->
+
+  <button
+    id="submitButton"
+    type="submit"
+  >
+
+    पंजीकरण जमा करें
+
+  </button>
+
+
+</form>
+
+
+
+<!-- =========================
+     PROCESS BOX
+========================= -->
+
+<section class="process-box">
+
+  <div class="process-title">
+
+    <span>⚙</span>
+
+    <h2>
+      प्रक्रिया स्थिति
+    </h2>
+
+  </div>
+
+
+  <div
+    id="statusMessage"
+    class="status-message"
+  >
+
+    अभी कोई प्रक्रिया शुरू नहीं हुई।
+
+  </div>
+
+
+  <div class="progress">
+
+    <div
+      id="progressBar"
+      class="progress-bar"
+    ></div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =========================
+     SUCCESS BOX
+========================= -->
+
+<section
+  id="successBox"
+  class="success-box hidden"
+>
+
+  <div class="success-icon">
+    ✓
+  </div>
+
+
+  <h2>
+    पंजीकरण सफल!
+  </h2>
+
+
+  <p>
+    आपका पंजीकरण क्रमांक:
+  </p>
+
+
+  <strong id="registrationId">
+  </strong>
+
+
+  <p class="success-note">
+    आपका विवरण सफलतापूर्वक सुरक्षित किया गया है।
+  </p>
+
+</section>
 
 
 </main>
 
+
+
+<!-- =========================
+     FOOTER
+========================= -->
 
 <footer>
 
@@ -472,10 +557,12 @@
 </footer>
 
 
+
 <script
   type="module"
   src="app.js"
 ></script>
+
 
 </body>
 
