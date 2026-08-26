@@ -16,6 +16,9 @@ const config =
 const COUNTER_FILE =
   "gayatri-chetna/counter.json";
 
+const IMAGE_FOLDER =
+  "gayatri-chetna/images";
+
 const STARTING_NUMBER =
   1000;
 
@@ -143,7 +146,7 @@ function githubHeaders() {
 
 
 /* =========================================
-   GITHUB BASE URL
+   GITHUB CONTENTS URL
 ========================================= */
 
 function githubContentsUrl(
@@ -185,6 +188,191 @@ function status(
 
   statusMessage.dataset.status =
     type;
+
+}
+
+
+/* =========================================
+   CUSTOMER-FRIENDLY ERROR MESSAGE
+========================================= */
+
+function getFriendlyErrorMessage(
+  error,
+  defaultMessage =
+    "वेबसाइट पर प्रक्रिया पूरी नहीं हो पाई। कृपया कुछ देर बाद दोबारा प्रयास करें।"
+) {
+
+  const message =
+    String(
+      error?.message ||
+      ""
+    ).toLowerCase();
+
+
+  const statusCode =
+    Number(
+      error?.status ||
+      0
+    );
+
+
+  /* -------------------------
+     NETWORK / INTERNET
+  ------------------------- */
+
+  if (
+    message.includes("failed to fetch") ||
+    message.includes("network") ||
+    message.includes("internet") ||
+    message.includes("connection") ||
+    message.includes("cors")
+  ) {
+
+    return (
+      "इंटरनेट कनेक्शन में समस्या है। " +
+      "कृपया अपना इंटरनेट जाँचें और दोबारा प्रयास करें।"
+    );
+
+  }
+
+
+  /* -------------------------
+     401
+  ------------------------- */
+
+  if (
+    statusCode === 401 ||
+    message.includes("401")
+  ) {
+
+    return (
+      "वेबसाइट की सुरक्षा व्यवस्था में समस्या है। " +
+      "कृपया थोड़ी देर बाद दोबारा प्रयास करें।"
+    );
+
+  }
+
+
+  /* -------------------------
+     402
+  ------------------------- */
+
+  if (
+    statusCode === 402 ||
+    message.includes("402")
+  ) {
+
+    return (
+      "वेबसाइट की ऑनलाइन सेवा अभी अनुरोध स्वीकार नहीं कर रही है। " +
+      "कृपया कुछ देर बाद दोबारा प्रयास करें।"
+    );
+
+  }
+
+
+  /* -------------------------
+     403
+  ------------------------- */
+
+  if (
+    statusCode === 403 ||
+    message.includes("403")
+  ) {
+
+    return (
+      "वेबसाइट पर इस समय अनुरोध पूरा नहीं हो पाया। " +
+      "कृपया कुछ देर बाद दोबारा प्रयास करें।"
+    );
+
+  }
+
+
+  /* -------------------------
+     404
+  ------------------------- */
+
+  if (
+    statusCode === 404 ||
+    message.includes("404")
+  ) {
+
+    return (
+      "वेबसाइट पर आवश्यक सेवा उपलब्ध नहीं है। " +
+      "कृपया कुछ देर बाद दोबारा प्रयास करें।"
+    );
+
+  }
+
+
+  /* -------------------------
+     409
+  ------------------------- */
+
+  if (
+    statusCode === 409 ||
+    message.includes("409")
+  ) {
+
+    return (
+      "एक साथ कई अनुरोध प्राप्त हुए हैं। " +
+      "कृपया कुछ सेकंड बाद दोबारा प्रयास करें।"
+    );
+
+  }
+
+
+  /* -------------------------
+     422
+  ------------------------- */
+
+  if (
+    statusCode === 422 ||
+    message.includes("422")
+  ) {
+
+    return (
+      "दिया गया विवरण स्वीकार नहीं हो पाया। " +
+      "कृपया जानकारी जाँचकर दोबारा प्रयास करें।"
+    );
+
+  }
+
+
+  /* -------------------------
+     429
+  ------------------------- */
+
+  if (
+    statusCode === 429 ||
+    message.includes("429") ||
+    message.includes("rate limit")
+  ) {
+
+    return (
+      "वेबसाइट पर इस समय बहुत अधिक अनुरोध आ रहे हैं। " +
+      "कृपया 1–2 मिनट बाद दोबारा प्रयास करें।"
+    );
+
+  }
+
+
+  /* -------------------------
+     500+
+  ------------------------- */
+
+  if (
+    statusCode >= 500
+  ) {
+
+    return (
+      "वेबसाइट की ऑनलाइन सेवा में अस्थायी समस्या है। " +
+      "कृपया कुछ देर बाद दोबारा प्रयास करें।"
+    );
+
+  }
+
+
+  return defaultMessage;
 
 }
 
@@ -303,16 +491,41 @@ if (dikshaTaken) {
 
 async function getCounterFile() {
 
-  const response =
-    await fetch(
-      githubContentsUrl(
-        COUNTER_FILE
-      ),
-      {
-        method: "GET",
-        headers: githubHeaders()
-      }
-    );
+  let response;
+
+
+  try {
+
+    response =
+      await fetch(
+        githubContentsUrl(
+          COUNTER_FILE
+        ),
+        {
+          method: "GET",
+          headers: githubHeaders()
+        }
+      );
+
+  } catch (error) {
+
+    const friendly =
+      getFriendlyErrorMessage(
+        error,
+        "पंजीकरण क्रमांक प्राप्त नहीं हो पाया। कृपया इंटरनेट कनेक्शन जाँचकर दोबारा प्रयास करें।"
+      );
+
+    const friendlyError =
+      new Error(
+        friendly
+      );
+
+    friendlyError.status =
+      0;
+
+    throw friendlyError;
+
+  }
 
 
   /* -------------------------
@@ -324,10 +537,14 @@ async function getCounterFile() {
   ) {
 
     return {
+
       exists: false,
+
       sha: null,
+
       lastNumber:
         STARTING_NUMBER
+
     };
 
   }
@@ -350,12 +567,17 @@ async function getCounterFile() {
 
     } catch {}
 
-    throw new Error(
-      `Counter file पढ़ा नहीं जा सका। GitHub API ${response.status}: ${
+
+    const error =
+      new Error(
         data?.message ||
-        "Unknown error"
-      }`
-    );
+        "Counter file पढ़ा नहीं जा सका।"
+      );
+
+    error.status =
+      response.status;
+
+    throw error;
 
   }
 
@@ -378,7 +600,7 @@ async function getCounterFile() {
   } catch {
 
     throw new Error(
-      "Counter file का Base64 data पढ़ा नहीं जा सका।"
+      "पंजीकरण क्रमांक की जानकारी पढ़ी नहीं जा सकी।"
     );
 
   }
@@ -397,7 +619,7 @@ async function getCounterFile() {
   } catch {
 
     throw new Error(
-      "counter.json का format गलत है।"
+      "पंजीकरण क्रमांक की जानकारी सही format में नहीं है।"
     );
 
   }
@@ -417,7 +639,7 @@ async function getCounterFile() {
   ) {
 
     throw new Error(
-      "counter.json में lastNumber गलत है।"
+      "पंजीकरण क्रमांक की जानकारी गलत है।"
     );
 
   }
@@ -441,25 +663,6 @@ async function getCounterFile() {
 /* =========================================
    RESERVE NEXT REGISTRATION NUMBER
 ========================================= */
-
-/*
-   IMPORTANT:
-
-   यह function counter को atomically
-   आगे बढ़ाने की कोशिश करता है।
-
-   अगर दो लोग एक साथ submit करें:
-
-   Person A -> 1001
-   Person B -> 1002
-
-   GitHub SHA conflict के कारण
-   दूसरा request पुराने counter को
-   overwrite नहीं कर पाएगा।
-
-   वह दोबारा counter पढ़ेगा और
-   अगला number लेगा।
-*/
 
 async function reserveNextNumber() {
 
@@ -514,11 +717,6 @@ async function reserveNextNumber() {
     };
 
 
-    /*
-       Existing file update:
-       SHA देना जरूरी है।
-    */
-
     if (
       counter.exists
     ) {
@@ -555,13 +753,20 @@ async function reserveNextNumber() {
           }
         );
 
-    } catch (
-      networkError
-    ) {
+    } catch (networkError) {
 
-      throw new Error(
-        `Counter update के समय GitHub connection failed: ${networkError.message}`
-      );
+      const error =
+        new Error(
+          "पंजीकरण क्रमांक सुरक्षित नहीं हो पाया।"
+        );
+
+      error.status =
+        0;
+
+      error.original =
+        networkError;
+
+      throw error;
 
     }
 
@@ -587,19 +792,12 @@ async function reserveNextNumber() {
       response.status === 409
     ) {
 
-      /*
-         इसका मतलब किसी दूसरे user ने
-         इसी समय counter update कर दिया।
-
-         इसलिए पुराने counter को छोड़कर
-         फिर से latest counter पढ़ेंगे।
-      */
-
       await new Promise(
         resolve =>
           setTimeout(
             resolve,
-            150 + Math.random() * 500
+            150 +
+            Math.random() * 500
           )
       );
 
@@ -607,10 +805,6 @@ async function reserveNextNumber() {
 
     }
 
-
-    /* -------------------------
-       OTHER ERROR
-    ------------------------- */
 
     let data = null;
 
@@ -623,18 +817,24 @@ async function reserveNextNumber() {
     } catch {}
 
 
-    throw new Error(
-      `Counter update failed. GitHub API ${response.status}: ${
+    const error =
+      new Error(
         data?.message ||
-        "Unknown error"
-      }`
-    );
+        "पंजीकरण क्रमांक सुरक्षित नहीं हो पाया।"
+      );
+
+
+    error.status =
+      response.status;
+
+
+    throw error;
 
   }
 
 
   throw new Error(
-    "एक ही समय में बहुत सारे registration attempts हुए। कृपया कुछ सेकंड बाद दोबारा प्रयास करें।"
+    "एक साथ बहुत सारे पंजीकरण प्रयास हो रहे हैं। कृपया कुछ सेकंड बाद दोबारा प्रयास करें।"
   );
 
 }
@@ -747,7 +947,7 @@ function compressImage(
 
                 reject(
                   new Error(
-                    "Browser canvas support उपलब्ध नहीं है।"
+                    "फोटो तैयार नहीं हो सकी।"
                   )
                 );
 
@@ -778,7 +978,7 @@ function compressImage(
 
                       reject(
                         new Error(
-                          "फोटो को JPEG में convert नहीं किया जा सका।"
+                          "फोटो तैयार नहीं हो सकी।"
                         )
                       );
 
@@ -812,7 +1012,7 @@ function compressImage(
 
                           reject(
                             new Error(
-                              "Compressed फोटो पढ़ी नहीं जा सकी।"
+                              "तैयार की गई फोटो पढ़ी नहीं जा सकी।"
                             )
                           );
 
@@ -856,7 +1056,7 @@ function compressImage(
 
               reject(
                 new Error(
-                  "यह valid image file नहीं है।"
+                  "यह सही image file नहीं है। कृपया दूसरी फोटो चुनें।"
                 )
               );
 
@@ -909,6 +1109,49 @@ imageInput.addEventListener(
 
     }
 
+
+    /* -------------------------
+       FILE TYPE CHECK
+    ------------------------- */
+
+    const allowedTypes = [
+
+      "image/jpeg",
+
+      "image/png",
+
+      "image/webp"
+
+    ];
+
+
+    if (
+      !allowedTypes.includes(
+        file.type
+      )
+    ) {
+
+      imageBase64 =
+        null;
+
+
+      showError(
+        "कृपया JPG, PNG या WebP फोटो चुनें।"
+      );
+
+
+      imageInput.value =
+        "";
+
+
+      return;
+
+    }
+
+
+    /* -------------------------
+       FILE SIZE CHECK
+    ------------------------- */
 
     if (
       file.size >
@@ -969,6 +1212,12 @@ imageInput.addEventListener(
 
     } catch (error) {
 
+      console.error(
+        "IMAGE PREPARATION ERROR:",
+        error
+      );
+
+
       imageBase64 =
         null;
 
@@ -982,13 +1231,226 @@ imageInput.addEventListener(
 
 
       showError(
-        `फोटो Error: ${error.message}`
+        error.message ||
+        "फोटो तैयार नहीं हो सकी। कृपया दूसरी फोटो चुनें।"
       );
 
     }
 
   }
 );
+
+
+/* =========================================
+   UPLOAD IMAGE TO REPOSITORY
+========================================= */
+
+async function uploadImageToRepository(
+  imageDataUrl,
+  registrationId
+) {
+
+  if (
+    !imageDataUrl
+  ) {
+
+    throw new Error(
+      "फोटो उपलब्ध नहीं है।"
+    );
+
+  }
+
+
+  /* -------------------------
+     EXTRACT BASE64
+     
+     Base64 is used only for
+     GitHub image upload.
+     
+     It will NOT be stored
+     inside the Issue.
+  ------------------------- */
+
+  const parts =
+    imageDataUrl.split(",");
+
+
+  if (
+    parts.length < 2
+  ) {
+
+    throw new Error(
+      "फोटो का data सही format में नहीं है।"
+    );
+
+  }
+
+
+  const base64Content =
+    parts[1];
+
+
+  if (
+    !base64Content
+  ) {
+
+    throw new Error(
+      "फोटो का data उपलब्ध नहीं है।"
+    );
+
+  }
+
+
+  /* -------------------------
+     IMAGE FILE PATH
+     
+     gayatri-chetna/
+       images/
+         GCK-....jpg
+  ------------------------- */
+
+  const imagePath =
+    `${IMAGE_FOLDER}/${registrationId}.jpg`;
+
+
+  let response;
+
+
+  try {
+
+    response =
+      await fetch(
+        githubContentsUrl(
+          imagePath
+        ),
+        {
+
+          method:
+            "PUT",
+
+          headers:
+            githubHeaders(),
+
+          body:
+            JSON.stringify({
+
+              message:
+                `Add registration photo ${registrationId}`,
+
+              content:
+                base64Content,
+
+              branch:
+                config.branch ||
+                undefined
+
+            })
+
+        }
+      );
+
+  } catch (networkError) {
+
+    const error =
+      new Error(
+        "वेबसाइट पर फोटो अपलोड नहीं हो पाई। कृपया अपना इंटरनेट कनेक्शन जाँचकर दोबारा प्रयास करें।"
+      );
+
+
+    error.status =
+      0;
+
+
+    error.original =
+      networkError;
+
+
+    throw error;
+
+  }
+
+
+  let data =
+    null;
+
+
+  try {
+
+    data =
+      await response.json();
+
+  } catch {}
+
+
+  /* -------------------------
+     UPLOAD ERROR
+  ------------------------- */
+
+  if (
+    !response.ok
+  ) {
+
+    const error =
+      new Error(
+        "वेबसाइट पर फोटो अपलोड नहीं हो पाई। कृपया कुछ देर बाद दोबारा प्रयास करें।"
+      );
+
+
+    error.status =
+      response.status;
+
+
+    error.originalMessage =
+      data?.message ||
+      "";
+
+
+    throw error;
+
+  }
+
+
+  /* -------------------------
+     IMAGE URL
+  ------------------------- */
+
+  const branch =
+    config.branch ||
+    "main";
+
+
+  const encodedPath =
+    imagePath
+      .split("/")
+      .map(
+        encodeURIComponent
+      )
+      .join("/");
+
+
+  const imageUrl =
+    `https://raw.githubusercontent.com/` +
+    `${encodeURIComponent(config.owner)}/` +
+    `${encodeURIComponent(config.repo)}/` +
+    `${encodeURIComponent(branch)}/` +
+    encodedPath;
+
+
+  return {
+
+    path:
+      imagePath,
+
+    url:
+      imageUrl,
+
+    sha:
+      data?.content?.sha ||
+      null
+
+  };
+
+}
 
 
 /* =========================================
@@ -1042,13 +1504,23 @@ async function createGitHubIssue(
         }
       );
 
-  } catch (
-    networkError
-  ) {
+  } catch (networkError) {
 
-    throw new Error(
-      `GitHub से connection नहीं हो सका। Network/CORS समस्या हो सकती है। (${networkError.message})`
-    );
+    const error =
+      new Error(
+        "पंजीकरण सुरक्षित नहीं हो पाया। कृपया अपना इंटरनेट कनेक्शन जाँचें और दोबारा प्रयास करें।"
+      );
+
+
+    error.status =
+      0;
+
+
+    error.original =
+      networkError;
+
+
+    throw error;
 
   }
 
@@ -1074,58 +1546,22 @@ async function createGitHubIssue(
     !response.ok
   ) {
 
-    const githubMessage =
+    const error =
+      new Error(
+        "पंजीकरण सुरक्षित नहीं हो पाया। कृपया कुछ देर बाद दोबारा प्रयास करें।"
+      );
+
+
+    error.status =
+      response.status;
+
+
+    error.originalMessage =
       data?.message ||
-      "GitHub ने कोई स्पष्ट error message नहीं दिया।";
-
-
-    let extra =
       "";
 
 
-    if (
-      response.status === 401
-    ) {
-
-      extra =
-        " Token गलत, expired या invalid हो सकता है।";
-
-    }
-
-
-    else if (
-      response.status === 403
-    ) {
-
-      extra =
-        " Token के पास आवश्यक permission नहीं है।";
-
-    }
-
-
-    else if (
-      response.status === 404
-    ) {
-
-      extra =
-        " Repository या owner गलत हो सकता है।";
-
-    }
-
-
-    else if (
-      response.status === 422
-    ) {
-
-      extra =
-        " GitHub ने request data स्वीकार नहीं किया।";
-
-    }
-
-
-    throw new Error(
-      `GitHub API ${response.status}: ${githubMessage}.${extra}`
-    );
+    throw error;
 
   }
 
@@ -1377,19 +1813,6 @@ form.addEventListener(
       );
 
 
-      /*
-         यहीं से नया sequence number मिलेगा।
-
-         First:
-         1001
-
-         Next:
-         1002
-
-         Next:
-         1003
-      */
-
       const sequenceNumber =
         await reserveNextNumber();
 
@@ -1427,6 +1850,26 @@ form.addEventListener(
 
 
       /* =========================
+         STEP 3
+         UPLOAD PHOTO
+      ========================== */
+
+      status(
+        "फोटो वेबसाइट पर सुरक्षित की जा रही है…",
+        50,
+        "normal"
+      );
+
+
+      const uploadedImage =
+        await uploadImageToRepository(
+          imageBase64,
+          id
+        );
+
+
+      /* =========================
+         STEP 4
          ISSUE BODY
       ========================== */
 
@@ -1493,11 +1936,11 @@ ${samaydaan || "कोई विवरण नहीं दिया गया।
 
 **Format:** JPEG
 
-**Encoding:** Base64
+**Image Path:** \`${uploadedImage.path}\`
 
-\`\`\`text
-${imageBase64}
-\`\`\`
+**Image URL:** ${uploadedImage.url}
+
+![पंजीकरण फोटो](${uploadedImage.url})
 
 ---
 
@@ -1507,18 +1950,16 @@ ${imageBase64}
 
 
       /* =========================
-         STEP 3
+         STEP 5
+         CREATE REGISTRATION
       ========================== */
 
       status(
-        "GitHub पर पंजीकरण सुरक्षित किया जा रहा है…",
-        55
+        "पंजीकरण सुरक्षित किया जा रहा है…",
+        75,
+        "normal"
       );
 
-
-      /* =========================
-         CREATE ISSUE
-      ========================== */
 
       const issue =
         await createGitHubIssue(
@@ -1585,15 +2026,25 @@ ${imageBase64}
 
 
       console.log(
-        "GitHub Issue Created:",
+        "Image Path:",
+        uploadedImage.path
+      );
+
+
+      console.log(
+        "Image URL:",
+        uploadedImage.url
+      );
+
+
+      console.log(
+        "Registration Saved:",
         issue?.html_url ||
         issue
       );
 
 
-    } catch (
-      error
-    ) {
+    } catch (error) {
 
       console.error(
         "REGISTRATION ERROR:",
@@ -1601,9 +2052,36 @@ ${imageBase64}
       );
 
 
-      showError(
+      /*
+         Customer को technical
+         GitHub/API error नहीं दिखाना।
+      */
+
+      let friendlyMessage =
         error.message ||
-        "अज्ञात error हुआ।"
+        "पंजीकरण पूरा नहीं हो पाया। कृपया दोबारा प्रयास करें।";
+
+
+      /*
+         अगर हमारे functions ने
+         status code attach किया है
+         तो उसे friendly message में बदलेंगे।
+      */
+
+      if (
+        error.status
+      ) {
+
+        friendlyMessage =
+          getFriendlyErrorMessage(
+            error
+          );
+
+      }
+
+
+      showError(
+        friendlyMessage
       );
 
 
