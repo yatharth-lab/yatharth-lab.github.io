@@ -68,6 +68,34 @@ const registrationIdElement =
   );
 
 
+/* =========================================
+   DIKSHA ELEMENTS
+========================================= */
+
+const dikshaTaken =
+  document.getElementById(
+    "dikshaTaken"
+  );
+
+
+const dikshaDetails =
+  document.getElementById(
+    "dikshaDetails"
+  );
+
+
+const dikshaDate =
+  document.getElementById(
+    "dikshaDate"
+  );
+
+
+const dikshaPlace =
+  document.getElementById(
+    "dikshaPlace"
+  );
+
+
 
 /* =========================================
    IMAGE DATA
@@ -136,6 +164,99 @@ function showSuccess(
     100,
     "success"
   );
+
+}
+
+
+
+/* =========================================
+   DIKSHA SHOW / HIDE
+========================================= */
+
+function updateDikshaFields() {
+
+  if (
+    dikshaTaken.value === "हाँ"
+  ) {
+
+    /* -------------------------
+       SHOW
+    ------------------------- */
+
+    dikshaDetails.style.display =
+      "block";
+
+
+    dikshaDate.disabled =
+      false;
+
+
+    dikshaPlace.disabled =
+      false;
+
+
+    dikshaDate.required =
+      true;
+
+
+    dikshaPlace.required =
+      true;
+
+
+  } else {
+
+    /* -------------------------
+       HIDE
+    ------------------------- */
+
+    dikshaDetails.style.display =
+      "none";
+
+
+    dikshaDate.disabled =
+      true;
+
+
+    dikshaPlace.disabled =
+      true;
+
+
+    dikshaDate.required =
+      false;
+
+
+    dikshaPlace.required =
+      false;
+
+
+    /* पुराना data साफ */
+
+    dikshaDate.value =
+      "";
+
+
+    dikshaPlace.value =
+      "";
+
+  }
+
+}
+
+
+/* =========================================
+   DIKSHA DROPDOWN EVENT
+========================================= */
+
+if (dikshaTaken) {
+
+  dikshaTaken.addEventListener(
+    "change",
+    updateDikshaFields
+  );
+
+  /* शुरुआत में hide */
+
+  updateDikshaFields();
 
 }
 
@@ -736,20 +857,16 @@ form.addEventListener(
         .trim();
 
 
-    const dikshaDate =
-      document
-        .getElementById(
-          "dikshaDate"
-        )
-        .value;
+    const dikshaStatus =
+      dikshaTaken.value;
 
 
-    const dikshaPlace =
-      document
-        .getElementById(
-          "dikshaPlace"
-        )
-        .value
+    const dikshaDateValue =
+      dikshaDate.value;
+
+
+    const dikshaPlaceValue =
+      dikshaPlace.value
         .trim();
 
 
@@ -781,7 +898,7 @@ form.addEventListener(
 
 
     /* =========================
-       DONATION TEXT
+       DONATION
     ========================== */
 
     const anshdaan =
@@ -812,8 +929,7 @@ form.addEventListener(
       !fatherName ||
       !mobile ||
       !age ||
-      !dikshaDate ||
-      !dikshaPlace ||
+      !dikshaStatus ||
       !city ||
       !education ||
       !income
@@ -824,6 +940,31 @@ form.addEventListener(
       );
 
       return;
+
+    }
+
+
+
+    /* =========================
+       DIKSHA CHECK
+    ========================== */
+
+    if (
+      dikshaStatus === "हाँ"
+    ) {
+
+      if (
+        !dikshaDateValue ||
+        !dikshaPlaceValue
+      ) {
+
+        showError(
+          "यदि दीक्षा ली है तो दीक्षा की तिथि और स्थान भरना जरूरी है।"
+        );
+
+        return;
+
+      }
 
     }
 
@@ -910,6 +1051,23 @@ form.addEventListener(
 
 
       /* =========================
+         DIKSHA DISPLAY
+      ========================== */
+
+      const dikshaDateForIssue =
+        dikshaStatus === "हाँ"
+          ? dikshaDateValue
+          : "लागू नहीं";
+
+
+      const dikshaPlaceForIssue =
+        dikshaStatus === "हाँ"
+          ? dikshaPlaceValue
+          : "लागू नहीं";
+
+
+
+      /* =========================
          ISSUE BODY
       ========================== */
 
@@ -932,9 +1090,11 @@ form.addEventListener(
 
 **आयु:** ${age}
 
-**दीक्षा की तिथि:** ${dikshaDate}
+**दीक्षा ली है?:** ${dikshaStatus}
 
-**दीक्षा का स्थान:** ${dikshaPlace}
+**दीक्षा की तिथि:** ${dikshaDateForIssue}
+
+**दीक्षा का स्थान:** ${dikshaPlaceForIssue}
 
 ---
 
@@ -1046,6 +1206,11 @@ ${imageBase64}
 
       photoText.style.display =
         "block";
+
+
+      /* वापस initial state */
+
+      updateDikshaFields();
 
 
 
