@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="La Bella - Premium Restaurant Website Portfolio">
+<title>La Bella | Restaurant Portfolio</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0c0b0a;
+  --card:#151311;
+  --gold:#d6a756;
+  --gold2:#f1cb7a;
+  --cream:#f7f0e5;
+  --muted:#aaa39a;
+  --border:rgba(255,255,255,.1);
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  background:var(--bg);
+  color:var(--cream);
+  font-family:"DM Sans",sans-serif;
+  overflow-x:hidden;
+}
+
+img{
+  width:100%;
+  display:block;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+.container{
+  width:min(1180px,92%);
+  margin:auto;
+}
+
+/* NAVBAR */
+header{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  z-index:1000;
+  padding:18px 0;
+  transition:.3s;
+}
+
+header.scrolled{
+  background:rgba(12,11,10,.92);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border);
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.logo{
+  font-family:"Playfair Display",serif;
+  font-size:25px;
+  font-weight:700;
+}
+
+.logo span{
+  color:var(--gold);
+}
+
+.nav-links{
+  display:flex;
+  gap:32px;
+  align-items:center;
+}
+
+.nav-links a{
+  font-size:14px;
+  color:#ddd;
+  transition:.3s;
+}
+
+.nav-links a:hover{
+  color:var(--gold2);
+}
+
+.nav-btn{
+  background:var(--gold);
+  color:#17120b!important;
+  padding:11px 18px;
+  border-radius:30px;
+  font-weight:700;
+}
+
+.menu-btn{
+  display:none;
+  font-size:25px;
+  cursor:pointer;
+}
+
+/* HERO */
+.hero{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  position:relative;
+  background:
+  linear-gradient(90deg,rgba(0,0,0,.86),rgba(0,0,0,.35)),
+  url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1800&q=85")
+  center/cover;
+}
+
+.hero-content{
+  max-width:700px;
+  padding-top:70px;
+}
+
+.tag{
+  display:inline-block;
+  color:var(--gold2);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  font-size:12px;
+  margin-bottom:20px;
+}
+
+.hero h1{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(50px,8vw,92px);
+  line-height:.98;
+  margin-bottom:25px;
+}
+
+.hero h1 span{
+  color:var(--gold);
+}
+
+.hero p{
+  color:#d0cbc4;
+  max-width:550px;
+  line-height:1.8;
+  margin-bottom:32px;
+}
+
+.buttons{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  padding:14px 24px;
+  border-radius:4px;
+  font-weight:700;
+  transition:.3s;
+}
+
+.btn-primary{
+  background:var(--gold);
+  color:#17120b;
+}
+
+.btn-primary:hover{
+  background:var(--gold2);
+  transform:translateY(-3px);
+}
+
+.btn-outline{
+  border:1px solid rgba(255,255,255,.3);
+}
+
+.btn-outline:hover{
+  border-color:var(--gold);
+  color:var(--gold);
+}
+
+.hero-bottom{
+  position:absolute;
+  bottom:35px;
+  left:50%;
+  transform:translateX(-50%);
+  color:#aaa;
+  font-size:12px;
+  letter-spacing:2px;
+}
+
+/* COMMON */
+section{
+  padding:100px 0;
+}
+
+.section-head{
+  text-align:center;
+  max-width:650px;
+  margin:0 auto 55px;
+}
+
+.section-head small{
+  color:var(--gold);
+  letter-spacing:3px;
+  text-transform:uppercase;
+}
+
+.section-head h2{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(36px,5vw,55px);
+  margin:12px 0;
+}
+
+.section-head p{
+  color:var(--muted);
+  line-height:1.7;
+}
+
+/* FEATURES */
+.features{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+
+.feature{
+  padding:35px;
+  background:var(--card);
+  border:1px solid var(--border);
+  text-align:center;
+  transition:.3s;
+}
+
+.feature:hover{
+  transform:translateY(-8px);
+  border-color:rgba(214,167,86,.5);
+}
+
+.icon{
+  width:58px;
+  height:58px;
+  display:grid;
+  place-items:center;
+  margin:auto auto 20px;
+  border:1px solid var(--gold);
+  color:var(--gold);
+  border-radius:50%;
+  font-size:23px;
+}
+
+.feature h3{
+  margin-bottom:10px;
+}
+
+.feature p{
+  color:var(--muted);
+  line-height:1.6;
+}
+
+/* ABOUT */
+.about{
+  background:#11100e;
+}
+
+.about-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:70px;
+  align-items:center;
+}
+
+.about-img{
+  position:relative;
+}
+
+.about-img img{
+  height:550px;
+  object-fit:cover;
+}
+
+.about-badge{
+  position:absolute;
+  right:-25px;
+  bottom:25px;
+  background:var(--gold);
+  color:#17120b;
+  padding:25px;
+  text-align:center;
+}
+
+.about-badge strong{
+  display:block;
+  font-family:"Playfair Display",serif;
+  font-size:32px;
+}
+
+.about-text small{
+  color:var(--gold);
+  letter-spacing:3px;
+}
+
+.about-text h2{
+  font-family:"Playfair Display",serif;
+  font-size:50px;
+  margin:12px 0 20px;
+}
+
+.about-text p{
+  color:var(--muted);
+  line-height:1.8;
+  margin-bottom:18px;
+}
+
+/* MENU */
+.menu-tabs{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:35px;
+  flex-wrap:wrap;
+}
+
+.tab{
+  background:transparent;
+  border:1px solid var(--border);
+  color:#aaa;
+  padding:10px 20px;
+  cursor:pointer;
+  border-radius:30px;
+}
+
+.tab.active,
+.tab:hover{
+  background:var(--gold);
+  color:#111;
+  border-color:var(--gold);
+}
+
+.menu-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+}
+
+.menu-item{
+  display:flex;
+  gap:20px;
+  padding:22px;
+  background:var(--card);
+  border:1px solid var(--border);
+}
+
+.menu-item img{
+  width:90px;
+  height:90px;
+  object-fit:cover;
+  border-radius:4px;
+}
+
+.item-info{
+  flex:1;
+}
+
+.item-top{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  margin-bottom:8px;
+}
+
+.item-top h3{
+  font-family:"Playfair Display",serif;
+}
+
+.price{
+  color:var(--gold);
+  font-weight:bold;
+}
+
+.item-info p{
+  color:#888;
+  font-size:13px;
+  line-height:1.5;
+}
+
+/* GALLERY */
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.gallery img{
+  height:260px;
+  object-fit:cover;
+  transition:.4s;
+}
+
+.gallery div{
+  overflow:hidden;
+}
+
+.gallery div:nth-child(2),
+.gallery div:nth-child(6){
+  grid-row:span 1;
+}
+
+.gallery img:hover{
+  transform:scale(1.08);
+}
+
+/* REVIEWS */
+.reviews{
+  background:#11100e;
+}
+
+.review-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+
+.review{
+  padding:30px;
+  background:var(--card);
+  border:1px solid var(--border);
+}
+
+.stars{
+  color:var(--gold);
+  margin-bottom:20px;
+}
+
+.review p{
+  color:#bbb;
+  line-height:1.7;
+  margin-bottom:20px;
+}
+
+.reviewer{
+  font-weight:bold;
+}
+
+.reviewer span{
+  display:block;
+  color:#777;
+  font-size:12px;
+  margin-top:4px;
+}
+
+/* RESERVATION */
+.reservation{
+  background:
+  linear-gradient(rgba(12,11,10,.88),rgba(12,11,10,.88)),
+  url("https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80")
+  center/cover fixed;
+}
+
+.reserve-box{
+  max-width:850px;
+  margin:auto;
+  padding:50px;
+  background:rgba(20,18,15,.85);
+  border:1px solid var(--border);
+  backdrop-filter:blur(12px);
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+input,select,textarea{
+  width:100%;
+  background:#0d0c0b;
+  color:#eee;
+  border:1px solid var(--border);
+  padding:15px;
+  outline:none;
+  font-family:inherit;
+}
+
+input:focus,select:focus,textarea:focus{
+  border-color:var(--gold);
+}
+
+textarea{
+  margin-top:15px;
+  min-height:110px;
+  resize:vertical;
+}
+
+.form-full{
+  grid-column:1/-1;
+}
+
+.submit{
+  margin-top:15px;
+  width:100%;
+  border:0;
+  cursor:pointer;
+  font-size:15px;
+}
+
+/* FOOTER */
+footer{
+  padding:55px 0 20px;
+  background:#080807;
+}
+
+.footer-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:40px;
+  padding-bottom:40px;
+}
+
+.footer-brand h2{
+  font-family:"Playfair Display",serif;
+  margin-bottom:15px;
+}
+
+.footer-brand p,
+footer a{
+  color:#888;
+  line-height:1.8;
+  font-size:14px;
+}
+
+footer h4{
+  margin-bottom:15px;
+  color:var(--gold);
+}
+
+.footer-bottom{
+  border-top:1px solid var(--border);
+  padding-top:20px;
+  text-align:center;
+  color:#666;
+  font-size:13px;
+}
+
+/* ANIMATION */
+.reveal{
+  opacity:0;
+  transform:translateY(30px);
+  transition:.7s;
+}
+
+.reveal.show{
+  opacity:1;
+  transform:none;
+}
+
+/* RESPONSIVE */
+@media(max-width:850px){
+
+  .nav-links{
+    position:absolute;
+    top:70px;
+    left:4%;
+    width:92%;
+    background:#12110f;
+    border:1px solid var(--border);
+    padding:20px;
+    flex-direction:column;
+    display:none;
+  }
+
+  .nav-links.open{
+    display:flex;
+  }
+
+  .menu-btn{
+    display:block;
+  }
+
+  .nav-links .nav-btn{
+    width:100%;
+    text-align:center;
+  }
+
+  .features,
+  .review-grid{
+    grid-template-columns:1fr;
+  }
+
+  .about-grid{
+    grid-template-columns:1fr;
+    gap:40px;
+  }
+
+  .about-img img{
+    height:420px;
+  }
+
+  .menu-grid{
+    grid-template-columns:1fr;
+  }
+
+  .gallery{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .gallery img{
+    height:220px;
+  }
+
+  .footer-grid{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:550px){
+
+  section{
+    padding:75px 0;
+  }
+
+  .hero h1{
+    font-size:52px;
+  }
+
+  .about-text h2{
+    font-size:40px;
+  }
+
+  .reserve-box{
+    padding:25px;
+  }
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .form-full{
+    grid-column:auto;
+  }
+
+  .footer-grid{
+    grid-template-columns:1fr;
+  }
+
+  .menu-item{
+    padding:15px;
+  }
+
+  .menu-item img{
+    width:75px;
+    height:75px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header id="header">
+  <div class="container nav">
+
+    <a href="#" class="logo">
+      La <span>Bella</span>
+    </a>
+
+    <nav class="nav-links" id="navLinks">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#menu">Menu</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#reviews">Reviews</a>
+      <a href="#reservation" class="nav-btn">Book a Table</a>
+    </nav>
+
+    <div class="menu-btn" id="menuBtn">☰</div>
+
+  </div>
+</header>
+
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="container">
+    <div class="hero-content reveal">
+
+      <span class="tag">Fine Dining • Since 1998</span>
+
+      <h1>
+        Taste the art of
+        <span>fine dining.</span>
+      </h1>
+
+      <p>
+        Experience unforgettable flavours, elegant ambience and
+        carefully crafted dishes made from the finest ingredients.
+      </p>
+
+      <div class="buttons">
+        <a href="#menu" class="btn btn-primary">Explore Our Menu</a>
+        <a href="#reservation" class="btn btn-outline">Reserve a Table</a>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="hero-bottom">
+    SCROLL TO DISCOVER ↓
+  </div>
+</section>
+
+
+<!-- FEATURES -->
+<section>
+  <div class="container">
+
+    <div class="section-head reveal">
+      <small>Why Choose Us</small>
+      <h2>A dining experience to remember</h2>
+      <p>
+        From fresh ingredients to warm hospitality, every detail
+        is created to make your visit special.
+      </p>
+    </div>
+
+    <div class="features">
+
+      <div class="feature reveal">
+        <div class="icon">✦</div>
+        <h3>Premium Ingredients</h3>
+        <p>
+          Fresh, seasonal and carefully selected ingredients
+          in every dish.
+        </p>
+      </div>
+
+      <div class="feature reveal">
+        <div class="icon">♨</div>
+        <h3>Expert Chefs</h3>
+        <p>
+          Our chefs combine traditional recipes with modern
+          culinary techniques.
+        </p>
+      </div>
+
+      <div class="feature reveal">
+        <div class="icon">♡</div>
+        <h3>Warm Hospitality</h3>
+        <p>
+          Friendly service and a beautiful atmosphere for
+          every occasion.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="container about-grid">
+
+    <div class="about-img reveal">
+
+      <img
+        src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1000&q=85"
+        alt="Restaurant interior"
+      >
+
+      <div class="about-badge">
+        <strong>25+</strong>
+        Years of Taste
+      </div>
+
+    </div>
+
+    <div class="about-text reveal">
+
+      <small>OUR STORY</small>
+
+      <h2>Food made with passion.</h2>
+
+      <p>
+        La Bella began with a simple dream — to create a place
+        where great food and beautiful moments come together.
+      </p>
+
+      <p>
+        Today, our kitchen blends classic flavours with modern
+        creativity, creating dishes that feel familiar yet
+        exciting.
+      </p>
+
+      <a href="#reservation" class="btn btn-primary">
+        Visit La Bella
+      </a>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- MENU -->
+<section id="menu">
+  <div class="container">
+
+    <div class="section-head reveal">
+      <small>Our Menu</small>
+      <h2>Made to make you hungry</h2>
+      <p>
+        A selection of our guests' favourite dishes.
+      </p>
+    </div>
+
+    <div class="menu-tabs">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="starter">Starters</button>
+      <button class="tab" data-filter="main">Main Course</button>
+      <button class="tab" data-filter="dessert">Desserts</button>
+    </div>
+
+    <div class="menu-grid">
+
+      <div class="menu-item reveal" data-category="starter">
+        <img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=400&q=80">
+        <div class="item-info">
+          <div class="item-top">
+            <h3>Bruschetta</h3>
+            <span class="price">₹280</span>
+          </div>
+          <p>Toasted bread, tomatoes, basil and olive oil.</p>
+        </div>
+      </div>
+
+      <div class="menu-item reveal" data-category="starter">
+        <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=400&q=80">
+        <div class="item-info">
+          <div class="item-top">
+            <h3>Garden Salad</h3>
+            <span class="price">₹320</span>
+          </div>
+          <p>Fresh greens, vegetables and house dressing.</p>
+        </div>
+      </div>
+
+      <div class="menu-item reveal" data-category="main">
+        <img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=400&q=80">
+        <div class="item-info">
+          <div class="item-top">
+            <h3>Creamy Pasta</h3>
+            <span class="price">₹490</span>
+          </div>
+          <p>Handmade pasta with creamy parmesan sauce.</p>
+        </div>
+      </div>
+
+      <div class="menu-item reveal" data-category="main">
+        <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80">
+        <div class="item-info">
+          <div class="item-top">
+            <h3>Grilled Steak</h3>
+            <span class="price">₹890</span>
+          </div>
+          <p>Premium cut served with seasonal vegetables.</p>
+        </div>
+      </div>
+
+      <div class="menu-item reveal" data-category="main">
+        <img src="https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=400&q=80">
+        <div class="item-info">
+          <div class="item-top">
+            <h3>Butter Chicken</h3>
+            <span class="price">₹520</span>
+          </div>
+          <p>Rich tomato gravy, cream and aromatic spices.</p>
+        </div>
+      </div>
+
+      <div class="menu-item reveal" data-category="dessert">
+        <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=400&q=80">
+        <div class="item-info">
+          <div class="item-top">
+            <h3>Classic Donut</h3>
+            <span class="price">₹180</span>
+          </div>
+          <p>Soft glazed dessert with a sweet finish.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- GALLERY -->
+<section id="gallery" class="about">
+  <div class="container">
+
+    <div class="section-head reveal">
+      <small>Gallery</small>
+      <h2>A glimpse of La Bella</h2>
+    </div>
+
+    <div class="gallery">
+
+      <div><img src="https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=700&q=80"></div>
+
+      <div><img src="https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=700&q=80"></div>
+
+      <div><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=700&q=80"></div>
+
+      <div><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=80"></div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- REVIEWS -->
+<section id="reviews" class="reviews">
+  <div class="container">
+
+    <div class="section-head reveal">
+      <small>Guest Reviews</small>
+      <h2>Loved by our guests</h2>
+    </div>
+
+    <div class="review-grid">
+
+      <div class="review reveal">
+        <div class="stars">★★★★★</div>
+        <p>
+          "Beautiful atmosphere and absolutely delicious food.
+          One of the best dining experiences I've had."
+        </p>
+        <div class="reviewer">
+          Rahul Sharma
+          <span>Google Review</span>
+        </div>
+      </div>
+
+      <div class="review reveal">
+        <div class="stars">★★★★★</div>
+        <p>
+          "The staff was incredibly welcoming and the food
+          arrived perfectly prepared."
+        </p>
+        <div class="reviewer">
+          Ananya Verma
+          <span>Google Review</span>
+        </div>
+      </div>
+
+      <div class="review reveal">
+        <div class="stars">★★★★★</div>
+        <p>
+          "Perfect place for a special evening. The ambience
+          and presentation were amazing."
+        </p>
+        <div class="reviewer">
+          Arjun Mehta
+          <span>Google Review</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- RESERVATION -->
+<section class="reservation" id="reservation">
+
+  <div class="container">
+
+    <div class="section-head reveal">
+      <small>Reservations</small>
+      <h2>Book your table</h2>
+      <p>
+        Planning a dinner, celebration or special evening?
+        Reserve your table today.
+      </p>
+    </div>
+
+    <div class="reserve-box reveal">
+
+      <form id="bookingForm">
+
+        <div class="form-grid">
+
+          <input
+            type="text"
+            placeholder="Your Name"
+            required
+          >
+
+          <input
+            type="tel"
+            placeholder="Phone Number"
+            required
+          >
+
+          <input
+            type="date"
+            required
+          >
+
+          <select required>
+            <option value="">Guests</option>
+            <option>1 Person</option>
+            <option>2 People</option>
+            <option>3 People</option>
+            <option>4 People</option>
+            <option>5+ People</option>
+          </select>
+
+          <textarea
+            class="form-full"
+            placeholder="Special request (optional)"
+          ></textarea>
+
+        </div>
+
+        <button class="btn btn-primary submit">
+          Confirm Reservation
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- FOOTER -->
+<footer>
+
+  <div class="container">
+
+    <div class="footer-grid">
+
+      <div class="footer-brand">
+        <h2>La <span style="color:var(--gold)">Bella</span></h2>
+
+        <p>
+          A modern dining experience where exceptional food,
+          beautiful design and warm hospitality come together.
+        </p>
+      </div>
+
+      <div>
+        <h4>Explore</h4>
+        <a href="#about">About</a><br>
+        <a href="#menu">Menu</a><br>
+        <a href="#gallery">Gallery</a><br>
+        <a href="#reviews">Reviews</a>
+      </div>
+
+      <div>
+        <h4>Visit Us</h4>
+        <p style="color:#888;line-height:1.8;font-size:14px">
+          21 MG Road<br>
+          New Delhi, India<br>
+          +91 98765 43210
+        </p>
+      </div>
+
+      <div>
+        <h4>Opening Hours</h4>
+        <p style="color:#888;line-height:1.8;font-size:14px">
+          Mon – Fri: 11 AM – 11 PM<br>
+          Sat – Sun: 10 AM – 12 AM
+        </p>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      © 2026 La Bella Restaurant. All Rights Reserved.
+    </div>
+
+  </div>
+
+</footer>
+
+
+<script>
+
+/* NAVBAR */
+const header = document.getElementById("header");
+
+window.addEventListener("scroll",()=>{
+  header.classList.toggle("scrolled",window.scrollY > 50);
+});
+
+
+/* MOBILE MENU */
+const menuBtn = document.getElementById("menuBtn");
+const navLinks = document.getElementById("navLinks");
+
+menuBtn.addEventListener("click",()=>{
+  navLinks.classList.toggle("open");
+});
+
+document.querySelectorAll(".nav-links a").forEach(link=>{
+  link.addEventListener("click",()=>{
+    navLinks.classList.remove("open");
+  });
+});
+
+
+/* MENU FILTER */
+const tabs = document.querySelectorAll(".tab");
+const items = document.querySelectorAll(".menu-item");
+
+tabs.forEach(tab=>{
+
+  tab.addEventListener("click",()=>{
+
+    tabs.forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+
+    const filter = tab.dataset.filter;
+
+    items.forEach(item=>{
+
+      if(filter === "all" || item.dataset.category === filter){
+        item.style.display = "flex";
+      }else{
+        item.style.display = "none";
+      }
+
+    });
+
+  });
+
+});
+
+
+/* SCROLL REVEAL */
+const observer = new IntersectionObserver(
+  entries=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add("show");
+      }
+    });
+  },
+  {threshold:.12}
+);
+
+document.querySelectorAll(".reveal").forEach(el=>{
+  observer.observe(el);
+});
+
+
+/* RESERVATION DEMO */
+document.getElementById("bookingForm").addEventListener("submit",e=>{
+
+  e.preventDefault();
+
+  alert(
+    "Thank you! Your reservation request has been received."
+  );
+
+  e.target.reset();
+
+});
+
+</script>
+
+</body>
+  </html>
