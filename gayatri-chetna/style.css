@@ -772,6 +772,18 @@ footer small {
 
 /* तुम्हारी बाकी सारी CSS ऊपर... */
 
+.field select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 15px;
+  background: #fff;
+  color: #333;
+  min-height: 44px;
+}
 
 /* =========================
    DONATION BOX
