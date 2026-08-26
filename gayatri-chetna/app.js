@@ -9,6 +9,19 @@ const config =
   getGitHubConfig();
 
 
+/* =========================================
+   CONSTANTS
+========================================= */
+
+const COUNTER_FILE =
+  "gayatri-chetna/counter.json";
+
+const STARTING_NUMBER =
+  1000;
+
+const GITHUB_API_VERSION =
+  "2026-03-10";
+
 
 /* =========================================
    ELEMENTS
@@ -96,13 +109,62 @@ const dikshaPlace =
   );
 
 
-
 /* =========================================
    IMAGE DATA
 ========================================= */
 
-let imageBase64 = null;
+let imageBase64 =
+  null;
 
+
+/* =========================================
+   GITHUB HEADERS
+========================================= */
+
+function githubHeaders() {
+
+  return {
+
+    "Accept":
+      "application/vnd.github+json",
+
+    "Authorization":
+      `Bearer ${config.token}`,
+
+    "Content-Type":
+      "application/json",
+
+    "X-GitHub-Api-Version":
+      GITHUB_API_VERSION
+
+  };
+
+}
+
+
+/* =========================================
+   GITHUB BASE URL
+========================================= */
+
+function githubContentsUrl(
+  path
+) {
+
+  return (
+    "https://api.github.com/repos/" +
+    encodeURIComponent(config.owner) +
+    "/" +
+    encodeURIComponent(config.repo) +
+    "/contents/" +
+    path
+      .split("/")
+      .map(
+        encodeURIComponent
+      )
+      .join("/")
+  );
+
+}
 
 
 /* =========================================
@@ -127,7 +189,6 @@ function status(
 }
 
 
-
 /* =========================================
    ERROR
 ========================================= */
@@ -150,7 +211,6 @@ function showError(
 }
 
 
-
 /* =========================================
    SUCCESS
 ========================================= */
@@ -168,7 +228,6 @@ function showSuccess(
 }
 
 
-
 /* =========================================
    DIKSHA SHOW / HIDE
 ========================================= */
@@ -179,61 +238,40 @@ function updateDikshaFields() {
     dikshaTaken.value === "हाँ"
   ) {
 
-    /* -------------------------
-       SHOW
-    ------------------------- */
-
     dikshaDetails.style.display =
       "block";
-
 
     dikshaDate.disabled =
       false;
 
-
     dikshaPlace.disabled =
       false;
-
 
     dikshaDate.required =
       true;
 
-
     dikshaPlace.required =
       true;
 
-
   } else {
-
-    /* -------------------------
-       HIDE
-    ------------------------- */
 
     dikshaDetails.style.display =
       "none";
 
-
     dikshaDate.disabled =
       true;
-
 
     dikshaPlace.disabled =
       true;
 
-
     dikshaDate.required =
       false;
-
 
     dikshaPlace.required =
       false;
 
-
-    /* पुराना data साफ */
-
     dikshaDate.value =
       "";
-
 
     dikshaPlace.value =
       "";
@@ -254,44 +292,372 @@ if (dikshaTaken) {
     updateDikshaFields
   );
 
-  /* शुरुआत में hide */
-
   updateDikshaFields();
 
 }
 
 
-
 /* =========================================
-   REGISTRATION ID
+   GET CURRENT COUNTER FILE
 ========================================= */
 
-function createRegistrationId() {
+async function getCounterFile() {
+
+  const response =
+    await fetch(
+      githubContentsUrl(
+        COUNTER_FILE
+      ),
+      {
+        method: "GET",
+        headers: githubHeaders()
+      }
+    );
+
+
+  /* -------------------------
+     FILE DOES NOT EXIST
+  ------------------------- */
+
+  if (
+    response.status === 404
+  ) {
+
+    return {
+      exists: false,
+      sha: null,
+      lastNumber:
+        STARTING_NUMBER
+    };
+
+  }
+
+
+  /* -------------------------
+     OTHER ERROR
+  ------------------------- */
+
+  if (
+    !response.ok
+  ) {
+
+    let data = null;
+
+    try {
+
+      data =
+        await response.json();
+
+    } catch {}
+
+    throw new Error(
+      `Counter file पढ़ा नहीं जा सका। GitHub API ${response.status}: ${
+        data?.message ||
+        "Unknown error"
+      }`
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  let decoded = "";
+
+
+  try {
+
+    decoded =
+      atob(
+        data.content
+          .replace(/\n/g, "")
+      );
+
+  } catch {
+
+    throw new Error(
+      "Counter file का Base64 data पढ़ा नहीं जा सका।"
+    );
+
+  }
+
+
+  let counter;
+
+
+  try {
+
+    counter =
+      JSON.parse(
+        decoded
+      );
+
+  } catch {
+
+    throw new Error(
+      "counter.json का format गलत है।"
+    );
+
+  }
+
+
+  const lastNumber =
+    Number(
+      counter.lastNumber
+    );
+
+
+  if (
+    !Number.isInteger(
+      lastNumber
+    ) ||
+    lastNumber < STARTING_NUMBER
+  ) {
+
+    throw new Error(
+      "counter.json में lastNumber गलत है।"
+    );
+
+  }
+
+
+  return {
+
+    exists: true,
+
+    sha:
+      data.sha,
+
+    lastNumber:
+      lastNumber
+
+  };
+
+}
+
+
+/* =========================================
+   RESERVE NEXT REGISTRATION NUMBER
+========================================= */
+
+/*
+   IMPORTANT:
+
+   यह function counter को atomically
+   आगे बढ़ाने की कोशिश करता है।
+
+   अगर दो लोग एक साथ submit करें:
+
+   Person A -> 1001
+   Person B -> 1002
+
+   GitHub SHA conflict के कारण
+   दूसरा request पुराने counter को
+   overwrite नहीं कर पाएगा।
+
+   वह दोबारा counter पढ़ेगा और
+   अगला number लेगा।
+*/
+
+async function reserveNextNumber() {
+
+  const MAX_RETRIES =
+    12;
+
+
+  for (
+    let attempt = 1;
+    attempt <= MAX_RETRIES;
+    attempt++
+  ) {
+
+    const counter =
+      await getCounterFile();
+
+
+    const nextNumber =
+      counter.lastNumber + 1;
+
+
+    const newCounter = {
+
+      lastNumber:
+        nextNumber
+
+    };
+
+
+    const content =
+      btoa(
+        JSON.stringify(
+          newCounter,
+          null,
+          2
+        )
+      );
+
+
+    const body = {
+
+      message:
+        `Update registration counter to ${nextNumber}`,
+
+      content:
+        content,
+
+      branch:
+        config.branch ||
+        undefined
+
+    };
+
+
+    /*
+       Existing file update:
+       SHA देना जरूरी है।
+    */
+
+    if (
+      counter.exists
+    ) {
+
+      body.sha =
+        counter.sha;
+
+    }
+
+
+    let response;
+
+
+    try {
+
+      response =
+        await fetch(
+          githubContentsUrl(
+            COUNTER_FILE
+          ),
+          {
+
+            method:
+              "PUT",
+
+            headers:
+              githubHeaders(),
+
+            body:
+              JSON.stringify(
+                body
+              )
+
+          }
+        );
+
+    } catch (
+      networkError
+    ) {
+
+      throw new Error(
+        `Counter update के समय GitHub connection failed: ${networkError.message}`
+      );
+
+    }
+
+
+    /* -------------------------
+       SUCCESS
+    ------------------------- */
+
+    if (
+      response.ok
+    ) {
+
+      return nextNumber;
+
+    }
+
+
+    /* -------------------------
+       CONFLICT
+    ------------------------- */
+
+    if (
+      response.status === 409
+    ) {
+
+      /*
+         इसका मतलब किसी दूसरे user ने
+         इसी समय counter update कर दिया।
+
+         इसलिए पुराने counter को छोड़कर
+         फिर से latest counter पढ़ेंगे।
+      */
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            150 + Math.random() * 500
+          )
+      );
+
+      continue;
+
+    }
+
+
+    /* -------------------------
+       OTHER ERROR
+    ------------------------- */
+
+    let data = null;
+
+
+    try {
+
+      data =
+        await response.json();
+
+    } catch {}
+
+
+    throw new Error(
+      `Counter update failed. GitHub API ${response.status}: ${
+        data?.message ||
+        "Unknown error"
+      }`
+    );
+
+  }
+
+
+  throw new Error(
+    "एक ही समय में बहुत सारे registration attempts हुए। कृपया कुछ सेकंड बाद दोबारा प्रयास करें।"
+  );
+
+}
+
+
+/* =========================================
+   CREATE REGISTRATION ID
+========================================= */
+
+function createRegistrationId(
+  sequenceNumber
+) {
 
   const year =
     new Date()
       .getFullYear();
 
 
-  const time =
-    Date.now()
-      .toString(36)
-      .toUpperCase();
-
-
-  const random =
-    Math.random()
-      .toString(36)
-      .substring(2, 7)
-      .toUpperCase();
-
-
   return (
-    `GCK-${year}-${time}-${random}`
+    `GCK-${year}-AWGP-PBH-${sequenceNumber}`
   );
 
 }
-
 
 
 /* =========================================
@@ -525,7 +891,6 @@ function compressImage(
 }
 
 
-
 /* =========================================
    IMAGE SELECT
 ========================================= */
@@ -626,7 +991,6 @@ imageInput.addEventListener(
 );
 
 
-
 /* =========================================
    GITHUB ISSUE
 ========================================= */
@@ -658,24 +1022,11 @@ async function createGitHubIssue(
         url,
         {
 
-          method: "POST",
+          method:
+            "POST",
 
-          headers: {
-
-            "Accept":
-              "application/vnd.github+json",
-
-            "Authorization":
-              `Bearer ${config.token}`,
-
-            "Content-Type":
-              "application/json",
-
-            "X-GitHub-Api-Version":
-              "2022-11-28"
-
-          },
-
+          headers:
+            githubHeaders(),
 
           body:
             JSON.stringify({
@@ -784,7 +1135,6 @@ async function createGitHubIssue(
 }
 
 
-
 /* =========================================
    FORM SUBMIT
 ========================================= */
@@ -814,7 +1164,6 @@ form.addEventListener(
       return;
 
     }
-
 
 
     /* =========================
@@ -919,7 +1268,6 @@ form.addEventListener(
         .trim();
 
 
-
     /* =========================
        REQUIRED CHECK
     ========================== */
@@ -942,7 +1290,6 @@ form.addEventListener(
       return;
 
     }
-
 
 
     /* =========================
@@ -969,7 +1316,6 @@ form.addEventListener(
     }
 
 
-
     /* =========================
        MOBILE VALIDATION
     ========================== */
@@ -987,7 +1333,6 @@ form.addEventListener(
       return;
 
     }
-
 
 
     /* =========================
@@ -1012,7 +1357,6 @@ form.addEventListener(
     }
 
 
-
     /* =========================
        SUBMIT START
     ========================== */
@@ -1023,20 +1367,37 @@ form.addEventListener(
 
     try {
 
-
       /* =========================
          STEP 1
       ========================== */
 
       status(
-        "पंजीकरण क्रमांक बनाया जा रहा है…",
+        "पंजीकरण क्रमांक सुरक्षित किया जा रहा है…",
         30
       );
 
 
-      const id =
-        createRegistrationId();
+      /*
+         यहीं से नया sequence number मिलेगा।
 
+         First:
+         1001
+
+         Next:
+         1002
+
+         Next:
+         1003
+      */
+
+      const sequenceNumber =
+        await reserveNextNumber();
+
+
+      const id =
+        createRegistrationId(
+          sequenceNumber
+        );
 
 
       /* =========================
@@ -1044,10 +1405,9 @@ form.addEventListener(
       ========================== */
 
       status(
-        "पंजीकरण विवरण तैयार किया जा रहा है…",
+        `पंजीकरण क्रमांक ${id} तैयार किया जा रहा है…`,
         40
       );
-
 
 
       /* =========================
@@ -1066,7 +1426,6 @@ form.addEventListener(
           : "लागू नहीं";
 
 
-
       /* =========================
          ISSUE BODY
       ========================== */
@@ -1077,6 +1436,8 @@ form.addEventListener(
 ## पंजीकरण विवरण
 
 **पंजीकरण क्रमांक:** \`${id}\`
+
+**Sequence Number:** ${sequenceNumber}
 
 ---
 
@@ -1145,16 +1506,14 @@ ${imageBase64}
 `;
 
 
-
       /* =========================
          STEP 3
       ========================== */
 
       status(
-        "GitHub से connection किया जा रहा है…",
+        "GitHub पर पंजीकरण सुरक्षित किया जा रहा है…",
         55
       );
-
 
 
       /* =========================
@@ -1166,7 +1525,6 @@ ${imageBase64}
           `GCK Registration - ${id} - ${name}`,
           issueBody
         );
-
 
 
       /* =========================
@@ -1188,7 +1546,6 @@ ${imageBase64}
       );
 
 
-
       /* =========================
          RESET FORM
       ========================== */
@@ -1208,15 +1565,24 @@ ${imageBase64}
         "block";
 
 
-      /* वापस initial state */
-
       updateDikshaFields();
-
 
 
       /* =========================
          CONSOLE
       ========================== */
+
+      console.log(
+        "Registration ID:",
+        id
+      );
+
+
+      console.log(
+        "Sequence:",
+        sequenceNumber
+      );
+
 
       console.log(
         "GitHub Issue Created:",
@@ -1228,7 +1594,6 @@ ${imageBase64}
     } catch (
       error
     ) {
-
 
       console.error(
         "REGISTRATION ERROR:",
