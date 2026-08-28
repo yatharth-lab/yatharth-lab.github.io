@@ -1,0 +1,3817 @@
+/* =========================================================
+   गायत्री चेतना केंद्र
+   SHOW ALL SYSTEM
+   =========================================================
+
+   DATA
+   ---------------------------------------------------------
+   1. Registration Data -> GitHub Issues
+   2. Photos            -> Private GitHub Repository
+                              gayatri-chetna/images/...
+
+   FEATURES
+   ---------------------------------------------------------
+   ✓ GitHub Issue Loading
+   ✓ Registration ID Search
+   ✓ Name Search
+   ✓ Mobile Search
+   ✓ Private Repository Image Loading
+   ✓ Image Path Support
+   ✓ IndexedDB Offline Data
+   ✓ IndexedDB Offline Images
+   ✓ Offline List
+   ✓ ID Card Generation
+   ✓ Traditional ID Card Design
+   ✓ Hindi ID Card
+   ✓ PNG Download
+   ✓ Service Worker
+========================================================= */
+
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const STORAGE_KEY =
+  "gck_show_all_login";
+
+const DB_NAME =
+  "gayatri_chetna_offline_db";
+
+const DB_VERSION = 1;
+
+const STORE_NAME =
+  "registrations";
+
+const GITHUB_API_VERSION =
+  "2022-11-28";
+
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+let githubConfig = null;
+
+let registrations = [];
+
+
+/* =========================================================
+   DOM ELEMENTS
+========================================================= */
+
+const loginView =
+  document.getElementById("loginView");
+
+const listView =
+  document.getElementById("listView");
+
+const detailView =
+  document.getElementById("detailView");
+
+const usernameInput =
+  document.getElementById("username");
+
+const repoInput =
+  document.getElementById("repo");
+
+const tokenInput =
+  document.getElementById("token");
+
+const loginButton =
+  document.getElementById("loginButton");
+
+const loginError =
+  document.getElementById("loginError");
+
+const searchBox =
+  document.getElementById("search");
+
+const refreshButton =
+  document.getElementById("refreshButton");
+
+const logoutButton =
+  document.getElementById("logoutButton");
+
+const syncBox =
+  document.getElementById("syncBox");
+
+const registrationList =
+  document.getElementById("registrationList");
+
+const backButton =
+  document.getElementById("backButton");
+
+const detailCard =
+  document.getElementById("detailCard");
+
+
+/* =========================================================
+   BASIC HELPERS
+========================================================= */
+
+function escapeHTML(value) {
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================================
+   SEARCH NORMALIZER
+========================================================= */
+
+function normalize(value) {
+
+  return String(value ?? "")
+    .normalize("NFKC")
+    .toLocaleLowerCase("hi-IN")
+    .replace(/\s+/g, " ")
+    .trim();
+
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+function showError(message) {
+
+  if (!loginError)
+    return;
+
+  loginError.textContent =
+    message || "";
+
+  loginError.style.display =
+    "block";
+
+}
+
+
+function hideError() {
+
+  if (!loginError)
+    return;
+
+  loginError.textContent =
+    "";
+
+  loginError.style.display =
+    "none";
+
+}
+
+
+/* =========================================================
+   SYNC MESSAGE
+========================================================= */
+
+function showSync(message) {
+
+  if (!syncBox)
+    return;
+
+  syncBox.textContent =
+    message || "";
+
+  syncBox.style.display =
+    message
+      ? "block"
+      : "none";
+
+}
+
+
+function hideSync() {
+
+  if (!syncBox)
+    return;
+
+  syncBox.textContent =
+    "";
+
+  syncBox.style.display =
+    "none";
+
+}
+
+
+/* =========================================================
+   GITHUB HEADERS
+========================================================= */
+
+function githubHeaders() {
+
+  return {
+
+    "Accept":
+      "application/vnd.github+json",
+
+    "Authorization":
+      `Bearer ${githubConfig.token}`,
+
+    "X-GitHub-Api-Version":
+      GITHUB_API_VERSION
+
+  };
+
+}
+
+
+/* =========================================================
+   PRIVATE REPOSITORY CONTENT URL
+========================================================= */
+
+function githubContentURL(path) {
+
+  const cleanPath =
+    String(path || "")
+      .trim()
+      .replace(/^\/+/, "");
+
+
+  if (!cleanPath)
+    return "";
+
+
+  const encodedPath =
+    cleanPath
+      .split("/")
+      .map(
+        part =>
+          encodeURIComponent(part)
+      )
+      .join("/");
+
+
+  return (
+    "https://api.github.com/repos/" +
+    encodeURIComponent(
+      githubConfig.username
+    ) +
+    "/" +
+    encodeURIComponent(
+      githubConfig.repo
+    ) +
+    "/contents/" +
+    encodedPath
+  );
+
+}
+
+
+/* =========================================================
+   LOGIN STORAGE
+========================================================= */
+
+function saveLogin() {
+
+  if (!githubConfig)
+    return;
+
+
+  localStorage.setItem(
+
+    STORAGE_KEY,
+
+    JSON.stringify({
+
+      username:
+        githubConfig.username,
+
+      repo:
+        githubConfig.repo,
+
+      token:
+        githubConfig.token
+
+    })
+
+  );
+
+}
+
+
+function loadLogin() {
+
+  try {
+
+    const data =
+      localStorage.getItem(
+        STORAGE_KEY
+      );
+
+
+    if (!data)
+      return false;
+
+
+    const saved =
+      JSON.parse(data);
+
+
+    if (
+      !saved.username ||
+      !saved.repo ||
+      !saved.token
+    ) {
+
+      return false;
+
+    }
+
+
+    githubConfig =
+      saved;
+
+
+    return true;
+
+  }
+
+  catch {
+
+    return false;
+
+  }
+
+}
+
+
+function clearLogin() {
+
+  localStorage.removeItem(
+    STORAGE_KEY
+  );
+
+  githubConfig =
+    null;
+
+}
+
+
+/* =========================================================
+   INDEXED DB
+========================================================= */
+
+function openDatabase() {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const request =
+        indexedDB.open(
+          DB_NAME,
+          DB_VERSION
+        );
+
+
+      request.onupgradeneeded =
+        function () {
+
+          const db =
+            request.result;
+
+
+          if (
+            !db.objectStoreNames
+              .contains(
+                STORE_NAME
+              )
+          ) {
+
+            db.createObjectStore(
+              STORE_NAME,
+              {
+                keyPath: "key"
+              }
+            );
+
+          }
+
+        };
+
+
+      request.onsuccess =
+        function () {
+
+          resolve(
+            request.result
+          );
+
+        };
+
+
+      request.onerror =
+        function () {
+
+          reject(
+            request.error
+          );
+
+        };
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SAVE OFFLINE
+========================================================= */
+
+async function saveOfflineData() {
+
+  if (!githubConfig)
+    return;
+
+
+  try {
+
+    const db =
+      await openDatabase();
+
+
+    const key =
+      githubConfig.username +
+      "/" +
+      githubConfig.repo;
+
+
+    await new Promise(
+      (resolve, reject) => {
+
+        const transaction =
+          db.transaction(
+            STORE_NAME,
+            "readwrite"
+          );
+
+
+        const store =
+          transaction.objectStore(
+            STORE_NAME
+          );
+
+
+        store.put({
+
+          key: key,
+
+          savedAt:
+            Date.now(),
+
+          registrations:
+            registrations
+
+        });
+
+
+        transaction.oncomplete =
+          resolve;
+
+
+        transaction.onerror =
+          function () {
+
+            reject(
+              transaction.error
+            );
+
+          };
+
+      }
+    );
+
+
+    db.close();
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Offline save error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   LOAD OFFLINE
+========================================================= */
+
+async function loadOfflineData() {
+
+  if (!githubConfig)
+    return null;
+
+
+  try {
+
+    const db =
+      await openDatabase();
+
+
+    const key =
+      githubConfig.username +
+      "/" +
+      githubConfig.repo;
+
+
+    const result =
+      await new Promise(
+        (resolve, reject) => {
+
+          const transaction =
+            db.transaction(
+              STORE_NAME,
+              "readonly"
+            );
+
+
+          const store =
+            transaction.objectStore(
+              STORE_NAME
+            );
+
+
+          const request =
+            store.get(key);
+
+
+          request.onsuccess =
+            function () {
+
+              resolve(
+                request.result ||
+                null
+              );
+
+            };
+
+
+          request.onerror =
+            function () {
+
+              reject(
+                request.error
+              );
+
+            };
+
+        }
+      );
+
+
+    db.close();
+
+
+    return result;
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Offline load error:",
+      error
+    );
+
+    return null;
+
+  }
+
+}
+
+
+/* =========================================================
+   GET ALL GITHUB ISSUES
+========================================================= */
+
+async function getAllIssues() {
+
+  let allIssues = [];
+
+
+  for (
+    let page = 1;
+    page <= 20;
+    page++
+  ) {
+
+    const url =
+      "https://api.github.com/repos/" +
+      encodeURIComponent(
+        githubConfig.username
+      ) +
+      "/" +
+      encodeURIComponent(
+        githubConfig.repo
+      ) +
+      "/issues" +
+      "?state=all" +
+      "&per_page=100" +
+      "&page=" +
+      page;
+
+
+    let response;
+
+
+    try {
+
+      response =
+        await fetch(
+          url,
+          {
+            method: "GET",
+            headers:
+              githubHeaders()
+          }
+        );
+
+    }
+
+    catch {
+
+      const error =
+        new Error(
+          "GitHub से connection नहीं हो पाया। Internet check करें।"
+        );
+
+      error.status = 0;
+
+      throw error;
+
+    }
+
+
+    let data = null;
+
+
+    try {
+
+      data =
+        await response.json();
+
+    }
+
+    catch {
+
+      data = null;
+
+    }
+
+
+    if (!response.ok) {
+
+      let message =
+        data?.message ||
+        "GitHub request failed";
+
+
+      if (
+        response.status === 401
+      ) {
+
+        message =
+          "GitHub Token गलत या expired है।";
+
+      }
+
+
+      else if (
+        response.status === 403
+      ) {
+
+        message =
+          "Token के पास repository access नहीं है या GitHub rate limit हो गई है।";
+
+      }
+
+
+      else if (
+        response.status === 404
+      ) {
+
+        message =
+          "Repository नहीं मिली। Username और Repository check करें।";
+
+      }
+
+
+      const error =
+        new Error(
+          message
+        );
+
+
+      error.status =
+        response.status;
+
+
+      throw error;
+
+    }
+
+
+    if (
+      !Array.isArray(data)
+    ) {
+
+      break;
+
+    }
+
+
+    allIssues.push(
+      ...data
+    );
+
+
+    if (
+      data.length < 100
+    ) {
+
+      break;
+
+    }
+
+  }
+
+
+  /*
+    Pull Requests को registration
+    list से हटाना
+  */
+
+  return allIssues.filter(
+    issue =>
+      !issue.pull_request
+  );
+
+}
+
+
+/* =========================================================
+   ISSUE FIELD READER
+========================================================= */
+
+function getField(
+  body,
+  label
+) {
+
+  const safeLabel =
+    String(label)
+      .replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
+
+
+  const regex =
+    new RegExp(
+
+      "\\*\\*" +
+      safeLabel +
+      ":\\*\\*\\s*(.*)",
+
+      "i"
+
+    );
+
+
+  const match =
+    String(body || "")
+      .match(regex);
+
+
+  if (!match)
+    return "";
+
+
+  return String(
+    match[1]
+  )
+    .replace(/^`/, "")
+    .replace(/`$/, "")
+    .trim();
+
+}
+
+
+/* =========================================================
+   GET IMAGE PATH
+   Supports:
+
+   **Image Path:** `gayatri-chetna/images/abc.jpg`
+
+   and
+
+   **Image Path:** gayatri-chetna/images/abc.jpg
+========================================================= */
+
+function getImagePath(body) {
+
+  const text =
+    String(body || "");
+
+
+  /*
+    New format
+  */
+
+  let match =
+    text.match(
+      /\*\*Image Path:\*\*\s*`([^`]+)`/i
+    );
+
+
+  if (match) {
+
+    return match[1]
+      .trim();
+
+  }
+
+
+  /*
+    Without backticks
+  */
+
+  match =
+    text.match(
+      /\*\*Image Path:\*\*\s*([^\r\n]+)/i
+    );
+
+
+  if (match) {
+
+    return match[1]
+      .trim()
+      .replace(/^`/, "")
+      .replace(/`$/, "");
+
+  }
+
+
+  /*
+    Old Image URL support
+  */
+
+  match =
+    text.match(
+      /\*\*Image URL:\*\*\s*(https?:\/\/[^\s]+)/i
+    );
+
+
+  if (match) {
+
+    return "";
+
+  }
+
+
+  return "";
+
+}
+
+
+/* =========================================================
+   PARSE ISSUE
+========================================================= */
+
+function parseIssue(issue) {
+
+  const body =
+    issue.body || "";
+
+
+  const registrationID =
+    getField(
+      body,
+      "पंजीकरण क्रमांक"
+    );
+
+
+  const name =
+    getField(
+      body,
+      "नाम"
+    );
+
+
+  const fatherName =
+    getField(
+      body,
+      "पिता का नाम"
+    );
+
+
+  const mobile =
+    getField(
+      body,
+      "मोबाइल नंबर"
+    );
+
+
+  const age =
+    getField(
+      body,
+      "आयु"
+    );
+
+
+  const city =
+    getField(
+      body,
+      "शहर / कस्बा / ग्राम"
+    );
+
+
+  const education =
+    getField(
+      body,
+      "शिक्षा"
+    );
+
+
+  const income =
+    getField(
+      body,
+      "आय / Income"
+    );
+
+
+  const dikshaTaken =
+    getField(
+      body,
+      "दीक्षा ली है?"
+    );
+
+
+  const dikshaDate =
+    getField(
+      body,
+      "दीक्षा की तिथि"
+    );
+
+
+  const dikshaPlace =
+    getField(
+      body,
+      "दीक्षा का स्थान"
+    );
+
+
+  /*
+    अंशदान
+  */
+
+  let anshdaan = "";
+
+
+  const anshMatch =
+    body.match(
+      /##\s*अंशदान\s*([\s\S]*?)(?=---|##\s*समयदान|##\s*फोटो|$)/i
+    );
+
+
+  if (anshMatch) {
+
+    anshdaan =
+      anshMatch[1]
+        .trim();
+
+  }
+
+
+  /*
+    समयदान
+  */
+
+  let samaydaan = "";
+
+
+  const samayMatch =
+    body.match(
+      /##\s*समयदान\s*([\s\S]*?)(?=---|##\s*फोटो|$)/i
+    );
+
+
+  if (samayMatch) {
+
+    samaydaan =
+      samayMatch[1]
+        .trim();
+
+  }
+
+
+  /*
+    Image Path
+  */
+
+  const imagePath =
+    getImagePath(
+      body
+    );
+
+
+  return {
+
+    issueNumber:
+      issue.number,
+
+    id:
+      registrationID,
+
+    name:
+      name,
+
+    fatherName:
+      fatherName,
+
+    mobile:
+      mobile,
+
+    age:
+      age,
+
+    city:
+      city,
+
+    education:
+      education,
+
+    income:
+      income,
+
+    dikshaTaken:
+      dikshaTaken,
+
+    dikshaDate:
+      dikshaDate,
+
+    dikshaPlace:
+      dikshaPlace,
+
+    anshdaan:
+      anshdaan,
+
+    samaydaan:
+      samaydaan,
+
+    /*
+      EXACT IMAGE PATH
+    */
+
+    imagePath:
+      imagePath,
+
+    /*
+      Offline Base64 image
+    */
+
+    image:
+      "",
+
+    issueURL:
+      issue.html_url ||
+      "",
+
+    createdAt:
+      issue.created_at ||
+      ""
+
+  };
+
+}
+
+
+/* =========================================================
+   PRIVATE REPOSITORY IMAGE LOADER
+
+   Issue
+      ↓
+   Image Path
+      ↓
+   GitHub Contents API
+      ↓
+   Private Repository
+      ↓
+   Base64
+      ↓
+   IndexedDB
+========================================================= */
+
+async function loadPrivateImage(
+  imagePath
+) {
+
+  if (
+    !githubConfig ||
+    !imagePath
+  ) {
+
+    return "";
+
+  }
+
+
+  try {
+
+    const url =
+      githubContentURL(
+        imagePath
+      );
+
+
+    if (!url)
+      return "";
+
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: "GET",
+          headers:
+            githubHeaders()
+        }
+      );
+
+
+    if (!response.ok) {
+
+      console.warn(
+        "Private image failed:",
+        imagePath,
+        response.status
+      );
+
+
+      return "";
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !data ||
+      !data.content
+    ) {
+
+      return "";
+
+    }
+
+
+    const base64 =
+      String(
+        data.content
+      )
+      .replace(/\s/g, "");
+
+
+    /*
+      MIME type
+    */
+
+    let mime =
+      "image/jpeg";
+
+
+    const lower =
+      imagePath
+        .toLowerCase();
+
+
+    if (
+      lower.endsWith(".png")
+    ) {
+
+      mime =
+        "image/png";
+
+    }
+
+
+    else if (
+      lower.endsWith(".webp")
+    ) {
+
+      mime =
+        "image/webp";
+
+    }
+
+
+    else if (
+      lower.endsWith(".gif")
+    ) {
+
+      mime =
+        "image/gif";
+
+    }
+
+
+    else if (
+      lower.endsWith(".jpg") ||
+      lower.endsWith(".jpeg")
+    ) {
+
+      mime =
+        "image/jpeg";
+
+    }
+
+
+    return (
+      "data:" +
+      mime +
+      ";base64," +
+      base64
+    );
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Private image error:",
+      imagePath,
+      error
+    );
+
+
+    return "";
+
+  }
+
+}
+
+
+/* =========================================================
+   LOAD IMAGES
+========================================================= */
+
+async function loadImages(
+  items
+) {
+
+  const total =
+    items.length;
+
+
+  let loaded =
+    0;
+
+
+  for (
+    const item of items
+  ) {
+
+    loaded++;
+
+
+    /*
+      Already cached image
+    */
+
+    if (
+      item.image
+    ) {
+
+      continue;
+
+    }
+
+
+    /*
+      No image path
+    */
+
+    if (
+      !item.imagePath
+    ) {
+
+      continue;
+
+    }
+
+
+    showSync(
+      `फोटो लोड हो रही है... ${loaded}/${total}`
+    );
+
+
+    const image =
+      await loadPrivateImage(
+        item.imagePath
+      );
+
+
+    if (image) {
+
+      item.image =
+        image;
+
+    }
+
+  }
+
+
+  hideSync();
+
+
+  return items;
+
+}
+
+
+/* =========================================================
+   ONLINE SYNC
+========================================================= */
+
+async function syncFromGitHub() {
+
+  showSync(
+    "GitHub से पंजीकरण जानकारी लोड हो रही है..."
+  );
+
+
+  const issues =
+    await getAllIssues();
+
+
+  let parsed =
+    issues.map(
+      parseIssue
+    );
+
+
+  /*
+    खाली issue remove
+  */
+
+  parsed =
+    parsed.filter(
+      item =>
+        item.id ||
+        item.name ||
+        item.mobile
+    );
+
+
+  /*
+    Newest first
+  */
+
+  parsed.sort(
+    (a, b) => {
+
+      const aTime =
+        new Date(
+          a.createdAt
+        ).getTime() || 0;
+
+
+      const bTime =
+        new Date(
+          b.createdAt
+        ).getTime() || 0;
+
+
+      return bTime - aTime;
+
+    }
+  );
+
+
+  /*
+    Photos
+  */
+
+  parsed =
+    await loadImages(
+      parsed
+    );
+
+
+  registrations =
+    parsed;
+
+
+  /*
+    IMPORTANT
+
+    Data + photos दोनों
+    IndexedDB में save होंगे
+  */
+
+  await saveOfflineData();
+
+
+  return registrations;
+
+}
+
+
+/* =========================================================
+   RENDER REGISTRATION LIST
+========================================================= */
+
+function renderList(
+  items
+) {
+
+  if (
+    !items ||
+    !items.length
+  ) {
+
+    registrationList.innerHTML = `
+
+      <div class="status">
+        कोई पंजीकरण नहीं मिला।
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  registrationList.innerHTML =
+    "";
+
+
+  items.forEach(
+    item => {
+
+      const strip =
+        document.createElement(
+          "div"
+        );
+
+
+      strip.className =
+        "registration-strip";
+
+
+      /*
+        PHOTO
+      */
+
+      let photoHTML;
+
+
+      if (
+        item.image
+      ) {
+
+        photoHTML = `
+
+          <img
+            class="photo-thumb"
+            src="${escapeHTML(item.image)}"
+            alt="पंजीकरण फोटो"
+          >
+
+        `;
+
+      }
+
+      else {
+
+        photoHTML = `
+
+          <div
+            class="no-photo"
+          >
+            फोटो
+            <br>
+            उपलब्ध नहीं
+          </div>
+
+        `;
+
+      }
+
+
+      /*
+        STRIP
+      */
+
+      strip.innerHTML = `
+
+        ${photoHTML}
+
+
+        <div
+          class="registration-info"
+        >
+
+          <div
+            class="registration-name"
+          >
+            ${escapeHTML(
+              item.name ||
+              "नाम उपलब्ध नहीं"
+            )}
+          </div>
+
+
+          <div
+            class="registration-place"
+          >
+            ${escapeHTML(
+              item.city ||
+              "स्थान उपलब्ध नहीं"
+            )}
+          </div>
+
+
+          <div
+            class="registration-id"
+          >
+            ${escapeHTML(
+              item.id ||
+              "पंजीकरण क्रमांक उपलब्ध नहीं"
+            )}
+          </div>
+
+        </div>
+
+
+        <button
+          class="id-card-button"
+          type="button"
+        >
+          आईडी कार्ड बनाएं
+        </button>
+
+
+        <div
+          class="arrow"
+          aria-label="विवरण देखें"
+        >
+          ›
+        </div>
+
+      `;
+
+
+      /*
+        INFO CLICK
+      */
+
+      const info =
+        strip.querySelector(
+          ".registration-info"
+        );
+
+
+      info.addEventListener(
+        "click",
+        function () {
+
+          showDetail(
+            item
+          );
+
+        }
+      );
+
+
+      /*
+        PHOTO CLICK
+      */
+
+      const photo =
+        strip.querySelector(
+          ".photo-thumb"
+        );
+
+
+      if (photo) {
+
+        photo.addEventListener(
+          "click",
+          function () {
+
+            showDetail(
+              item
+            );
+
+          }
+        );
+
+      }
+
+
+      /*
+        ARROW
+      */
+
+      const arrow =
+        strip.querySelector(
+          ".arrow"
+        );
+
+
+      arrow.addEventListener(
+        "click",
+        function () {
+
+          showDetail(
+            item
+          );
+
+        }
+      );
+
+
+      /*
+        ID CARD BUTTON
+      */
+
+      const idCardButton =
+        strip.querySelector(
+          ".id-card-button"
+        );
+
+
+      idCardButton.addEventListener(
+        "click",
+        async function (event) {
+
+          event.stopPropagation();
+
+
+          await downloadIDCard(
+            item
+          );
+
+        }
+      );
+
+
+      registrationList.appendChild(
+        strip
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+function performSearch() {
+
+  if (!searchBox)
+    return;
+
+
+  const query =
+    normalize(
+      searchBox.value
+    );
+
+
+  /*
+    Empty search
+  */
+
+  if (!query) {
+
+    renderList(
+      registrations
+    );
+
+    return;
+
+  }
+
+
+  /*
+    Search fields
+
+    ✓ नाम
+    ✓ पंजीकरण क्रमांक
+    ✓ मोबाइल
+    ✓ पिता का नाम
+    ✓ शहर
+  */
+
+  const filtered =
+    registrations.filter(
+      item => {
+
+        return [
+
+          item.name,
+
+          item.id,
+
+          item.mobile,
+
+          item.fatherName,
+
+          item.city
+
+        ].some(
+          value =>
+            normalize(
+              value
+            ).includes(
+              query
+            )
+        );
+
+      }
+    );
+
+
+  renderList(
+    filtered
+  );
+
+}
+
+
+if (searchBox) {
+
+  searchBox.addEventListener(
+    "input",
+    performSearch
+  );
+
+}
+
+
+/* =========================================================
+   DETAIL ROW
+========================================================= */
+
+function detailRow(
+  label,
+  value
+) {
+
+  return `
+
+    <div
+      class="detail-row"
+    >
+
+      <div
+        class="detail-label"
+      >
+        ${escapeHTML(
+          label
+        )}
+      </div>
+
+
+      <div
+        class="detail-value"
+      >
+        ${escapeHTML(
+          value || "—"
+        )}
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   DETAIL VIEW
+========================================================= */
+
+function showDetail(
+  item
+) {
+
+  listView.style.display =
+    "none";
+
+
+  detailView.style.display =
+    "block";
+
+
+  let photo;
+
+
+  if (
+    item.image
+  ) {
+
+    photo = `
+
+      <div
+        class="detail-photo"
+      >
+
+        <img
+          src="${escapeHTML(item.image)}"
+          alt="पंजीकरण फोटो"
+        >
+
+      </div>
+
+    `;
+
+  }
+
+  else {
+
+    photo = `
+
+      <div
+        class="detail-no-photo"
+      >
+        फोटो उपलब्ध नहीं
+      </div>
+
+    `;
+
+  }
+
+
+  detailCard.innerHTML = `
+
+    ${photo}
+
+
+    <h2
+      class="detail-title"
+    >
+      ${escapeHTML(
+        item.name ||
+        "पंजीकरण"
+      )}
+    </h2>
+
+
+    <div
+      class="detail-registration-id"
+    >
+      ${escapeHTML(
+        item.id ||
+        ""
+      )}
+    </div>
+
+
+    ${detailRow(
+      "नाम",
+      item.name
+    )}
+
+
+    ${detailRow(
+      "पिता का नाम",
+      item.fatherName
+    )}
+
+
+    ${detailRow(
+      "मोबाइल नंबर",
+      item.mobile
+    )}
+
+
+    ${detailRow(
+      "आयु",
+      item.age
+    )}
+
+
+    ${detailRow(
+      "शहर / कस्बा / ग्राम",
+      item.city
+    )}
+
+
+    ${detailRow(
+      "शिक्षा",
+      item.education
+    )}
+
+
+    ${detailRow(
+      "आय",
+      item.income
+    )}
+
+
+    ${detailRow(
+      "दीक्षा ली है?",
+      item.dikshaTaken
+    )}
+
+
+    ${detailRow(
+      "दीक्षा की तिथि",
+      item.dikshaDate
+    )}
+
+
+    ${detailRow(
+      "दीक्षा का स्थान",
+      item.dikshaPlace
+    )}
+
+
+    <h3
+      class="section-title"
+    >
+      दान विवरण
+    </h3>
+
+
+    ${detailRow(
+      "अंशदान",
+      item.anshdaan
+    )}
+
+
+    ${detailRow(
+      "समयदान",
+      item.samaydaan
+    )}
+
+
+    <button
+      id="detailIDCardButton"
+      class="main-button"
+      style="margin-top:14px"
+      type="button"
+    >
+      आईडी कार्ड डाउनलोड करें
+    </button>
+
+  `;
+
+
+  const cardButton =
+    document.getElementById(
+      "detailIDCardButton"
+    );
+
+
+  if (cardButton) {
+
+    cardButton.addEventListener(
+      "click",
+      function () {
+
+        downloadIDCard(
+          item
+        );
+
+      }
+    );
+
+  }
+
+
+  window.scrollTo(
+    0,
+    0
+  );
+
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+if (backButton) {
+
+  backButton.addEventListener(
+    "click",
+    function () {
+
+      detailView.style.display =
+        "none";
+
+
+      listView.style.display =
+        "block";
+
+
+      window.scrollTo(
+        0,
+        0
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   CANVAS IMAGE LOADER
+========================================================= */
+
+function loadImageForCanvas(
+  source
+) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const image =
+        new Image();
+
+
+      image.onload =
+        function () {
+
+          resolve(
+            image
+          );
+
+        };
+
+
+      image.onerror =
+        function () {
+
+          reject(
+            new Error(
+              "फोटो/लोगो लोड नहीं हो पाया।"
+            )
+          );
+
+        };
+
+
+      image.src =
+        source;
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   ROUNDED RECTANGLE
+========================================================= */
+
+function roundedRect(
+  ctx,
+  x,
+  y,
+  width,
+  height,
+  radius
+) {
+
+  const r =
+    Math.min(
+      radius,
+      width / 2,
+      height / 2
+    );
+
+
+  ctx.beginPath();
+
+
+  ctx.moveTo(
+    x + r,
+    y
+  );
+
+
+  ctx.arcTo(
+    x + width,
+    y,
+    x + width,
+    y + height,
+    r
+  );
+
+
+  ctx.arcTo(
+    x + width,
+    y + height,
+    x,
+    y + height,
+    r
+  );
+
+
+  ctx.arcTo(
+    x,
+    y + height,
+    x,
+    y,
+    r
+  );
+
+
+  ctx.arcTo(
+    x,
+    y,
+    x + width,
+    y,
+    r
+  );
+
+
+  ctx.closePath();
+
+}
+
+
+/* =========================================================
+   COVER IMAGE
+========================================================= */
+
+function drawCoverImage(
+  ctx,
+  image,
+  x,
+  y,
+  width,
+  height,
+  radius
+) {
+
+  const sourceWidth =
+    image.naturalWidth;
+
+
+  const sourceHeight =
+    image.naturalHeight;
+
+
+  const scale =
+    Math.max(
+      width / sourceWidth,
+      height / sourceHeight
+    );
+
+
+  const cropWidth =
+    width / scale;
+
+
+  const cropHeight =
+    height / scale;
+
+
+  const sourceX =
+    (
+      sourceWidth -
+      cropWidth
+    ) / 2;
+
+
+  const sourceY =
+    (
+      sourceHeight -
+      cropHeight
+    ) / 2;
+
+
+  ctx.save();
+
+
+  roundedRect(
+    ctx,
+    x,
+    y,
+    width,
+    height,
+    radius
+  );
+
+
+  ctx.clip();
+
+
+  ctx.drawImage(
+
+    image,
+
+    sourceX,
+    sourceY,
+
+    cropWidth,
+    cropHeight,
+
+    x,
+    y,
+    width,
+    height
+
+  );
+
+
+  ctx.restore();
+
+}
+
+
+/* =========================================================
+   TEXT FIT
+========================================================= */
+
+function fitText(
+  ctx,
+  text,
+  maxWidth,
+  startSize,
+  minimumSize
+) {
+
+  let size =
+    startSize;
+
+
+  while (
+    size > minimumSize
+  ) {
+
+    ctx.font =
+      `700 ${size}px "Noto Sans Devanagari", "Nirmala UI", Arial, sans-serif`;
+
+
+    if (
+      ctx.measureText(
+        text
+      ).width <= maxWidth
+    ) {
+
+      break;
+
+    }
+
+
+    size--;
+
+  }
+
+
+  return size;
+
+}
+
+
+/* =========================================================
+   TRADITIONAL DECORATION
+========================================================= */
+
+function drawDecoration(
+  ctx,
+  x,
+  y
+) {
+
+  ctx.save();
+
+
+  ctx.strokeStyle =
+    "#f28c00";
+
+
+  ctx.lineWidth =
+    3;
+
+
+  ctx.beginPath();
+
+
+  ctx.arc(
+    x,
+    y,
+    18,
+    0,
+    Math.PI * 2
+  );
+
+
+  ctx.stroke();
+
+
+  ctx.beginPath();
+
+
+  ctx.arc(
+    x,
+    y,
+    9,
+    0,
+    Math.PI * 2
+  );
+
+
+  ctx.stroke();
+
+
+  ctx.restore();
+
+}
+
+
+/* =========================================================
+   ID CARD
+========================================================= */
+
+async function downloadIDCard(
+  item
+) {
+
+  try {
+
+    /*
+      अगर image पहले से IndexedDB
+      से उपलब्ध है तो वही इस्तेमाल होगी।
+
+      अगर नहीं है और internet है,
+      तो private repository से लेंगे।
+    */
+
+    if (
+      !item.image &&
+      item.imagePath &&
+      navigator.onLine
+    ) {
+
+      showSync(
+        "आईडी कार्ड के लिए फोटो लोड हो रही है..."
+      );
+
+
+      const image =
+        await loadPrivateImage(
+          item.imagePath
+        );
+
+
+      if (image) {
+
+        item.image =
+          image;
+
+
+        /*
+          Offline में भी save
+        */
+
+        await saveOfflineData();
+
+      }
+
+
+      hideSync();
+
+    }
+
+
+    /*
+      Photo जरूरी है
+    */
+
+    if (
+      !item.image
+    ) {
+
+      throw new Error(
+        "इस पंजीकरण की फोटो उपलब्ध नहीं है। पहले Internet के साथ Sync करें।"
+      );
+
+    }
+
+
+    /*
+      Website logo
+
+      show-all.html के साथ
+      logo.png होना चाहिए।
+    */
+
+    const logo =
+      await loadImageForCanvas(
+        "./logo.png"
+      );
+
+
+    /*
+      Registration photo
+    */
+
+    const photo =
+      await loadImageForCanvas(
+        item.image
+      );
+
+
+    /* =====================================================
+       CANVAS SIZE
+    ===================================================== */
+
+    const canvas =
+      document.createElement(
+        "canvas"
+      );
+
+
+    canvas.width =
+      1400;
+
+
+    canvas.height =
+      820;
+
+
+    const ctx =
+      canvas.getContext(
+        "2d"
+      );
+
+
+    /*
+      Hindi font
+    */
+
+    const hindiFont =
+      '"Noto Sans Devanagari", "Nirmala UI", "Mangal", Arial, sans-serif';
+
+
+    const hindiBold =
+      `700 32px ${hindiFont}`;
+
+
+    const hindiNormal =
+      `500 28px ${hindiFont}`;
+
+
+    /* =====================================================
+       CARD BACKGROUND
+    ===================================================== */
+
+    ctx.fillStyle =
+      "#fffaf0";
+
+
+    ctx.fillRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+
+    /* =====================================================
+       OUTER ORANGE BORDER
+    ===================================================== */
+
+    ctx.strokeStyle =
+      "#f28c00";
+
+
+    ctx.lineWidth =
+      12;
+
+
+    roundedRect(
+      ctx,
+      12,
+      12,
+      1376,
+      796,
+      34
+    );
+
+
+    ctx.stroke();
+
+
+    /* =====================================================
+       INNER BROWN BORDER
+    ===================================================== */
+
+    ctx.strokeStyle =
+      "#8b5a20";
+
+
+    ctx.lineWidth =
+      3;
+
+
+    roundedRect(
+      ctx,
+      30,
+      30,
+      1340,
+      760,
+      27
+    );
+
+
+    ctx.stroke();
+
+
+    /* =====================================================
+       HEADER
+    ===================================================== */
+
+    ctx.fillStyle =
+      "#f28c00";
+
+
+    roundedRect(
+      ctx,
+      38,
+      38,
+      1324,
+      190,
+      25
+    );
+
+
+    ctx.fill();
+
+
+    /*
+      Header inner decorative line
+    */
+
+    ctx.strokeStyle =
+      "#ffe2a8";
+
+
+    ctx.lineWidth =
+      3;
+
+
+    roundedRect(
+      ctx,
+      52,
+      52,
+      1296,
+      162,
+      20
+    );
+
+
+    ctx.stroke();
+
+
+    /* =====================================================
+       LOGO - TOP LEFT
+    ===================================================== */
+
+    ctx.save();
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+      135,
+      133,
+      75,
+      0,
+      Math.PI * 2
+    );
+
+
+    ctx.clip();
+
+
+    ctx.fillStyle =
+      "#ffffff";
+
+
+    ctx.fillRect(
+      60,
+      58,
+      150,
+      150
+    );
+
+
+    ctx.drawImage(
+      logo,
+      60,
+      58,
+      150,
+      150
+    );
+
+
+    ctx.restore();
+
+
+    /*
+      Logo ring
+    */
+
+    ctx.strokeStyle =
+      "#ffffff";
+
+
+    ctx.lineWidth =
+      5;
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+      135,
+      133,
+      78,
+      0,
+      Math.PI * 2
+    );
+
+
+    ctx.stroke();
+
+
+    /* =====================================================
+       HEADER TITLE - FULL HINDI
+    ===================================================== */
+
+    const title =
+      "गायत्री चेतना केंद्र चिलबिला प्रतापगढ़";
+
+
+    const subtitle =
+      "अखिल विश्व गायत्री परिवार शांतिकुंज";
+
+
+    ctx.textAlign =
+      "center";
+
+
+    ctx.textBaseline =
+      "middle";
+
+
+    /*
+      Title size
+    */
+
+    const titleSize =
+      fitText(
+        ctx,
+        title,
+        980,
+        43,
+        25
+      );
+
+
+    ctx.font =
+      `700 ${titleSize}px ${hindiFont}`;
+
+
+    ctx.fillStyle =
+      "#ffffff";
+
+
+    ctx.fillText(
+      title,
+      770,
+      105
+    );
+
+
+    /*
+      Subtitle
+    */
+
+    const subtitleSize =
+      fitText(
+        ctx,
+        subtitle,
+        850,
+        26,
+        16
+      );
+
+
+    ctx.font =
+      `600 ${subtitleSize}px ${hindiFont}`;
+
+
+    ctx.fillText(
+      subtitle,
+      770,
+      158
+    );
+
+
+    /* =====================================================
+       MAIN CONTENT WHITE BOX
+    ===================================================== */
+
+    ctx.fillStyle =
+      "#ffffff";
+
+
+    roundedRect(
+      ctx,
+      65,
+      260,
+      1270,
+      475,
+      25
+    );
+
+
+    ctx.fill();
+
+
+    /*
+      Content border
+    */
+
+    ctx.strokeStyle =
+      "#edcf9e";
+
+
+    ctx.lineWidth =
+      2;
+
+
+    roundedRect(
+      ctx,
+      65,
+      260,
+      1270,
+      475,
+      25
+    );
+
+
+    ctx.stroke();
+
+
+    /* =====================================================
+       PHOTO - LEFT
+    ===================================================== */
+
+    drawCoverImage(
+      ctx,
+      photo,
+      105,
+      305,
+      325,
+      375,
+      18
+    );
+
+
+    /*
+      Photo border
+    */
+
+    ctx.strokeStyle =
+      "#f28c00";
+
+
+    ctx.lineWidth =
+      6;
+
+
+    roundedRect(
+      ctx,
+      105,
+      305,
+      325,
+      375,
+      18
+    );
+
+
+    ctx.stroke();
+
+
+    /* =====================================================
+       DETAILS
+    ===================================================== */
+
+    const detailX =
+      500;
+
+
+    const rightX =
+      1060;
+
+
+    /*
+      NAME LABEL
+    */
+
+    ctx.textAlign =
+      "left";
+
+
+    ctx.fillStyle =
+      "#8b5a20";
+
+
+    ctx.font =
+      hindiBold;
+
+
+    ctx.fillText(
+      "नाम",
+      detailX,
+      330
+    );
+
+
+    /*
+      NAME VALUE
+    */
+
+    const name =
+      item.name ||
+      "—";
+
+
+    const nameSize =
+      fitText(
+        ctx,
+        name,
+        500,
+        39,
+        21
+      );
+
+
+    ctx.font =
+      `700 ${nameSize}px ${hindiFont}`;
+
+
+    ctx.fillStyle =
+      "#4b2b0b";
+
+
+    ctx.fillText(
+      name,
+      detailX,
+      375
+    );
+
+
+    /*
+      AGE LABEL
+    */
+
+    ctx.fillStyle =
+      "#8b5a20";
+
+
+    ctx.font =
+      hindiBold;
+
+
+    ctx.fillText(
+      "आयु",
+      rightX,
+      330
+    );
+
+
+    /*
+      AGE VALUE
+    */
+
+    ctx.fillStyle =
+      "#4b2b0b";
+
+
+    ctx.font =
+      `700 34px ${hindiFont}`;
+
+
+    ctx.fillText(
+      item.age ||
+      "—",
+      rightX,
+      375
+    );
+
+
+    /* =====================================================
+       DIVIDER 1
+    ===================================================== */
+
+    ctx.strokeStyle =
+      "#edcf9e";
+
+
+    ctx.lineWidth =
+      2;
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+      detailX,
+      410
+    );
+
+
+    ctx.lineTo(
+      1285,
+      410
+    );
+
+
+    ctx.stroke();
+
+
+    /* =====================================================
+       MOBILE
+    ===================================================== */
+
+    ctx.fillStyle =
+      "#8b5a20";
+
+
+    ctx.font =
+      hindiBold;
+
+
+    ctx.fillText(
+      "मोबाइल नंबर",
+      detailX,
+      455
+    );
+
+
+    ctx.fillStyle =
+      "#4b2b0b";
+
+
+    ctx.font =
+      `700 34px ${hindiFont}`;
+
+
+    ctx.fillText(
+      item.mobile ||
+      "—",
+      detailX,
+      500
+    );
+
+
+    /* =====================================================
+       DIVIDER 2
+    ===================================================== */
+
+    ctx.strokeStyle =
+      "#edcf9e";
+
+
+    ctx.lineWidth =
+      2;
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+      detailX,
+      530
+    );
+
+
+    ctx.lineTo(
+      1285,
+      530
+    );
+
+
+    ctx.stroke();
+
+
+    /* =====================================================
+       REGISTRATION ID
+    ===================================================== */
+
+    ctx.fillStyle =
+      "#8b5a20";
+
+
+    ctx.font =
+      hindiBold;
+
+
+    ctx.fillText(
+      "पंजीकरण क्रमांक",
+      detailX,
+      575
+    );
+
+
+    const registrationID =
+      item.id ||
+      "—";
+
+
+    const idSize =
+      fitText(
+        ctx,
+        registrationID,
+        760,
+        34,
+        18
+      );
+
+
+    ctx.fillStyle =
+      "#4b2b0b";
+
+
+    ctx.font =
+      `700 ${idSize}px ${hindiFont}`;
+
+
+    ctx.fillText(
+      registrationID,
+      detailX,
+      620
+    );
+
+
+    /* =====================================================
+       FOOTER
+    ===================================================== */
+
+    ctx.fillStyle =
+      "#8b5a20";
+
+
+    ctx.font =
+      `600 18px ${hindiFont}`;
+
+
+    ctx.fillText(
+      "गायत्री चेतना केंद्र",
+      detailX,
+      682
+    );
+
+
+    /* =====================================================
+       DECORATIVE CORNERS
+    ===================================================== */
+
+    drawDecoration(
+      ctx,
+      80,
+      250
+    );
+
+
+    drawDecoration(
+      ctx,
+      1320,
+      250
+    );
+
+
+    drawDecoration(
+      ctx,
+      80,
+      725
+    );
+
+
+    drawDecoration(
+      ctx,
+      1320,
+      725
+    );
+
+
+    /* =====================================================
+       DOWNLOAD FILE NAME
+    ===================================================== */
+
+    const safeID =
+      String(
+        item.id ||
+        item.issueNumber ||
+        "pंजीकरण"
+      )
+      .replace(
+        /[^a-zA-Z0-9_-]+/g,
+        "_"
+      );
+
+
+    const downloadLink =
+      document.createElement(
+        "a"
+      );
+
+
+    downloadLink.download =
+      "गायत्री-आईडी-कार्ड-" +
+      safeID +
+      ".png";
+
+
+    downloadLink.href =
+      canvas.toDataURL(
+        "image/png"
+      );
+
+
+    document.body.appendChild(
+      downloadLink
+    );
+
+
+    downloadLink.click();
+
+
+    downloadLink.remove();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "ID CARD ERROR:",
+      error
+    );
+
+
+    alert(
+      error.message ||
+      "आईडी कार्ड नहीं बन पाया।"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   REFRESH / SYNC
+========================================================= */
+
+if (refreshButton) {
+
+  refreshButton.addEventListener(
+    "click",
+    async function () {
+
+      if (!githubConfig)
+        return;
+
+
+      refreshButton.disabled =
+        true;
+
+
+      refreshButton.textContent =
+        "सिंक हो रहा है...";
+
+
+      try {
+
+        registrations =
+          await syncFromGitHub();
+
+
+        performSearch();
+
+
+        showSync(
+          `सिंक पूरा हुआ • ${registrations.length} पंजीकरण उपलब्ध हैं।`
+        );
+
+
+        setTimeout(
+          hideSync,
+          2500
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          error
+        );
+
+
+        if (
+          registrations.length
+        ) {
+
+          showSync(
+            "इंटरनेट से नया डेटा नहीं मिला। ऑफलाइन सेव डेटा दिखाया जा रहा है।"
+          );
+
+        }
+
+        else {
+
+          alert(
+            error.message
+          );
+
+        }
+
+      }
+
+      finally {
+
+        refreshButton.disabled =
+          false;
+
+
+        refreshButton.textContent =
+          "↻ सिंक";
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+if (logoutButton) {
+
+  logoutButton.addEventListener(
+    "click",
+    function () {
+
+      clearLogin();
+
+
+      registrations =
+        [];
+
+
+      if (registrationList) {
+
+        registrationList.innerHTML =
+          "";
+
+      }
+
+
+      if (searchBox) {
+
+        searchBox.value =
+          "";
+
+      }
+
+
+      if (listView) {
+
+        listView.style.display =
+          "none";
+
+      }
+
+
+      if (detailView) {
+
+        detailView.style.display =
+          "none";
+
+      }
+
+
+      if (loginView) {
+
+        loginView.style.display =
+          "block";
+
+      }
+
+
+      if (usernameInput) {
+
+        usernameInput.value =
+          "";
+
+      }
+
+
+      if (repoInput) {
+
+        repoInput.value =
+          "";
+
+      }
+
+
+      if (tokenInput) {
+
+        tokenInput.value =
+          "";
+
+      }
+
+
+      hideError();
+
+      hideSync();
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+if (loginButton) {
+
+  loginButton.addEventListener(
+    "click",
+    async function () {
+
+      hideError();
+
+
+      const username =
+        usernameInput
+          ?.value
+          .trim();
+
+
+      const repo =
+        repoInput
+          ?.value
+          .trim();
+
+
+      const token =
+        tokenInput
+          ?.value
+          .trim();
+
+
+      if (
+        !username ||
+        !repo ||
+        !token
+      ) {
+
+        showError(
+          "GitHub Username, Repository और Token तीनों भरें।"
+        );
+
+
+        return;
+
+      }
+
+
+      githubConfig = {
+
+        username:
+          username,
+
+        repo:
+          repo,
+
+        token:
+          token
+
+      };
+
+
+      loginButton.disabled =
+        true;
+
+
+      loginButton.textContent =
+        "लोड हो रहा है...";
+
+
+      try {
+
+        /*
+          Online GitHub sync
+        */
+
+        registrations =
+          await syncFromGitHub();
+
+
+        /*
+          Login save
+        */
+
+        saveLogin();
+
+
+        /*
+          List show
+        */
+
+        loginView.style.display =
+          "none";
+
+
+        detailView.style.display =
+          "none";
+
+
+        listView.style.display =
+          "block";
+
+
+        renderList(
+          registrations
+        );
+
+
+        showSync(
+          `ऑनलाइन • ${registrations.length} पंजीकरण लोड हुए`
+        );
+
+
+        setTimeout(
+          hideSync,
+          2500
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          error
+        );
+
+
+        /*
+          Internet failed:
+          Offline data try
+        */
+
+        const saved =
+          await loadOfflineData();
+
+
+        if (
+          saved &&
+          Array.isArray(
+            saved.registrations
+          ) &&
+          saved.registrations.length
+        ) {
+
+          registrations =
+            saved.registrations;
+
+
+          saveLogin();
+
+
+          loginView.style.display =
+            "none";
+
+
+          detailView.style.display =
+            "none";
+
+
+          listView.style.display =
+            "block";
+
+
+          renderList(
+            registrations
+          );
+
+
+          showSync(
+            `ऑफलाइन मोड • ${registrations.length} पंजीकरण उपलब्ध`
+          );
+
+        }
+
+        else {
+
+          githubConfig =
+            null;
+
+
+          showError(
+            error.message ||
+            "डेटा लोड नहीं हो पाया।"
+          );
+
+        }
+
+      }
+
+      finally {
+
+        loginButton.disabled =
+          false;
+
+
+        loginButton.textContent =
+          "सुरक्षित रूप से खोलें";
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   START APPLICATION
+========================================================= */
+
+async function startApplication() {
+
+  /*
+    SERVICE WORKER
+  */
+
+  if (
+    "serviceWorker" in
+    navigator
+  ) {
+
+    try {
+
+      await navigator
+        .serviceWorker
+        .register(
+          "./sw.js"
+        );
+
+
+      console.log(
+        "Service Worker registered."
+      );
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "Service Worker error:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /*
+    SAVED LOGIN
+  */
+
+  if (
+    !loadLogin()
+  ) {
+
+    return;
+
+  }
+
+
+  /*
+    FIRST:
+    Offline data तुरंत दिखाओ
+  */
+
+  const saved =
+    await loadOfflineData();
+
+
+  if (
+    saved &&
+    Array.isArray(
+      saved.registrations
+    )
+  ) {
+
+    registrations =
+      saved.registrations;
+
+
+    loginView.style.display =
+      "none";
+
+
+    detailView.style.display =
+      "none";
+
+
+    listView.style.display =
+      "block";
+
+
+    renderList(
+      registrations
+    );
+
+
+    showSync(
+      `ऑफलाइन सेव डेटा • ${registrations.length} पंजीकरण`
+    );
+
+  }
+
+
+  /*
+    SECOND:
+    Internet हो तो fresh sync
+  */
+
+  if (
+    navigator.onLine
+  ) {
+
+    try {
+
+      registrations =
+        await syncFromGitHub();
+
+
+      loginView.style.display =
+        "none";
+
+
+      detailView.style.display =
+        "none";
+
+
+      listView.style.display =
+        "block";
+
+
+      renderList(
+        registrations
+      );
+
+
+      showSync(
+        `ऑनलाइन सिंक • ${registrations.length} पंजीकरण`
+      );
+
+
+      setTimeout(
+        hideSync,
+        2500
+      );
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "Startup sync failed:",
+        error
+      );
+
+
+      /*
+        अगर offline data पहले से है,
+        तो उसे रहने दो।
+      */
+
+      if (
+        registrations.length === 0
+      ) {
+
+        loginView.style.display =
+          "block";
+
+
+        listView.style.display =
+          "none";
+
+
+        showError(
+          error.message
+        );
+
+      }
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   INTERNET वापस आने पर SYNC
+========================================================= */
+
+window.addEventListener(
+  "online",
+  async function () {
+
+    if (!githubConfig)
+      return;
+
+
+    try {
+
+      showSync(
+        "इंटरनेट वापस आ गया। डेटा सिंक हो रहा है..."
+      );
+
+
+      registrations =
+        await syncFromGitHub();
+
+
+      performSearch();
+
+
+      showSync(
+        `सिंक पूरा • ${registrations.length} पंजीकरण उपलब्ध`
+      );
+
+
+      setTimeout(
+        hideSync,
+        2500
+      );
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "Online sync error:",
+        error
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   START
+========================================================= */
+
+startApplication();
