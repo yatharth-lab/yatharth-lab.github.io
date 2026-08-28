@@ -15,6 +15,7 @@
    ✓ Manual ↻ Sync Button
    ✓ Detail View
    ✓ Hindi ID Card PNG
+   ✓ Photo Crop (Fixed Ratio)
    ✓ Service Worker
 ========================================================= */
 
@@ -23,3489 +24,1560 @@
    CONFIG
 ========================================================= */
 
-const STORAGE_KEY =
-  "gck_show_all_login";
-
-const DB_NAME =
-  "gayatri_chetna_offline_db";
-
+const STORAGE_KEY = "gck_show_all_login";
+const DB_NAME = "gayatri_chetna_offline_db";
 const DB_VERSION = 1;
-
-const STORE_NAME =
-  "registrations";
-
-const GITHUB_API_VERSION =
-  "2022-11-28";
-
+const STORE_NAME = "registrations";
+const GITHUB_API_VERSION = "2022-11-28";
 
 /* =========================================================
    GLOBAL
 ========================================================= */
 
 let githubConfig = null;
-
 let registrations = [];
-
 
 /* =========================================================
    DOM
 ========================================================= */
 
-const loginView =
-  document.getElementById("loginView");
+const loginView = document.getElementById("loginView");
+const listView = document.getElementById("listView");
+const detailView = document.getElementById("detailView");
+const usernameInput = document.getElementById("username");
+const repoInput = document.getElementById("repo");
+const tokenInput = document.getElementById("token");
+const loginButton = document.getElementById("loginButton");
+const loginError = document.getElementById("loginError");
+const searchBox = document.getElementById("search");
+const refreshButton = document.getElementById("refreshButton");
+const logoutButton = document.getElementById("logoutButton");
+const syncBox = document.getElementById("syncBox");
+const registrationList = document.getElementById("registrationList");
+const backButton = document.getElementById("backButton");
+const detailCard = document.getElementById("detailCard");
 
-const listView =
-  document.getElementById("listView");
+/* =========================================================
+   CROP MODAL ELEMENTS (Dynamic)
+========================================================= */
 
-const detailView =
-  document.getElementById("detailView");
+let cropModal = null;
+let cropImageElement = null;
+let cropSelectionElement = null;
+let cropCancelButton = null;
+let cropConfirmButton = null;
 
-const usernameInput =
-  document.getElementById("username");
+/* =========================================================
+   CROP STATE
+========================================================= */
 
-const repoInput =
-  document.getElementById("repo");
-
-const tokenInput =
-  document.getElementById("token");
-
-const loginButton =
-  document.getElementById("loginButton");
-
-const loginError =
-  document.getElementById("loginError");
-
-const searchBox =
-  document.getElementById("search");
-
-const refreshButton =
-  document.getElementById("refreshButton");
-
-const logoutButton =
-  document.getElementById("logoutButton");
-
-const syncBox =
-  document.getElementById("syncBox");
-
-const registrationList =
-  document.getElementById("registrationList");
-
-const backButton =
-  document.getElementById("backButton");
-
-const detailCard =
-  document.getElementById("detailCard");
-
+const cropState = {
+  imageElement: null,
+  selection: null,
+  startX: 0,
+  startY: 0,
+  isDragging: false,
+  isResizing: false,
+  currentX: 0,
+  currentY: 0,
+  currentWidth: 0,
+  currentHeight: 0,
+  imageDisplayWidth: 0,
+  imageDisplayHeight: 0,
+  imageNaturalWidth: 0,
+  imageNaturalHeight: 0,
+  aspectRatio: 325 / 375, // Fixed ratio for ID card photo
+  originalX: 0,
+  originalY: 0
+};
 
 /* =========================================================
    HTML ESCAPE
 ========================================================= */
 
-function escapeHTML(value){
-
+function escapeHTML(value) {
   return String(value ?? "")
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
-
 
 /* =========================================================
    SEARCH NORMALIZER
 ========================================================= */
 
-function normalize(value){
-
+function normalize(value) {
   return String(value ?? "")
     .normalize("NFKC")
     .toLocaleLowerCase("hi-IN")
-    .replace(/\s+/g," ")
+    .replace(/\s+/g, " ")
     .trim();
-
 }
-
 
 /* =========================================================
    ERROR
 ========================================================= */
 
-function showError(message){
-
-  if(!loginError)
-    return;
-
-  loginError.textContent =
-    message || "";
-
-  loginError.style.display =
-    "block";
-
+function showError(message) {
+  if (!loginError) return;
+  loginError.textContent = message || "";
+  loginError.style.display = "block";
 }
 
-
-function hideError(){
-
-  if(!loginError)
-    return;
-
-  loginError.textContent =
-    "";
-
-  loginError.style.display =
-    "none";
-
+function hideError() {
+  if (!loginError) return;
+  loginError.textContent = "";
+  loginError.style.display = "none";
 }
-
 
 /* =========================================================
    SYNC MESSAGE
 ========================================================= */
 
-function showSync(message){
-
-  if(!syncBox)
-    return;
-
-  syncBox.textContent =
-    message || "";
-
-  syncBox.style.display =
-    message
-      ? "block"
-      : "none";
-
+function showSync(message) {
+  if (!syncBox) return;
+  syncBox.textContent = message || "";
+  syncBox.style.display = message ? "block" : "none";
 }
 
-
-function hideSync(){
-
-  if(!syncBox)
-    return;
-
-  syncBox.textContent =
-    "";
-
-  syncBox.style.display =
-    "none";
-
+function hideSync() {
+  if (!syncBox) return;
+  syncBox.textContent = "";
+  syncBox.style.display = "none";
 }
-
 
 /* =========================================================
    GITHUB HEADERS
 ========================================================= */
 
-function githubHeaders(){
-
+function githubHeaders() {
   return {
-
-    "Accept":
-      "application/vnd.github+json",
-
-    "Authorization":
-      `Bearer ${githubConfig.token}`,
-
-    "X-GitHub-Api-Version":
-      GITHUB_API_VERSION
-
+    "Accept": "application/vnd.github+json",
+    "Authorization": `Bearer ${githubConfig.token}`,
+    "X-GitHub-Api-Version": GITHUB_API_VERSION
   };
-
 }
-
 
 /* =========================================================
    GITHUB CONTENT URL
 ========================================================= */
 
-function githubContentURL(path){
+function githubContentURL(path) {
+  const cleanPath = String(path || "").trim().replace(/^\/+/, "");
+  if (!cleanPath) return "";
 
-  const cleanPath =
-    String(path || "")
-      .trim()
-      .replace(/^\/+/,"");
-
-
-  if(!cleanPath)
-    return "";
-
-
-  const encodedPath =
-    cleanPath
-      .split("/")
-      .map(
-        part =>
-          encodeURIComponent(part)
-      )
-      .join("/");
-
+  const encodedPath = cleanPath.split("/").map(part => encodeURIComponent(part)).join("/");
 
   return (
     "https://api.github.com/repos/" +
-    encodeURIComponent(
-      githubConfig.username
-    ) +
+    encodeURIComponent(githubConfig.username) +
     "/" +
-    encodeURIComponent(
-      githubConfig.repo
-    ) +
+    encodeURIComponent(githubConfig.repo) +
     "/contents/" +
     encodedPath
   );
-
 }
-
 
 /* =========================================================
    LOGIN STORAGE
 ========================================================= */
 
-function saveLogin(){
+function saveLogin() {
+  if (!githubConfig) return;
 
-  if(!githubConfig)
-    return;
-
-
-  localStorage.setItem(
-
-    STORAGE_KEY,
-
-    JSON.stringify({
-
-      username:
-        githubConfig.username,
-
-      repo:
-        githubConfig.repo,
-
-      token:
-        githubConfig.token
-
-    })
-
-  );
-
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    username: githubConfig.username,
+    repo: githubConfig.repo,
+    token: githubConfig.token
+  }));
 }
 
+function loadLogin() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
 
-function loadLogin(){
-
-  try{
-
-    const raw =
-      localStorage.getItem(
-        STORAGE_KEY
-      );
-
-
-    if(!raw)
+    const saved = JSON.parse(raw);
+    if (!saved.username || !saved.repo || !saved.token) {
       return false;
-
-
-    const saved =
-      JSON.parse(raw);
-
-
-    if(
-      !saved.username ||
-      !saved.repo ||
-      !saved.token
-    ){
-
-      return false;
-
     }
 
-
     githubConfig = {
-
-      username:
-        saved.username,
-
-      repo:
-        saved.repo,
-
-      token:
-        saved.token
-
+      username: saved.username,
+      repo: saved.repo,
+      token: saved.token
     };
 
-
     return true;
-
-  }
-
-  catch{
-
+  } catch {
     return false;
-
   }
-
 }
 
-
-function clearLogin(){
-
-  localStorage.removeItem(
-    STORAGE_KEY
-  );
-
-  githubConfig =
-    null;
-
+function clearLogin() {
+  localStorage.removeItem(STORAGE_KEY);
+  githubConfig = null;
 }
-
 
 /* =========================================================
    INDEXED DB
 ========================================================= */
 
-function openDatabase(){
+function openDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-  return new Promise(
-    (resolve,reject)=>{
+    request.onupgradeneeded = function () {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: "key" });
+      }
+    };
 
-      const request =
-        indexedDB.open(
-          DB_NAME,
-          DB_VERSION
-        );
+    request.onsuccess = function () {
+      resolve(request.result);
+    };
 
-
-      request.onupgradeneeded =
-        function(){
-
-          const db =
-            request.result;
-
-
-          if(
-            !db.objectStoreNames.contains(
-              STORE_NAME
-            )
-          ){
-
-            db.createObjectStore(
-              STORE_NAME,
-              {
-                keyPath:"key"
-              }
-            );
-
-          }
-
-        };
-
-
-      request.onsuccess =
-        function(){
-
-          resolve(
-            request.result
-          );
-
-        };
-
-
-      request.onerror =
-        function(){
-
-          reject(
-            request.error
-          );
-
-        };
-
-    }
-  );
-
+    request.onerror = function () {
+      reject(request.error);
+    };
+  });
 }
-
 
 /* =========================================================
    SAVE OFFLINE
 ========================================================= */
 
-async function saveOfflineData(){
+async function saveOfflineData() {
+  if (!githubConfig) return;
 
-  if(!githubConfig)
-    return;
+  try {
+    const db = await openDatabase();
+    const key = githubConfig.username + "/" + githubConfig.repo;
 
+    await new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
 
-  try{
+      store.put({
+        key: key,
+        savedAt: Date.now(),
+        registrations: registrations
+      });
 
-    const db =
-      await openDatabase();
-
-
-    const key =
-      githubConfig.username +
-      "/" +
-      githubConfig.repo;
-
-
-    await new Promise(
-      (resolve,reject)=>{
-
-        const transaction =
-          db.transaction(
-            STORE_NAME,
-            "readwrite"
-          );
-
-
-        const store =
-          transaction.objectStore(
-            STORE_NAME
-          );
-
-
-        store.put({
-
-          key:key,
-
-          savedAt:
-            Date.now(),
-
-          registrations:
-            registrations
-
-        });
-
-
-        transaction.oncomplete =
-          resolve;
-
-
-        transaction.onerror =
-          function(){
-
-            reject(
-              transaction.error
-            );
-
-          };
-
-      }
-    );
-
+      transaction.oncomplete = resolve;
+      transaction.onerror = function () {
+        reject(transaction.error);
+      };
+    });
 
     db.close();
-
+  } catch (error) {
+    console.warn("Offline save error:", error);
   }
-
-  catch(error){
-
-    console.warn(
-      "Offline save error:",
-      error
-    );
-
-  }
-
 }
-
 
 /* =========================================================
    LOAD OFFLINE
 ========================================================= */
 
-async function loadOfflineData(){
+async function loadOfflineData() {
+  if (!githubConfig) return null;
 
-  if(!githubConfig)
-    return null;
+  try {
+    const db = await openDatabase();
+    const key = githubConfig.username + "/" + githubConfig.repo;
 
+    const result = await new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(key);
 
-  try{
+      request.onsuccess = function () {
+        resolve(request.result || null);
+      };
 
-    const db =
-      await openDatabase();
-
-
-    const key =
-      githubConfig.username +
-      "/" +
-      githubConfig.repo;
-
-
-    const result =
-      await new Promise(
-        (resolve,reject)=>{
-
-          const transaction =
-            db.transaction(
-              STORE_NAME,
-              "readonly"
-            );
-
-
-          const store =
-            transaction.objectStore(
-              STORE_NAME
-            );
-
-
-          const request =
-            store.get(key);
-
-
-          request.onsuccess =
-            function(){
-
-              resolve(
-                request.result ||
-                null
-              );
-
-            };
-
-
-          request.onerror =
-            function(){
-
-              reject(
-                request.error
-              );
-
-            };
-
-        }
-      );
-
+      request.onerror = function () {
+        reject(request.error);
+      };
+    });
 
     db.close();
-
-
     return result;
-
-  }
-
-  catch(error){
-
-    console.warn(
-      "Offline load error:",
-      error
-    );
-
+  } catch (error) {
+    console.warn("Offline load error:", error);
     return null;
-
   }
-
 }
-
 
 /* =========================================================
    GET ALL GITHUB ISSUES
 ========================================================= */
 
-async function getAllIssues(){
-
+async function getAllIssues() {
   let allIssues = [];
 
-
-  for(
-    let page = 1;
-    page <= 20;
-    page++
-  ){
-
+  for (let page = 1; page <= 20; page++) {
     const url =
       "https://api.github.com/repos/" +
-      encodeURIComponent(
-        githubConfig.username
-      ) +
+      encodeURIComponent(githubConfig.username) +
       "/" +
-      encodeURIComponent(
-        githubConfig.repo
-      ) +
+      encodeURIComponent(githubConfig.repo) +
       "/issues" +
       "?state=all" +
       "&per_page=100" +
       "&page=" +
       page;
 
-
     let response;
 
-
-    try{
-
-      response =
-        await fetch(
-          url,
-          {
-            method:"GET",
-
-            headers:
-              githubHeaders()
-          }
-        );
-
-    }
-
-    catch{
-
-      const error =
-        new Error(
-          "GitHub से कनेक्शन नहीं हो पाया। Internet check करें।"
-        );
-
+    try {
+      response = await fetch(url, {
+        method: "GET",
+        headers: githubHeaders()
+      });
+    } catch {
+      const error = new Error("GitHub से कनेक्शन नहीं हो पाया। Internet check करें।");
       error.status = 0;
-
       throw error;
-
     }
-
 
     let data = null;
 
-
-    try{
-
-      data =
-        await response.json();
-
-    }
-
-    catch{
-
+    try {
+      data = await response.json();
+    } catch {
       data = null;
-
     }
 
+    if (!response.ok) {
+      let message = data?.message || "GitHub request failed";
 
-    if(!response.ok){
-
-      let message =
-        data?.message ||
-        "GitHub request failed";
-
-
-      if(response.status === 401){
-
-        message =
-          "GitHub Token गलत या expired है।";
-
+      if (response.status === 401) {
+        message = "GitHub Token गलत या expired है।";
+      } else if (response.status === 403) {
+        message = "Token के पास Repository access नहीं है या GitHub rate limit हो गई है।";
+      } else if (response.status === 404) {
+        message = "Repository नहीं मिली। Username और Repository check करें।";
       }
 
-      else if(response.status === 403){
-
-        message =
-          "Token के पास Repository access नहीं है या GitHub rate limit हो गई है।";
-
-      }
-
-      else if(response.status === 404){
-
-        message =
-          "Repository नहीं मिली। Username और Repository check करें।";
-
-      }
-
-
-      const error =
-        new Error(message);
-
-
-      error.status =
-        response.status;
-
-
+      const error = new Error(message);
+      error.status = response.status;
       throw error;
-
     }
 
+    if (!Array.isArray(data)) break;
 
-    if(!Array.isArray(data))
-      break;
+    allIssues.push(...data);
 
-
-    allIssues.push(
-      ...data
-    );
-
-
-    if(data.length < 100)
-      break;
-
+    if (data.length < 100) break;
   }
 
-
   /* Pull Requests हटाओ */
-
-  return allIssues.filter(
-    issue =>
-      !issue.pull_request
-  );
-
+  return allIssues.filter(issue => !issue.pull_request);
 }
-
 
 /* =========================================================
    ISSUE FIELD READER
 ========================================================= */
 
-function getField(body,label){
-
-  const safeLabel =
-    String(label)
-      .replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
-      );
-
-
-  /*
-    Support:
-
-    **नाम:** Ram
-
-    **नाम:**
-    Ram
-
-    नाम: Ram
-  */
-
+function getField(body, label) {
+  const safeLabel = String(label).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
   const patterns = [
-
-    new RegExp(
-      "\\*\\*" +
-      safeLabel +
-      "\\s*:\\s*\\*\\*\\s*(.*)",
-      "i"
-    ),
-
-    new RegExp(
-      "\\*\\*" +
-      safeLabel +
-      "\\*\\*\\s*:\\s*(.*)",
-      "i"
-    ),
-
-    new RegExp(
-      "^" +
-      safeLabel +
-      "\\s*:\\s*(.*)",
-      "im"
-    )
-
+    new RegExp("\\*\\*" + safeLabel + "\\s*:\\s*\\*\\*\\s*(.*)", "i"),
+    new RegExp("\\*\\*" + safeLabel + "\\*\\*\\s*:\\s*(.*)", "i"),
+    new RegExp("^" + safeLabel + "\\s*:\\s*(.*)", "im")
   ];
 
-
-  for(
-    const regex of patterns
-  ){
-
-    const match =
-      String(body || "")
-        .match(regex);
-
-
-    if(match){
-
-      return String(
-        match[1]
-      )
-      .replace(/^`/,"")
-      .replace(/`$/,"")
-      .trim();
-
+  for (const regex of patterns) {
+    const match = String(body || "").match(regex);
+    if (match) {
+      return String(match[1]).replace(/^`/, "").replace(/`$/, "").trim();
     }
-
   }
 
-
   return "";
-
 }
-
 
 /* =========================================================
    IMAGE PATH
 ========================================================= */
 
-function getImagePath(body){
+function getImagePath(body) {
+  const text = String(body || "");
 
-  const text =
-    String(body || "");
+  let match = text.match(/\*\*Image Path:\*\*\s*`([^`]+)`/i);
+  if (match) return match[1].trim();
 
-
-  /*
-    **Image Path:** `path`
-  */
-
-  let match =
-    text.match(
-      /\*\*Image Path:\*\*\s*`([^`]+)`/i
-    );
-
-
-  if(match)
-    return match[1].trim();
-
-
-  /*
-    **Image Path:** path
-  */
-
-  match =
-    text.match(
-      /\*\*Image Path:\*\*\s*([^\r\n]+)/i
-    );
-
-
-  if(match){
-
-    return match[1]
-      .trim()
-      .replace(/^`/,"")
-      .replace(/`$/,"");
-
+  match = text.match(/\*\*Image Path:\*\*\s*([^\r\n]+)/i);
+  if (match) {
+    return match[1].trim().replace(/^`/, "").replace(/`$/, "");
   }
 
+  match = text.match(/\*\*(?:फोटो पथ|फोटो का पथ):\*\*\s*`([^`]+)`/i);
+  if (match) return match[1].trim();
 
-  /*
-    Hindi support
-
-    **फोटो पथ:** path
-  */
-
-  match =
-    text.match(
-      /\*\*(?:फोटो पथ|फोटो का पथ):\*\*\s*`([^`]+)`/i
-    );
-
-
-  if(match)
-    return match[1].trim();
-
-
-  match =
-    text.match(
-      /\*\*(?:फोटो पथ|फोटो का पथ):\*\*\s*([^\r\n]+)/i
-    );
-
-
-  if(match){
-
-    return match[1]
-      .trim()
-      .replace(/^`/,"")
-      .replace(/`$/,"");
-
+  match = text.match(/\*\*(?:फोटो पथ|फोटो का पथ):\*\*\s*([^\r\n]+)/i);
+  if (match) {
+    return match[1].trim().replace(/^`/, "").replace(/`$/, "");
   }
-
 
   return "";
-
 }
-
 
 /* =========================================================
    PARSE ISSUE
 ========================================================= */
 
-function parseIssue(issue){
+function parseIssue(issue) {
+  const body = issue.body || "";
 
-  const body =
-    issue.body || "";
-
-
-  const registrationID =
-    getField(
-      body,
-      "पंजीकरण क्रमांक"
-    );
-
-
-  const name =
-    getField(
-      body,
-      "नाम"
-    );
-
-
-  const fatherName =
-    getField(
-      body,
-      "पिता का नाम"
-    );
-
-
-  const mobile =
-    getField(
-      body,
-      "मोबाइल नंबर"
-    );
-
-
-  const age =
-    getField(
-      body,
-      "आयु"
-    );
-
-
-  const city =
-    getField(
-      body,
-      "शहर / कस्बा / ग्राम"
-    );
-
-
-  const education =
-    getField(
-      body,
-      "शिक्षा"
-    );
-
-
-  const income =
-    getField(
-      body,
-      "आय / Income"
-    );
-
-
-  const dikshaTaken =
-    getField(
-      body,
-      "दीक्षा ली है?"
-    );
-
-
-  const dikshaDate =
-    getField(
-      body,
-      "दीक्षा की तिथि"
-    );
-
-
-  const dikshaPlace =
-    getField(
-      body,
-      "दीक्षा का स्थान"
-    );
-
-
-  /* =========================
-     अंशदान
-  ========================= */
+  const registrationID = getField(body, "पंजीकरण क्रमांक");
+  const name = getField(body, "नाम");
+  const fatherName = getField(body, "पिता का नाम");
+  const mobile = getField(body, "मोबाइल नंबर");
+  const age = getField(body, "आयु");
+  const city = getField(body, "शहर / कस्बा / ग्राम");
+  const education = getField(body, "शिक्षा");
+  const income = getField(body, "आय / Income");
+  const dikshaTaken = getField(body, "दीक्षा ली है?");
+  const dikshaDate = getField(body, "दीक्षा की तिथि");
+  const dikshaPlace = getField(body, "दीक्षा का स्थान");
 
   let anshdaan = "";
-
-
-  const anshMatch =
-    body.match(
-      /##\s*अंशदान\s*([\s\S]*?)(?=---|##\s*समयदान|##\s*फोटो|$)/i
-    );
-
-
-  if(anshMatch){
-
-    anshdaan =
-      anshMatch[1].trim();
-
+  const anshMatch = body.match(/##\s*अंशदान\s*([\s\S]*?)(?=---|##\s*समयदान|##\s*फोटो|$)/i);
+  if (anshMatch) {
+    anshdaan = anshMatch[1].trim();
   }
-
-
-  /* =========================
-     समयदान
-  ========================= */
 
   let samaydaan = "";
-
-
-  const samayMatch =
-    body.match(
-      /##\s*समयदान\s*([\s\S]*?)(?=---|##\s*फोटो|$)/i
-    );
-
-
-  if(samayMatch){
-
-    samaydaan =
-      samayMatch[1].trim();
-
+  const samayMatch = body.match(/##\s*समयदान\s*([\s\S]*?)(?=---|##\s*फोटो|$)/i);
+  if (samayMatch) {
+    samaydaan = samayMatch[1].trim();
   }
 
-
   return {
-
-    issueNumber:
-      issue.number,
-
-    id:
-      registrationID,
-
-    name:
-      name,
-
-    fatherName:
-      fatherName,
-
-    mobile:
-      mobile,
-
-    age:
-      age,
-
-    city:
-      city,
-
-    education:
-      education,
-
-    income:
-      income,
-
-    dikshaTaken:
-      dikshaTaken,
-
-    dikshaDate:
-      dikshaDate,
-
-    dikshaPlace:
-      dikshaPlace,
-
-    anshdaan:
-      anshdaan,
-
-    samaydaan:
-      samaydaan,
-
-    imagePath:
-      getImagePath(body),
-
-    image:
-      "",
-
-    issueURL:
-      issue.html_url || "",
-
-    createdAt:
-      issue.created_at || ""
-
+    issueNumber: issue.number,
+    id: registrationID,
+    name: name,
+    fatherName: fatherName,
+    mobile: mobile,
+    age: age,
+    city: city,
+    education: education,
+    income: income,
+    dikshaTaken: dikshaTaken,
+    dikshaDate: dikshaDate,
+    dikshaPlace: dikshaPlace,
+    anshdaan: anshdaan,
+    samaydaan: samaydaan,
+    imagePath: getImagePath(body),
+    image: "",
+    issueURL: issue.html_url || "",
+    createdAt: issue.created_at || ""
   };
-
 }
-
 
 /* =========================================================
    PRIVATE IMAGE LOADER
 ========================================================= */
 
-async function loadPrivateImage(imagePath){
-
-  if(
-    !githubConfig ||
-    !imagePath
-  ){
-
+async function loadPrivateImage(imagePath) {
+  if (!githubConfig || !imagePath) {
     return "";
-
   }
 
+  try {
+    const url = githubContentURL(imagePath);
+    if (!url) return "";
 
-  try{
+    const response = await fetch(url, {
+      method: "GET",
+      headers: githubHeaders()
+    });
 
-    const url =
-      githubContentURL(
-        imagePath
-      );
-
-
-    if(!url)
+    if (!response.ok) {
+      console.warn("Private image failed:", imagePath, response.status);
       return "";
-
-
-    const response =
-      await fetch(
-        url,
-        {
-          method:"GET",
-
-          headers:
-            githubHeaders()
-        }
-      );
-
-
-    if(!response.ok){
-
-      console.warn(
-        "Private image failed:",
-        imagePath,
-        response.status
-      );
-
-      return "";
-
     }
 
-
-    const data =
-      await response.json();
-
-
-    if(
-      !data ||
-      !data.content
-    ){
-
+    const data = await response.json();
+    if (!data || !data.content) {
       return "";
-
     }
 
+    const base64 = String(data.content).replace(/\s/g, "");
 
-    const base64 =
-      String(
-        data.content
-      )
-      .replace(/\s/g,"");
+    let mime = "image/jpeg";
+    const lower = imagePath.toLowerCase();
 
+    if (lower.endsWith(".png")) mime = "image/png";
+    else if (lower.endsWith(".webp")) mime = "image/webp";
+    else if (lower.endsWith(".gif")) mime = "image/gif";
+    else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mime = "image/jpeg";
 
-    let mime =
-      "image/jpeg";
-
-
-    const lower =
-      imagePath.toLowerCase();
-
-
-    if(lower.endsWith(".png"))
-      mime = "image/png";
-
-    else if(lower.endsWith(".webp"))
-      mime = "image/webp";
-
-    else if(lower.endsWith(".gif"))
-      mime = "image/gif";
-
-    else if(
-      lower.endsWith(".jpg") ||
-      lower.endsWith(".jpeg")
-    )
-      mime = "image/jpeg";
-
-
-    return (
-      "data:" +
-      mime +
-      ";base64," +
-      base64
-    );
-
-  }
-
-  catch(error){
-
-    console.warn(
-      "Private image error:",
-      imagePath,
-      error
-    );
-
+    return "data:" + mime + ";base64," + base64;
+  } catch (error) {
+    console.warn("Private image error:", imagePath, error);
     return "";
-
   }
-
 }
-
 
 /* =========================================================
    LOAD ALL IMAGES
 ========================================================= */
 
-async function loadImages(items){
-
-  const total =
-    items.length;
-
-
+async function loadImages(items) {
+  const total = items.length;
   let loaded = 0;
 
-
-  for(
-    const item of items
-  ){
-
+  for (const item of items) {
     loaded++;
 
+    if (item.image) continue;
+    if (!item.imagePath) continue;
 
-    if(item.image)
-      continue;
+    showSync(`फोटो लोड हो रही है... ${loaded}/${total}`);
 
-
-    if(!item.imagePath)
-      continue;
-
-
-    showSync(
-      `फोटो लोड हो रही है... ${loaded}/${total}`
-    );
-
-
-    const image =
-      await loadPrivateImage(
-        item.imagePath
-      );
-
-
-    if(image){
-
-      item.image =
-        image;
-
+    const image = await loadPrivateImage(item.imagePath);
+    if (image) {
+      item.image = image;
     }
-
   }
 
-
   hideSync();
-
-
   return items;
-
 }
-
 
 /* =========================================================
    SYNC FROM GITHUB
 ========================================================= */
 
-async function syncFromGitHub(){
+async function syncFromGitHub() {
+  showSync("GitHub से पंजीकरण जानकारी लोड हो रही है...");
 
-  showSync(
-    "GitHub से पंजीकरण जानकारी लोड हो रही है..."
-  );
+  const issues = await getAllIssues();
 
+  let parsed = issues.map(parseIssue);
 
-  const issues =
-    await getAllIssues();
+  parsed = parsed.filter(item => item.id || item.name || item.mobile);
 
+  parsed.sort((a, b) => {
+    const aTime = new Date(a.createdAt).getTime() || 0;
+    const bTime = new Date(b.createdAt).getTime() || 0;
+    return bTime - aTime;
+  });
 
-  let parsed =
-    issues.map(
-      parseIssue
-    );
+  parsed = await loadImages(parsed);
 
-
-  /*
-    खाली Issues हटाओ
-  */
-
-  parsed =
-    parsed.filter(
-      item =>
-        item.id ||
-        item.name ||
-        item.mobile
-    );
-
-
-  /*
-    Newest first
-  */
-
-  parsed.sort(
-    (a,b)=>{
-
-      const aTime =
-        new Date(
-          a.createdAt
-        ).getTime() || 0;
-
-
-      const bTime =
-        new Date(
-          b.createdAt
-        ).getTime() || 0;
-
-
-      return bTime - aTime;
-
-    }
-  );
-
-
-  /*
-    Images
-  */
-
-  parsed =
-    await loadImages(
-      parsed
-    );
-
-
-  registrations =
-    parsed;
-
-
-  /*
-    Save offline
-  */
+  registrations = parsed;
 
   await saveOfflineData();
 
-
   return registrations;
-
 }
-
 
 /* =========================================================
    RENDER LIST
 ========================================================= */
 
-function renderList(items){
-
-  if(
-    !items ||
-    !items.length
-  ){
-
+function renderList(items) {
+  if (!items || !items.length) {
     registrationList.innerHTML = `
-
       <div class="status">
-
         कोई पंजीकरण नहीं मिला।
-
       </div>
-
     `;
-
     return;
-
   }
 
+  registrationList.innerHTML = "";
 
-  registrationList.innerHTML =
-    "";
+  items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "registration";
 
+    let photoHTML;
 
-  items.forEach(
-    item => {
-
-      const card =
-        document.createElement(
-          "div"
-        );
-
-
-      card.className =
-        "registration";
-
-
-      /* =========================
-         PHOTO
-      ========================= */
-
-      let photoHTML;
-
-
-      if(item.image){
-
-        photoHTML = `
-
-          <img
-            class="thumb"
-            src="${escapeHTML(item.image)}"
-            alt="पंजीकरण फोटो"
-          >
-
-        `;
-
-      }
-
-      else{
-
-        photoHTML = `
-
-          <div class="no-photo">
-            फोटो<br>नहीं
-          </div>
-
-        `;
-
-      }
-
-
-      /* =========================
-         CARD
-      ========================= */
-
-      card.innerHTML = `
-
-        ${photoHTML}
-
-
-        <div class="basic">
-
-          <div class="name">
-            ${escapeHTML(
-              item.name ||
-              "नाम उपलब्ध नहीं"
-            )}
-          </div>
-
-
-          <div class="place">
-            ${escapeHTML(
-              item.city ||
-              "स्थान उपलब्ध नहीं"
-            )}
-          </div>
-
-
-          <div class="regid">
-            ${escapeHTML(
-              item.id ||
-              "पंजीकरण क्रमांक उपलब्ध नहीं"
-            )}
-          </div>
-
-        </div>
-
-
-        <button
-          class="make-card"
-          type="button"
-        >
-          आईडी कार्ड
-        </button>
-
-
-        <div
-          class="arrow"
-          aria-label="विवरण देखें"
-        >
-          ›
-        </div>
-
+    if (item.image) {
+      photoHTML = `
+        <img class="thumb" src="${escapeHTML(item.image)}" alt="पंजीकरण फोटो">
       `;
-
-
-      /* =========================
-         WHOLE CARD DETAIL
-      ========================= */
-
-      card.addEventListener(
-        "click",
-        function(){
-
-          showDetail(item);
-
-        }
-      );
-
-
-      /* =========================
-         ID BUTTON
-      ========================= */
-
-      const idButton =
-        card.querySelector(
-          ".make-card"
-        );
-
-
-      if(idButton){
-
-        idButton.addEventListener(
-          "click",
-          async function(event){
-
-            event.stopPropagation();
-
-            await downloadIDCard(
-              item
-            );
-
-          }
-        );
-
-      }
-
-
-      registrationList.appendChild(
-        card
-      );
-
+    } else {
+      photoHTML = `
+        <div class="no-photo">
+          फोटो<br>नहीं
+        </div>
+      `;
     }
-  );
 
+    card.innerHTML = `
+      ${photoHTML}
+      <div class="basic">
+        <div class="name">
+          ${escapeHTML(item.name || "नाम उपलब्ध नहीं")}
+        </div>
+        <div class="place">
+          ${escapeHTML(item.city || "स्थान उपलब्ध नहीं")}
+        </div>
+        <div class="regid">
+          ${escapeHTML(item.id || "पंजीकरण क्रमांक उपलब्ध नहीं")}
+        </div>
+      </div>
+      <button class="make-card" type="button">
+        आईडी कार्ड
+      </button>
+      <div class="arrow" aria-label="विवरण देखें">
+        ›
+      </div>
+    `;
+
+    card.addEventListener("click", function () {
+      showDetail(item);
+    });
+
+    const idButton = card.querySelector(".make-card");
+    if (idButton) {
+      idButton.addEventListener("click", async function (event) {
+        event.stopPropagation();
+        await downloadIDCard(item);
+      });
+    }
+
+    registrationList.appendChild(card);
+  });
 }
-
 
 /* =========================================================
    SEARCH
 ========================================================= */
 
-function performSearch(){
+function performSearch() {
+  if (!searchBox) return;
 
-  if(!searchBox)
+  const query = normalize(searchBox.value);
+
+  if (!query) {
+    renderList(registrations);
     return;
-
-
-  const query =
-    normalize(
-      searchBox.value
-    );
-
-
-  if(!query){
-
-    renderList(
-      registrations
-    );
-
-    return;
-
   }
 
+  const filtered = registrations.filter(item => {
+    return [
+      item.name,
+      item.id,
+      item.mobile,
+      item.fatherName,
+      item.city,
+      item.education
+    ].some(value => normalize(value).includes(query));
+  });
 
-  const filtered =
-    registrations.filter(
-      item => {
-
-        return [
-
-          item.name,
-
-          item.id,
-
-          item.mobile,
-
-          item.fatherName,
-
-          item.city,
-
-          item.education
-
-        ].some(
-          value =>
-            normalize(
-              value
-            ).includes(
-              query
-            )
-        );
-
-      }
-    );
-
-
-  renderList(
-    filtered
-  );
-
+  renderList(filtered);
 }
 
-
-if(searchBox){
-
-  searchBox.addEventListener(
-    "input",
-    performSearch
-  );
-
+if (searchBox) {
+  searchBox.addEventListener("input", performSearch);
 }
-
 
 /* =========================================================
    DETAIL ROW
 ========================================================= */
 
-function detailRow(
-  label,
-  value
-){
-
+function detailRow(label, value) {
   return `
-
     <div class="detail-row">
-
       <div class="detail-label">
         ${escapeHTML(label)}
       </div>
-
-
       <div class="detail-value">
-        ${escapeHTML(
-          value || "—"
-        )}
+        ${escapeHTML(value || "—")}
       </div>
-
     </div>
-
   `;
-
 }
-
 
 /* =========================================================
    DETAIL VIEW
 ========================================================= */
 
-function showDetail(item){
-
-  listView.style.display =
-    "none";
-
-
-  detailView.style.display =
-    "block";
-
+function showDetail(item) {
+  listView.style.display = "none";
+  detailView.style.display = "block";
 
   let photoHTML;
 
-
-  if(item.image){
-
+  if (item.image) {
     photoHTML = `
-
       <div class="detail-photo">
-
-        <img
-          src="${escapeHTML(item.image)}"
-          alt="पंजीकरण फोटो"
-        >
-
+        <img src="${escapeHTML(item.image)}" alt="पंजीकरण फोटो">
       </div>
-
     `;
-
-  }
-
-  else{
-
+  } else {
     photoHTML = `
-
       <div class="detail-no-photo">
         फोटो उपलब्ध नहीं है।
       </div>
-
     `;
-
   }
 
-
   detailCard.innerHTML = `
-
     ${photoHTML}
-
-
     <h2 class="detail-title">
-
-      ${escapeHTML(
-        item.name ||
-        "पंजीकरण"
-      )}
-
+      ${escapeHTML(item.name || "पंजीकरण")}
     </h2>
-
-
     <div class="detail-registration-id">
-
-      ${escapeHTML(
-        item.id ||
-        ""
-      )}
-
+      ${escapeHTML(item.id || "")}
     </div>
-
-
-    ${detailRow(
-      "नाम",
-      item.name
-    )}
-
-
-    ${detailRow(
-      "पिता का नाम",
-      item.fatherName
-    )}
-
-
-    ${detailRow(
-      "मोबाइल नंबर",
-      item.mobile
-    )}
-
-
-    ${detailRow(
-      "आयु",
-      item.age
-    )}
-
-
-    ${detailRow(
-      "शहर / कस्बा / ग्राम",
-      item.city
-    )}
-
-
-    ${detailRow(
-      "शिक्षा",
-      item.education
-    )}
-
-
-    ${detailRow(
-      "आय",
-      item.income
-    )}
-
-
-    ${detailRow(
-      "दीक्षा ली है?",
-      item.dikshaTaken
-    )}
-
-
-    ${detailRow(
-      "दीक्षा की तिथि",
-      item.dikshaDate
-    )}
-
-
-    ${detailRow(
-      "दीक्षा का स्थान",
-      item.dikshaPlace
-    )}
-
-
+    ${detailRow("नाम", item.name)}
+    ${detailRow("पिता का नाम", item.fatherName)}
+    ${detailRow("मोबाइल नंबर", item.mobile)}
+    ${detailRow("आयु", item.age)}
+    ${detailRow("शहर / कस्बा / ग्राम", item.city)}
+    ${detailRow("शिक्षा", item.education)}
+    ${detailRow("आय", item.income)}
+    ${detailRow("दीक्षा ली है?", item.dikshaTaken)}
+    ${detailRow("दीक्षा की तिथि", item.dikshaDate)}
+    ${detailRow("दीक्षा का स्थान", item.dikshaPlace)}
     <h3 class="section-title">
       दान विवरण
     </h3>
-
-
-    ${detailRow(
-      "अंशदान",
-      item.anshdaan
-    )}
-
-
-    ${detailRow(
-      "समयदान",
-      item.samaydaan
-    )}
-
-
-    <button
-      id="detailIDCardButton"
-      class="main-button"
-      type="button"
-    >
+    ${detailRow("अंशदान", item.anshdaan)}
+    ${detailRow("समयदान", item.samaydaan)}
+    <button id="detailIDCardButton" class="main-button" type="button">
       आईडी कार्ड डाउनलोड करें
     </button>
-
   `;
 
-
-  const button =
-    document.getElementById(
-      "detailIDCardButton"
-    );
-
-
-  if(button){
-
-    button.addEventListener(
-      "click",
-      function(){
-
-        downloadIDCard(item);
-
-      }
-    );
-
+  const button = document.getElementById("detailIDCardButton");
+  if (button) {
+    button.addEventListener("click", function () {
+      downloadIDCard(item);
+    });
   }
 
-
-  window.scrollTo(
-    0,
-    0
-  );
-
+  window.scrollTo(0, 0);
 }
-
 
 /* =========================================================
    BACK
 ========================================================= */
 
-if(backButton){
-
-  backButton.addEventListener(
-    "click",
-    function(){
-
-      detailView.style.display =
-        "none";
-
-
-      listView.style.display =
-        "block";
-
-
-      window.scrollTo(
-        0,
-        0
-      );
-
-    }
-  );
-
+if (backButton) {
+  backButton.addEventListener("click", function () {
+    detailView.style.display = "none";
+    listView.style.display = "block";
+    window.scrollTo(0, 0);
+  });
 }
-
 
 /* =========================================================
    CANVAS IMAGE LOADER
 ========================================================= */
 
-function loadImageForCanvas(source){
-
-  return new Promise(
-    (resolve,reject)=>{
-
-      const image =
-        new Image();
-
-
-      image.onload =
-        function(){
-
-          resolve(image);
-
-        };
-
-
-      image.onerror =
-        function(){
-
-          reject(
-            new Error(
-              "फोटो/लोगो लोड नहीं हो पाया।"
-            )
-          );
-
-        };
-
-
-      image.src =
-        source;
-
-    }
-  );
-
+function loadImageForCanvas(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = function () {
+      resolve(image);
+    };
+    image.onerror = function () {
+      reject(new Error("फोटो/लोगो लोड नहीं हो पाया।"));
+    };
+    image.src = source;
+  });
 }
-
 
 /* =========================================================
    ROUNDED RECTANGLE
 ========================================================= */
 
-function roundedRect(
-  ctx,
-  x,
-  y,
-  width,
-  height,
-  radius
-){
-
-  const r =
-    Math.min(
-      radius,
-      width / 2,
-      height / 2
-    );
-
+function roundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
 
   ctx.beginPath();
-
-
-  ctx.moveTo(
-    x + r,
-    y
-  );
-
-
-  ctx.arcTo(
-    x + width,
-    y,
-    x + width,
-    y + height,
-    r
-  );
-
-
-  ctx.arcTo(
-    x + width,
-    y + height,
-    x,
-    y + height,
-    r
-  );
-
-
-  ctx.arcTo(
-    x,
-    y + height,
-    x,
-    y,
-    r
-  );
-
-
-  ctx.arcTo(
-    x,
-    y,
-    x + width,
-    y,
-    r
-  );
-
-
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
   ctx.closePath();
-
 }
-
 
 /* =========================================================
    COVER IMAGE
 ========================================================= */
 
-function drawCoverImage(
-  ctx,
-  image,
-  x,
-  y,
-  width,
-  height,
-  radius
-){
+function drawCoverImage(ctx, image, x, y, width, height, radius) {
+  const sourceWidth = image.naturalWidth;
+  const sourceHeight = image.naturalHeight;
 
-  const sourceWidth =
-    image.naturalWidth;
+  const scale = Math.max(width / sourceWidth, height / sourceHeight);
 
+  const cropWidth = width / scale;
+  const cropHeight = height / scale;
 
-  const sourceHeight =
-    image.naturalHeight;
-
-
-  const scale =
-    Math.max(
-      width / sourceWidth,
-      height / sourceHeight
-    );
-
-
-  const cropWidth =
-    width / scale;
-
-
-  const cropHeight =
-    height / scale;
-
-
-  const sourceX =
-    (
-      sourceWidth -
-      cropWidth
-    ) / 2;
-
-
-  const sourceY =
-    (
-      sourceHeight -
-      cropHeight
-    ) / 2;
-
+  const sourceX = (sourceWidth - cropWidth) / 2;
+  const sourceY = (sourceHeight - cropHeight) / 2;
 
   ctx.save();
-
-
-  roundedRect(
-    ctx,
-    x,
-    y,
-    width,
-    height,
-    radius
-  );
-
-
+  roundedRect(ctx, x, y, width, height, radius);
   ctx.clip();
 
-
   ctx.drawImage(
-
     image,
-
-    sourceX,
-    sourceY,
-
-    cropWidth,
-    cropHeight,
-
-    x,
-    y,
-    width,
-    height
-
+    sourceX, sourceY, cropWidth, cropHeight,
+    x, y, width, height
   );
 
-
   ctx.restore();
-
 }
-
 
 /* =========================================================
    TEXT FIT
 ========================================================= */
 
-function fitText(
-  ctx,
-  text,
-  maxWidth,
-  startSize,
-  minimumSize
-){
+function fitText(ctx, text, maxWidth, startSize, minimumSize) {
+  let size = startSize;
 
-  let size =
-    startSize;
-
-
-  while(
-    size > minimumSize
-  ){
-
-    ctx.font =
-      `700 ${size}px "Noto Sans Devanagari", "Nirmala UI", "Mangal", Arial, sans-serif`;
-
-
-    if(
-      ctx.measureText(
-        text
-      ).width <= maxWidth
-    ){
-
+  while (size > minimumSize) {
+    ctx.font = `700 ${size}px "Noto Sans Devanagari", "Nirmala UI", "Mangal", Arial, sans-serif`;
+    if (ctx.measureText(text).width <= maxWidth) {
       break;
-
     }
-
-
     size--;
-
   }
 
-
   return size;
-
 }
-
 
 /* =========================================================
    DECORATION
 ========================================================= */
 
-function drawDecoration(
-  ctx,
-  x,
-  y
-){
-
+function drawDecoration(ctx, x, y) {
   ctx.save();
-
-
-  ctx.strokeStyle =
-    "#f28c00";
-
-
-  ctx.lineWidth =
-    3;
-
+  ctx.strokeStyle = "#f28c00";
+  ctx.lineWidth = 3;
 
   ctx.beginPath();
-
-
-  ctx.arc(
-    x,
-    y,
-    18,
-    0,
-    Math.PI * 2
-  );
-
-
+  ctx.arc(x, y, 18, 0, Math.PI * 2);
   ctx.stroke();
-
 
   ctx.beginPath();
-
-
-  ctx.arc(
-    x,
-    y,
-    9,
-    0,
-    Math.PI * 2
-  );
-
-
+  ctx.arc(x, y, 9, 0, Math.PI * 2);
   ctx.stroke();
-
 
   ctx.restore();
-
 }
-
 
 /* =========================================================
-   ID CARD
+   CREATE CROP MODAL
 ========================================================= */
 
-async function downloadIDCard(item){
-
-  try{
-
-    /*
-      अगर फोटो cached नहीं है
-    */
-
-    if(
-      !item.image &&
-      item.imagePath &&
-      navigator.onLine
-    ){
-
-      showSync(
-        "आईडी कार्ड के लिए फोटो लोड हो रही है..."
-      );
-
-
-      const image =
-        await loadPrivateImage(
-          item.imagePath
-        );
-
-
-      if(image){
-
-        item.image =
-          image;
-
-
-        await saveOfflineData();
-
-      }
-
-
-      hideSync();
-
-    }
-
-
-    if(!item.image){
-
-      throw new Error(
-        "इस पंजीकरण की फोटो उपलब्ध नहीं है। पहले Internet के साथ सिंक करें।"
-      );
-
-    }
-
-
-    /* =========================
-       LOGO
-    ========================= */
-
-    const logo =
-      await loadImageForCanvas(
-        "./logo.png"
-      );
-
-
-    /* =========================
-       PHOTO
-    ========================= */
-
-    const photo =
-      await loadImageForCanvas(
-        item.image
-      );
-
-
-    /* =========================
-       CANVAS
-    ========================= */
-
-    const canvas =
-      document.createElement(
-        "canvas"
-      );
-
-
-    canvas.width =
-      1400;
-
-
-    canvas.height =
-      820;
-
-
-    const ctx =
-      canvas.getContext(
-        "2d"
-      );
-
-
-    const hindiFont =
-      '"Noto Sans Devanagari", "Nirmala UI", "Mangal", Arial, sans-serif';
-
-
-    const hindiBold =
-      `700 32px ${hindiFont}`;
-
-
-    /* =========================
-       BACKGROUND
-    ========================= */
-
-    ctx.fillStyle =
-      "#fffaf0";
-
-
-    ctx.fillRect(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-
-    /* =========================
-       OUTER BORDER
-    ========================= */
-
-    ctx.strokeStyle =
-      "#f28c00";
-
-
-    ctx.lineWidth =
-      12;
-
-
-    roundedRect(
-      ctx,
-      12,
-      12,
-      1376,
-      796,
-      34
-    );
-
-
-    ctx.stroke();
-
-
-    /* =========================
-       INNER BORDER
-    ========================= */
-
-    ctx.strokeStyle =
-      "#8b5a20";
-
-
-    ctx.lineWidth =
-      3;
-
-
-    roundedRect(
-      ctx,
-      30,
-      30,
-      1340,
-      760,
-      27
-    );
-
-
-    ctx.stroke();
-
-
-    /* =========================
-       HEADER
-    ========================= */
-
-    ctx.fillStyle =
-      "#f28c00";
-
-
-    roundedRect(
-      ctx,
-      38,
-      38,
-      1324,
-      190,
-      25
-    );
-
-
-    ctx.fill();
-
-
-    ctx.strokeStyle =
-      "#ffe2a8";
-
-
-    ctx.lineWidth =
-      3;
-
-
-    roundedRect(
-      ctx,
-      52,
-      52,
-      1296,
-      162,
-      20
-    );
-
-
-    ctx.stroke();
-
-
-    /* =========================
-       LOGO
-    ========================= */
-
-    ctx.save();
-
-
-    ctx.beginPath();
-
-
-    ctx.arc(
-      135,
-      133,
-      75,
-      0,
-      Math.PI * 2
-    );
-
-
-    ctx.clip();
-
-
-    ctx.fillStyle =
-      "#fff";
-
-
-    ctx.fillRect(
-      60,
-      58,
-      150,
-      150
-    );
-
-
-    ctx.drawImage(
-      logo,
-      60,
-      58,
-      150,
-      150
-    );
-
-
-    ctx.restore();
-
-
-    ctx.strokeStyle =
-      "#fff";
-
-
-    ctx.lineWidth =
-      5;
-
-
-    ctx.beginPath();
-
-
-    ctx.arc(
-      135,
-      133,
-      78,
-      0,
-      Math.PI * 2
-    );
-
-
-    ctx.stroke();
-
-
-    /* =========================
-       HEADER TEXT
-    ========================= */
-
-    const title =
-      "गायत्री चेतना केन्द्र चिलबिला प्रतापगढ़";
-
-
-    const subtitle =
-      "अखिल विश्व गायत्री परिवार शांतिकुंज";
-
-
-    ctx.textAlign =
-      "center";
-
-
-    ctx.textBaseline =
-      "middle";
-
-
-    const titleSize =
-      fitText(
-        ctx,
-        title,
-        980,
-        43,
-        25
-      );
-
-
-    ctx.font =
-      `700 ${titleSize}px ${hindiFont}`;
-
-
-    ctx.fillStyle =
-      "#fff";
-
-
-    ctx.fillText(
-      title,
-      770,
-      105
-    );
-
-
-    const subtitleSize =
-      fitText(
-        ctx,
-        subtitle,
-        850,
-        26,
-        16
-      );
-
-
-    ctx.font =
-      `600 ${subtitleSize}px ${hindiFont}`;
-
-
-    ctx.fillText(
-      subtitle,
-      770,
-      158
-    );
-
-
-    /* =========================
-       MAIN BOX
-    ========================= */
-
-    ctx.fillStyle =
-      "#fff";
-
-
-    roundedRect(
-      ctx,
-      65,
-      260,
-      1270,
-      475,
-      25
-    );
-
-
-    ctx.fill();
-
-
-    ctx.strokeStyle =
-      "#edcf9e";
-
-
-    ctx.lineWidth =
-      2;
-
-
-    roundedRect(
-      ctx,
-      65,
-      260,
-      1270,
-      475,
-      25
-    );
-
-
-    ctx.stroke();
-
-
-    /* =========================
-       PHOTO
-    ========================= */
-
-    drawCoverImage(
-      ctx,
-      photo,
-      105,
-      305,
-      325,
-      375,
-      18
-    );
-
-
-    ctx.strokeStyle =
-      "#f28c00";
-
-
-    ctx.lineWidth =
-      6;
-
-
-    roundedRect(
-      ctx,
-      105,
-      305,
-      325,
-      375,
-      18
-    );
-
-
-    ctx.stroke();
-
-
-    /* =========================
-       DETAILS
-    ========================= */
-
-    const detailX =
-      500;
-
-
-    const rightX =
-      1060;
-
-
-    ctx.textAlign =
-      "left";
-
-
-    ctx.fillStyle =
-      "#8b5a20";
-
-
-    ctx.font =
-      hindiBold;
-
-
-    ctx.fillText(
-      "नाम",
-      detailX,
-      330
-    );
-
-
-    const name =
-      item.name || "—";
-
-
-    const nameSize =
-      fitText(
-        ctx,
-        name,
-        500,
-        39,
-        21
-      );
-
-
-    ctx.font =
-      `700 ${nameSize}px ${hindiFont}`;
-
-
-    ctx.fillStyle =
-      "#4b2b0b";
-
-
-    ctx.fillText(
-      name,
-      detailX,
-      375
-    );
-
-
-    /* AGE */
-
-    ctx.fillStyle =
-      "#8b5a20";
-
-
-    ctx.font =
-      hindiBold;
-
-
-    ctx.fillText(
-      "आयु",
-      rightX,
-      330
-    );
-
-
-    ctx.fillStyle =
-      "#4b2b0b";
-
-
-    ctx.font =
-      `700 34px ${hindiFont}`;
-
-
-    ctx.fillText(
-      item.age || "—",
-      rightX,
-      375
-    );
-
-
-    /* DIVIDER */
-
-    ctx.strokeStyle =
-      "#edcf9e";
-
-
-    ctx.lineWidth =
-      2;
-
-
-    ctx.beginPath();
-
-
-    ctx.moveTo(
-      detailX,
-      410
-    );
-
-
-    ctx.lineTo(
-      1285,
-      410
-    );
-
-
-    ctx.stroke();
-
-
-    /* MOBILE */
-
-    ctx.fillStyle =
-      "#8b5a20";
-
-
-    ctx.font =
-      hindiBold;
-
-
-    ctx.fillText(
-      "मोबाइल नंबर",
-      detailX,
-      455
-    );
-
-
-    ctx.fillStyle =
-      "#4b2b0b";
-
-
-    ctx.font =
-      `700 34px ${hindiFont}`;
-
-
-    ctx.fillText(
-      item.mobile || "—",
-      detailX,
-      500
-    );
-
-
-    /* DIVIDER */
-
-    ctx.strokeStyle =
-      "#edcf9e";
-
-
-    ctx.beginPath();
-
-
-    ctx.moveTo(
-      detailX,
-      530
-    );
-
-
-    ctx.lineTo(
-      1285,
-      530
-    );
-
-
-    ctx.stroke();
-
-
-    /* REGISTRATION ID */
-
-    ctx.fillStyle =
-      "#8b5a20";
-
-
-    ctx.font =
-      hindiBold;
-
-
-    ctx.fillText(
-      "पंजीकरण क्रमांक",
-      detailX,
-      575
-    );
-
-
-    const registrationID =
-      item.id || "—";
-
-
-    const idSize =
-      fitText(
-        ctx,
-        registrationID,
-        760,
-        34,
-        18
-      );
-
-
-    ctx.fillStyle =
-      "#4b2b0b";
-
-
-    ctx.font =
-      `700 ${idSize}px ${hindiFont}`;
-
-
-    ctx.fillText(
-      registrationID,
-      detailX,
-      620
-    );
-
-
-    /* FOOTER */
-
-    ctx.fillStyle =
-      "#8b5a20";
-
-
-    ctx.font =
-      `600 18px ${hindiFont}`;
-
-
-    ctx.fillText(
-      "गायत्री चेतना केन्द्र",
-      detailX,
-      682
-    );
-
-
-    /* CORNERS */
-
-    drawDecoration(
-      ctx,
-      80,
-      250
-    );
-
-
-    drawDecoration(
-      ctx,
-      1320,
-      250
-    );
-
-
-    drawDecoration(
-      ctx,
-      80,
-      725
-    );
-
-
-    drawDecoration(
-      ctx,
-      1320,
-      725
-    );
-
-
-    /* =========================
-       DOWNLOAD
-    ========================= */
-
-    const safeID =
-      String(
-        item.id ||
-        item.issueNumber ||
-        "पंजीकरण"
-      )
-      .replace(
-        /[^a-zA-Z0-9_-]+/g,
-        "_"
-      );
-
-
-    const link =
-      document.createElement(
-        "a"
-      );
-
-
-    link.download =
-      "गायत्री-आईडी-कार्ड-" +
-      safeID +
-      ".png";
-
-
-    link.href =
-      canvas.toDataURL(
-        "image/png"
-      );
-
-
-    document.body.appendChild(
-      link
-    );
-
-
-    link.click();
-
-
-    link.remove();
-
+function createCropModal() {
+  // Remove existing modal if any
+  if (cropModal) {
+    cropModal.remove();
   }
 
-  catch(error){
+  cropModal = document.createElement("div");
+  cropModal.id = "cropModal";
+  cropModal.style.cssText = `
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  `;
 
-    console.error(
-      "ID CARD ERROR:",
-      error
-    );
+  cropModal.innerHTML = `
+    <div style="background:#fff; border-radius:16px; padding:20px; max-width:90%; max-height:90%; overflow:auto;">
+      <h3 style="text-align:center; margin:0 0 15px; font-family:'Noto Sans Devanagari',sans-serif; color:#4b2b0b; font-size:20px;">
+        📸 फोटो को क्रॉप करें
+      </h3>
+      <div style="position:relative; display:inline-block; background:#f0f0f0; border-radius:8px; overflow:hidden;">
+        <img id="cropImage" style="max-width:800px; max-height:500px; display:block; user-select:none; -webkit-user-drag:none;">
+        <div id="cropOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+          <div id="cropSelection" style="position:absolute; border:3px solid #f28c00; box-shadow:0 0 0 9999px rgba(0,0,0,0.5); cursor:move; display:none; box-sizing:border-box; transition:left 0.05s, top 0.05s;">
+            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:14px; text-align:center; pointer-events:none; opacity:0.9;">
+              खींचें
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:15px;">
+        <button id="cropCancelButton" type="button" style="background:#e0e0e0; color:#333; border:none; padding:10px 24px; border-radius:24px; cursor:pointer; font-size:15px; margin-right:10px; font-family:'Noto Sans Devanagari',sans-serif;">
+          रद्द करें
+        </button>
+        <button id="cropConfirmButton" type="button" style="background:#f28c00; color:#fff; border:none; padding:10px 24px; border-radius:24px; cursor:pointer; font-size:15px; font-weight:bold; font-family:'Noto Sans Devanagari',sans-serif;">
+          ✓ क्रॉप करें और आईडी कार्ड बनाएं
+        </button>
+      </div>
+    </div>
+  `;
 
+  document.body.appendChild(cropModal);
 
-    alert(
-      error.message ||
-      "आईडी कार्ड नहीं बन पाया।"
-    );
-
-  }
-
+  cropImageElement = document.getElementById("cropImage");
+  cropSelectionElement = document.getElementById("cropSelection");
+  cropCancelButton = document.getElementById("cropCancelButton");
+  cropConfirmButton = document.getElementById("cropConfirmButton");
 }
 
+/* =========================================================
+   SHOW CROP MODAL
+========================================================= */
+
+function showCropModal(imageSource) {
+  return new Promise((resolve, reject) => {
+    createCropModal();
+
+    // Reset state
+    cropState.isDragging = false;
+    cropState.startX = 0;
+    cropState.startY = 0;
+    cropState.originalX = 0;
+    cropState.originalY = 0;
+
+    cropImageElement.onload = function () {
+      // Set canvas dimensions based on displayed image
+      cropState.imageElement = cropImageElement;
+      cropState.imageDisplayWidth = cropImageElement.clientWidth;
+      cropState.imageDisplayHeight = cropImageElement.clientHeight;
+      cropState.imageNaturalWidth = cropImageElement.naturalWidth;
+      cropState.imageNaturalHeight = cropImageElement.naturalHeight;
+
+      // Calculate initial selection (center of image)
+      const selectionWidth = cropState.imageDisplayWidth * 0.8;
+      const selectionHeight = selectionWidth / cropState.aspectRatio;
+
+      if (selectionHeight > cropState.imageDisplayHeight * 0.8) {
+        const tempHeight = cropState.imageDisplayHeight * 0.8;
+        const tempWidth = tempHeight * cropState.aspectRatio;
+
+        cropState.currentWidth = tempWidth;
+        cropState.currentHeight = tempHeight;
+      } else {
+        cropState.currentWidth = selectionWidth;
+        cropState.currentHeight = selectionHeight;
+      }
+
+      cropState.currentX = (cropState.imageDisplayWidth - cropState.currentWidth) / 2;
+      cropState.currentY = (cropState.imageDisplayHeight - cropState.currentHeight) / 2;
+
+      updateCropSelection();
+      cropModal.style.display = "flex";
+    };
+
+    cropImageElement.src = imageSource;
+
+    // Cancel button
+    cropCancelButton.onclick = function () {
+      cropModal.style.display = "none";
+      cleanupCropEvents();
+      reject(new Error("क्रॉप रद्द किया गया"));
+    };
+
+    // Confirm button
+    cropConfirmButton.onclick = function () {
+      cropModal.style.display = "none";
+      cleanupCropEvents();
+
+      // Calculate crop coordinates in natural image size
+      const scaleX = cropState.imageNaturalWidth / cropState.imageDisplayWidth;
+      const scaleY = cropState.imageNaturalHeight / cropState.imageDisplayHeight;
+
+      const cropData = {
+        x: cropState.currentX * scaleX,
+        y: cropState.currentY * scaleY,
+        width: cropState.currentWidth * scaleX,
+        height: cropState.currentHeight * scaleY
+      };
+
+      resolve(cropData);
+    };
+
+    // Mouse events for dragging selection
+    cropSelectionElement.onmousedown = function (e) {
+      cropState.isDragging = true;
+      cropState.startX = e.clientX;
+      cropState.startY = e.clientY;
+      cropState.originalX = cropState.currentX;
+      cropState.originalY = cropState.currentY;
+      e.preventDefault();
+    };
+
+    // Touch events for mobile
+    cropSelectionElement.ontouchstart = function (e) {
+      const touch = e.touches[0];
+      cropState.isDragging = true;
+      cropState.startX = touch.clientX;
+      cropState.startY = touch.clientY;
+      cropState.originalX = cropState.currentX;
+      cropState.originalY = cropState.currentY;
+      e.preventDefault();
+    };
+
+    document.addEventListener("mousemove", handleCropMouseMove);
+    document.addEventListener("touchmove", handleCropTouchMove);
+    document.addEventListener("mouseup", handleCropMouseUp);
+    document.addEventListener("touchend", handleCropTouchEnd);
+  });
+}
+
+/* =========================================================
+   CROP EVENT HANDLERS
+========================================================= */
+
+function handleCropMouseMove(e) {
+  if (cropState.isDragging) {
+    const dx = e.clientX - cropState.startX;
+    const dy = e.clientY - cropState.startY;
+
+    let newX = cropState.originalX + dx;
+    let newY = cropState.originalY + dy;
+
+    // Boundary checks
+    newX = Math.max(0, Math.min(cropState.imageDisplayWidth - cropState.currentWidth, newX));
+    newY = Math.max(0, Math.min(cropState.imageDisplayHeight - cropState.currentHeight, newY));
+
+    cropState.currentX = newX;
+    cropState.currentY = newY;
+
+    updateCropSelection();
+  }
+}
+
+function handleCropTouchMove(e) {
+  if (cropState.isDragging) {
+    const touch = e.touches[0];
+    const dx = touch.clientX - cropState.startX;
+    const dy = touch.clientY - cropState.startY;
+
+    let newX = cropState.originalX + dx;
+    let newY = cropState.originalY + dy;
+
+    // Boundary checks
+    newX = Math.max(0, Math.min(cropState.imageDisplayWidth - cropState.currentWidth, newX));
+    newY = Math.max(0, Math.min(cropState.imageDisplayHeight - cropState.currentHeight, newY));
+
+    cropState.currentX = newX;
+    cropState.currentY = newY;
+
+    updateCropSelection();
+    e.preventDefault();
+  }
+}
+
+function handleCropMouseUp() {
+  cropState.isDragging = false;
+}
+
+function handleCropTouchEnd() {
+  cropState.isDragging = false;
+}
+
+function cleanupCropEvents() {
+  document.removeEventListener("mousemove", handleCropMouseMove);
+  document.removeEventListener("touchmove", handleCropTouchMove);
+  document.removeEventListener("mouseup", handleCropMouseUp);
+  document.removeEventListener("touchend", handleCropTouchEnd);
+}
+
+/* =========================================================
+   UPDATE CROP SELECTION
+========================================================= */
+
+function updateCropSelection() {
+  if (!cropSelectionElement) return;
+
+  cropSelectionElement.style.display = "block";
+  cropSelectionElement.style.left = cropState.currentX + "px";
+  cropSelectionElement.style.top = cropState.currentY + "px";
+  cropSelectionElement.style.width = cropState.currentWidth + "px";
+  cropSelectionElement.style.height = cropState.currentHeight + "px";
+  cropSelectionElement.style.cursor = "move";
+}
+
+/* =========================================================
+   CROP IMAGE
+========================================================= */
+
+function cropImage(sourceImage, cropData) {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = cropData.width;
+    canvas.height = cropData.height;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(
+      sourceImage,
+      cropData.x,
+      cropData.y,
+      cropData.width,
+      cropData.height,
+      0,
+      0,
+      cropData.width,
+      cropData.height
+    );
+
+    resolve(canvas.toDataURL("image/png"));
+  });
+}
+
+/* =========================================================
+   ID CARD - UPDATED VERSION
+========================================================= */
+
+async function downloadIDCard(item) {
+  try {
+    // अगर फोटो cached नहीं है
+    if (!item.image && item.imagePath && navigator.onLine) {
+      showSync("आईडी कार्ड के लिए फोटो लोड हो रही है...");
+
+      const image = await loadPrivateImage(item.imagePath);
+
+      if (image) {
+        item.image = image;
+        await saveOfflineData();
+      }
+
+      hideSync();
+    }
+
+    if (!item.image) {
+      throw new Error("इस पंजीकरण की फोटो उपलब्ध नहीं है। पहले Internet के साथ सिंक करें।");
+    }
+
+    // LOGO
+    const logo = await loadImageForCanvas("./logo.png");
+
+    // PHOTO - Crop Modal दिखाएं
+    let photoSource = item.image;
+
+    // Crop modal दिखाएं और user से crop data लें
+    try {
+      const cropData = await showCropModal(photoSource);
+
+      // Original image load करें
+      const originalPhoto = await loadImageForCanvas(photoSource);
+
+      // Crop करें
+      photoSource = await cropImage(originalPhoto, cropData);
+    } catch (cropError) {
+      if (cropError.message === "क्रॉप रद्द किया गया") {
+        return; // User ने cancel किया
+      }
+      console.warn("Crop error, using original:", cropError);
+      // Crop fail होने पर original use करें
+    }
+
+    // Cropped photo load करें
+    const photo = await loadImageForCanvas(photoSource);
+
+    // CANVAS
+    const canvas = document.createElement("canvas");
+    canvas.width = 1400;
+    canvas.height = 820;
+
+    const ctx = canvas.getContext("2d");
+
+    const hindiFont = '"Noto Sans Devanagari", "Nirmala UI", "Mangal", Arial, sans-serif';
+    const hindiBold = `700 32px ${hindiFont}`;
+
+    // BACKGROUND
+    ctx.fillStyle = "#fffaf0";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // OUTER BORDER
+    ctx.strokeStyle = "#f28c00";
+    ctx.lineWidth = 12;
+    roundedRect(ctx, 12, 12, 1376, 796, 34);
+    ctx.stroke();
+
+    // INNER BORDER
+    ctx.strokeStyle = "#8b5a20";
+    ctx.lineWidth = 3;
+    roundedRect(ctx, 30, 30, 1340, 760, 27);
+    ctx.stroke();
+
+    // HEADER
+    ctx.fillStyle = "#f28c00";
+    roundedRect(ctx, 38, 38, 1324, 190, 25);
+    ctx.fill();
+
+    ctx.strokeStyle = "#ffe2a8";
+    ctx.lineWidth = 3;
+    roundedRect(ctx, 52, 52, 1296, 162, 20);
+    ctx.stroke();
+
+    // LOGO
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(135, 133, 75, 0, Math.PI * 2);
+    ctx.clip();
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(60, 58, 150, 150);
+
+    ctx.drawImage(logo, 60, 58, 150, 150);
+    ctx.restore();
+
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(135, 133, 78, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // HEADER TEXT
+    const title = "गायत्री चेतना केन्द्र चिलबिला प्रतापगढ़";
+    const subtitle = "अखिल विश्व गायत्री परिवार शांतिकुंज";
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const titleSize = fitText(ctx, title, 980, 43, 25);
+    ctx.font = `700 ${titleSize}px ${hindiFont}`;
+    ctx.fillStyle = "#fff";
+    ctx.fillText(title, 770, 105);
+
+    const subtitleSize = fitText(ctx, subtitle, 850, 26, 16);
+    ctx.font = `600 ${subtitleSize}px ${hindiFont}`;
+    ctx.fillText(subtitle, 770, 158);
+
+    // MAIN BOX
+    ctx.fillStyle = "#fff";
+    roundedRect(ctx, 65, 260, 1270, 475, 25);
+    ctx.fill();
+
+    ctx.strokeStyle = "#edcf9e";
+    ctx.lineWidth = 2;
+    roundedRect(ctx, 65, 260, 1270, 475, 25);
+    ctx.stroke();
+
+    // PHOTO - अब cropped photo use करें
+    drawCoverImage(ctx, photo, 105, 305, 325, 375, 18);
+
+    ctx.strokeStyle = "#f28c00";
+    ctx.lineWidth = 6;
+    roundedRect(ctx, 105, 305, 325, 375, 18);
+    ctx.stroke();
+
+    // DETAILS
+    const detailX = 500;
+    const rightX = 1060;
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#8b5a20";
+    ctx.font = hindiBold;
+    ctx.fillText("नाम", detailX, 330);
+
+    const name = item.name || "—";
+    const nameSize = fitText(ctx, name, 500, 39, 21);
+    ctx.font = `700 ${nameSize}px ${hindiFont}`;
+    ctx.fillStyle = "#4b2b0b";
+    ctx.fillText(name, detailX, 375);
+
+    // AGE
+    ctx.fillStyle = "#8b5a20";
+    ctx.font = hindiBold;
+    ctx.fillText("आयु", rightX, 330);
+
+    ctx.fillStyle = "#4b2b0b";
+    ctx.font = `700 34px ${hindiFont}`;
+    ctx.fillText(item.age || "—", rightX, 375);
+
+    // DIVIDER
+    ctx.strokeStyle = "#edcf9e";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(detailX, 410);
+    ctx.lineTo(1285, 410);
+    ctx.stroke();
+
+    // MOBILE
+    ctx.fillStyle = "#8b5a20";
+    ctx.font = hindiBold;
+    ctx.fillText("मोबाइल नंबर", detailX, 455);
+
+    ctx.fillStyle = "#4b2b0b";
+    ctx.font = `700 34px ${hindiFont}`;
+    ctx.fillText(item.mobile || "—", detailX, 500);
+
+    // DIVIDER
+    ctx.strokeStyle = "#edcf9e";
+    ctx.beginPath();
+    ctx.moveTo(detailX, 530);
+    ctx.lineTo(1285, 530);
+    ctx.stroke();
+
+    // REGISTRATION ID
+    ctx.fillStyle = "#8b5a20";
+    ctx.font = hindiBold;
+    ctx.fillText("पंजीकरण क्रमांक", detailX, 575);
+
+    const registrationID = item.id || "—";
+    const idSize = fitText(ctx, registrationID, 760, 34, 18);
+    ctx.fillStyle = "#4b2b0b";
+    ctx.font = `700 ${idSize}px ${hindiFont}`;
+    ctx.fillText(registrationID, detailX, 620);
+
+    // FOOTER
+    ctx.fillStyle = "#8b5a20";
+    ctx.font = `600 18px ${hindiFont}`;
+    ctx.fillText("गायत्री चेतना केन्द्र", detailX, 682);
+
+    // CORNERS
+    drawDecoration(ctx, 80, 250);
+    drawDecoration(ctx, 1320, 250);
+    drawDecoration(ctx, 80, 725);
+    drawDecoration(ctx, 1320, 725);
+
+    // DOWNLOAD
+    const safeID = String(item.id || item.issueNumber || "पंजीकरण")
+      .replace(/[^a-zA-Z0-9_-]+/g, "_");
+
+    const link = document.createElement("a");
+    link.download = "गायत्री-आईडी-कार्ड-" + safeID + ".png";
+    link.href = canvas.toDataURL("image/png");
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    showSync("✓ आईडी कार्ड डाउनलोड हो गया");
+    setTimeout(hideSync, 2000);
+
+  } catch (error) {
+    console.error("ID CARD ERROR:", error);
+
+    if (error.message !== "क्रॉप रद्द किया गया") {
+      alert(error.message || "आईडी कार्ड नहीं बन पाया।");
+    }
+  }
+}
 
 /* =========================================================
    MANUAL SYNC BUTTON
 ========================================================= */
 
-if(refreshButton){
-
-  refreshButton.addEventListener(
-    "click",
-    async function(){
-
-      if(!githubConfig){
-
-        alert(
-          "पहले GitHub से लॉगिन करें।"
-        );
-
-        return;
-
-      }
-
-
-      refreshButton.disabled =
-        true;
-
-
-      refreshButton.textContent =
-        "सिंक हो रहा है...";
-
-
-      try{
-
-        registrations =
-          await syncFromGitHub();
-
-
-        performSearch();
-
-
-        showSync(
-          `✓ सिंक पूरा हुआ • ${registrations.length} पंजीकरण उपलब्ध`
-        );
-
-
-        setTimeout(
-          hideSync,
-          3000
-        );
-
-      }
-
-      catch(error){
-
-        console.error(
-          error
-        );
-
-
-        if(registrations.length){
-
-          showSync(
-            "नया डेटा नहीं मिला। सेव किया हुआ डेटा दिखाया जा रहा है।"
-          );
-
-        }
-
-        else{
-
-          alert(
-            error.message ||
-            "डेटा लोड नहीं हो पाया।"
-          );
-
-        }
-
-      }
-
-      finally{
-
-        refreshButton.disabled =
-          false;
-
-
-        refreshButton.textContent =
-          "↻ सिंक";
-
-      }
-
+if (refreshButton) {
+  refreshButton.addEventListener("click", async function () {
+    if (!githubConfig) {
+      alert("पहले GitHub से लॉगिन करें।");
+      return;
     }
-  );
 
+    refreshButton.disabled = true;
+    refreshButton.textContent = "सिंक हो रहा है...";
+
+    try {
+      registrations = await syncFromGitHub();
+      performSearch();
+
+      showSync(`✓ सिंक पूरा हुआ • ${registrations.length} पंजीकरण उपलब्ध`);
+      setTimeout(hideSync, 3000);
+    } catch (error) {
+      console.error(error);
+
+      if (registrations.length) {
+        showSync("नया डेटा नहीं मिला। सेव किया हुआ डेटा दिखाया जा रहा है।");
+      } else {
+        alert(error.message || "डेटा लोड नहीं हो पाया।");
+      }
+    } finally {
+      refreshButton.disabled = false;
+      refreshButton.textContent = "↻ सिंक";
+    }
+  });
 }
-
 
 /* =========================================================
    LOGOUT
 ========================================================= */
 
-if(logoutButton){
+if (logoutButton) {
+  logoutButton.addEventListener("click", function () {
+    clearLogin();
+    registrations = [];
+    registrationList.innerHTML = "";
+    searchBox.value = "";
 
-  logoutButton.addEventListener(
-    "click",
-    function(){
+    listView.style.display = "none";
+    detailView.style.display = "none";
+    loginView.style.display = "block";
 
-      clearLogin();
+    usernameInput.value = "";
+    repoInput.value = "";
+    tokenInput.value = "";
 
-
-      registrations =
-        [];
-
-
-      registrationList.innerHTML =
-        "";
-
-
-      searchBox.value =
-        "";
-
-
-      listView.style.display =
-        "none";
-
-
-      detailView.style.display =
-        "none";
-
-
-      loginView.style.display =
-        "block";
-
-
-      usernameInput.value =
-        "";
-
-
-      repoInput.value =
-        "";
-
-
-      tokenInput.value =
-        "";
-
-
-      hideError();
-
-
-      hideSync();
-
-    }
-  );
-
+    hideError();
+    hideSync();
+  });
 }
-
 
 /* =========================================================
    LOGIN
 ========================================================= */
 
-if(loginButton){
+if (loginButton) {
+  loginButton.addEventListener("click", async function () {
+    hideError();
 
-  loginButton.addEventListener(
-    "click",
-    async function(){
+    const username = usernameInput.value.trim();
+    const repo = repoInput.value.trim();
+    const token = tokenInput.value.trim();
 
-      hideError();
+    if (!username || !repo || !token) {
+      showError("GitHub Username, Repository और Token तीनों भरें।");
+      return;
+    }
 
+    githubConfig = {
+      username: username,
+      repo: repo,
+      token: token
+    };
 
-      const username =
-        usernameInput.value.trim();
+    loginButton.disabled = true;
+    loginButton.textContent = "डेटा लोड हो रहा है...";
 
+    try {
+      // Online sync
+      registrations = await syncFromGitHub();
 
-      const repo =
-        repoInput.value.trim();
+      // Save login
+      saveLogin();
 
+      // Show list
+      loginView.style.display = "none";
+      detailView.style.display = "none";
+      listView.style.display = "block";
 
-      const token =
-        tokenInput.value.trim();
+      renderList(registrations);
 
+      showSync(`✓ ऑनलाइन • ${registrations.length} पंजीकरण लोड हुए`);
+      setTimeout(hideSync, 3000);
+    } catch (error) {
+      console.error("LOGIN ERROR:", error);
 
-      if(
-        !username ||
-        !repo ||
-        !token
-      ){
+      // Offline cache
+      const saved = await loadOfflineData();
 
-        showError(
-          "GitHub Username, Repository और Token तीनों भरें।"
-        );
-
-        return;
-
-      }
-
-
-      githubConfig = {
-
-        username:
-          username,
-
-        repo:
-          repo,
-
-        token:
-          token
-
-      };
-
-
-      loginButton.disabled =
-        true;
-
-
-      loginButton.textContent =
-        "डेटा लोड हो रहा है...";
-
-
-      try{
-
-        /*
-          Online sync
-        */
-
-        registrations =
-          await syncFromGitHub();
-
-
-        /*
-          Save login
-        */
-
+      if (saved && Array.isArray(saved.registrations)) {
+        registrations = saved.registrations;
         saveLogin();
 
+        loginView.style.display = "none";
+        detailView.style.display = "none";
+        listView.style.display = "block";
 
-        /*
-          Show list
-        */
+        renderList(registrations);
 
-        loginView.style.display =
-          "none";
-
-
-        detailView.style.display =
-          "none";
-
-
-        listView.style.display =
-          "block";
-
-
-        renderList(
-          registrations
-        );
-
-
-        showSync(
-          `✓ ऑनलाइन • ${registrations.length} पंजीकरण लोड हुए`
-        );
-
-
-        setTimeout(
-          hideSync,
-          3000
-        );
-
+        showSync(`ऑफलाइन मोड • ${registrations.length} पंजीकरण उपलब्ध`);
+      } else {
+        githubConfig = null;
+        showError(error.message || "डेटा लोड नहीं हो पाया।");
       }
-
-      catch(error){
-
-        console.error(
-          "LOGIN ERROR:",
-          error
-        );
-
-
-        /*
-          Offline cache
-        */
-
-        const saved =
-          await loadOfflineData();
-
-
-        if(
-          saved &&
-          Array.isArray(
-            saved.registrations
-          )
-        ){
-
-          registrations =
-            saved.registrations;
-
-
-          saveLogin();
-
-
-          loginView.style.display =
-            "none";
-
-
-          detailView.style.display =
-            "none";
-
-
-          listView.style.display =
-            "block";
-
-
-          renderList(
-            registrations
-          );
-
-
-          showSync(
-            `ऑफलाइन मोड • ${registrations.length} पंजीकरण उपलब्ध`
-          );
-
-        }
-
-        else{
-
-          githubConfig =
-            null;
-
-
-          showError(
-            error.message ||
-            "डेटा लोड नहीं हो पाया।"
-          );
-
-        }
-
-      }
-
-      finally{
-
-        loginButton.disabled =
-          false;
-
-
-        loginButton.textContent =
-          "सुरक्षित रूप से खोलें";
-
-      }
-
+    } finally {
+      loginButton.disabled = false;
+      loginButton.textContent = "सुरक्षित रूप से खोलें";
     }
-  );
-
+  });
 }
-
 
 /* =========================================================
    START APPLICATION
 ========================================================= */
 
-async function startApplication(){
-
-  /* =========================
-     SERVICE WORKER
-  ========================= */
-
-  if(
-    "serviceWorker" in navigator
-  ){
-
-    try{
-
-      await navigator
-        .serviceWorker
-        .register(
-          "./sw.js"
-        );
-
-
-      console.log(
-        "Service Worker registered."
-      );
-
+async function startApplication() {
+  // SERVICE WORKER
+  if ("serviceWorker" in navigator) {
+    try {
+      await navigator.serviceWorker.register("./sw.js");
+      console.log("Service Worker registered.");
+    } catch (error) {
+      console.warn("Service Worker error:", error);
     }
-
-    catch(error){
-
-      console.warn(
-        "Service Worker error:",
-        error
-      );
-
-    }
-
   }
 
-
-  /* =========================
-     SAVED LOGIN
-  ========================= */
-
-  if(
-    !loadLogin()
-  ){
-
+  // SAVED LOGIN
+  if (!loadLogin()) {
     return;
-
   }
 
+  // OFFLINE DATA FIRST
+  const saved = await loadOfflineData();
 
-  /* =========================
-     OFFLINE DATA FIRST
-  ========================= */
+  if (saved && Array.isArray(saved.registrations)) {
+    registrations = saved.registrations;
 
-  const saved =
-    await loadOfflineData();
+    loginView.style.display = "none";
+    detailView.style.display = "none";
+    listView.style.display = "block";
 
+    renderList(registrations);
 
-  if(
-    saved &&
-    Array.isArray(
-      saved.registrations
-    )
-  ){
-
-    registrations =
-      saved.registrations;
-
-
-    loginView.style.display =
-      "none";
-
-
-    detailView.style.display =
-      "none";
-
-
-    listView.style.display =
-      "block";
-
-
-    renderList(
-      registrations
-    );
-
-
-    showSync(
-      `ऑफलाइन सेव डेटा • ${registrations.length} पंजीकरण`
-    );
-
+    showSync(`ऑफलाइन सेव डेटा • ${registrations.length} पंजीकरण`);
   }
 
+  // ONLINE FRESH SYNC
+  if (navigator.onLine) {
+    try {
+      registrations = await syncFromGitHub();
 
-  /* =========================
-     ONLINE FRESH SYNC
-  ========================= */
+      loginView.style.display = "none";
+      detailView.style.display = "none";
+      listView.style.display = "block";
 
-  if(
-    navigator.onLine
-  ){
+      renderList(registrations);
 
-    try{
+      showSync(`✓ ऑनलाइन सिंक • ${registrations.length} पंजीकरण`);
+      setTimeout(hideSync, 3000);
+    } catch (error) {
+      console.warn("Startup sync failed:", error);
 
-      registrations =
-        await syncFromGitHub();
-
-
-      loginView.style.display =
-        "none";
-
-
-      detailView.style.display =
-        "none";
-
-
-      listView.style.display =
-        "block";
-
-
-      renderList(
-        registrations
-      );
-
-
-      showSync(
-        `✓ ऑनलाइन सिंक • ${registrations.length} पंजीकरण`
-      );
-
-
-      setTimeout(
-        hideSync,
-        3000
-      );
-
-    }
-
-    catch(error){
-
-      console.warn(
-        "Startup sync failed:",
-        error
-      );
-
-
-      /*
-        Offline data है तो वही चलता रहेगा
-      */
-
-      if(
-        registrations.length === 0
-      ){
-
-        loginView.style.display =
-          "block";
-
-
-        listView.style.display =
-          "none";
-
-
-        showError(
-          error.message
-        );
-
+      // Offline data है तो वही चलता रहेगा
+      if (registrations.length === 0) {
+        loginView.style.display = "block";
+        listView.style.display = "none";
+        showError(error.message);
       }
-
     }
-
   }
-
 }
-
 
 /* =========================================================
    INTERNET वापस आने पर AUTO SYNC
 ========================================================= */
 
-window.addEventListener(
-  "online",
-  async function(){
+window.addEventListener("online", async function () {
+  if (!githubConfig) return;
 
-    if(!githubConfig)
-      return;
+  try {
+    showSync("इंटरनेट वापस आ गया। डेटा सिंक हो रहा है...");
 
+    registrations = await syncFromGitHub();
+    performSearch();
 
-    try{
-
-      showSync(
-        "इंटरनेट वापस आ गया। डेटा सिंक हो रहा है..."
-      );
-
-
-      registrations =
-        await syncFromGitHub();
-
-
-      performSearch();
-
-
-      showSync(
-        `✓ सिंक पूरा • ${registrations.length} पंजीकरण उपलब्ध`
-      );
-
-
-      setTimeout(
-        hideSync,
-        3000
-      );
-
-    }
-
-    catch(error){
-
-      console.warn(
-        "Online sync error:",
-        error
-      );
-
-    }
-
+    showSync(`✓ सिंक पूरा • ${registrations.length} पंजीकरण उपलब्ध`);
+    setTimeout(hideSync, 3000);
+  } catch (error) {
+    console.warn("Online sync error:", error);
   }
-);
-
+});
 
 /* =========================================================
    START
