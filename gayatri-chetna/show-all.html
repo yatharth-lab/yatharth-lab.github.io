@@ -1,162 +1,959 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="theme-color" content="#f28c00">
-<meta name="description" content="Gayatri Chetna Kendra registration viewer">
-<link rel="manifest" href="manifest.json">
-<title>गायत्री चेतना केन्द्र — पंजीकरण</title>
+<html lang="hi">
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family:"Noto Sans Devanagari","Segoe UI",sans-serif;
-  background:#fff8ed;color:#4b2b0b;
-}
-.header{
-  background:linear-gradient(135deg,#f28c00,#ffb52e);
-  color:#fff;padding:12px;display:flex;align-items:center;gap:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.15)
-}
-.header img{width:48px;height:48px;object-fit:contain;background:#fff;border-radius:50%;padding:4px}
-.header-text{flex:1;min-width:0}
-.header-text h1{font-size:18px;line-height:1.3}
-.header-text p{font-size:11px;margin-top:2px}
-.container{max-width:850px;margin:auto;padding:12px}
-.login-box,.detail-card{
-  background:#fff;border:1px solid #ecd3ae;border-radius:12px;padding:15px;
-  box-shadow:0 2px 8px rgba(0,0,0,.07);margin-top:10px
-}
-.login-title{text-align:center;color:#d86f00;font-size:20px;margin-bottom:5px}
-.login-subtitle{text-align:center;color:#80684c;font-size:12px;margin-bottom:15px}
-.field{margin-bottom:11px}
-.field label{display:block;font-size:12px;margin-bottom:4px;color:#704d2b}
-.field input{
-  width:100%;padding:10px;border:1px solid #dfc49f;border-radius:8px;
-  outline:none;font-size:14px;background:#fffdfa
-}
-.field input:focus{border-color:#f28c00}
-.button{
-  width:100%;border:0;border-radius:8px;padding:11px;background:#f28c00;
-  color:#fff;font-size:14px;cursor:pointer
-}
-.button:disabled{opacity:.6;cursor:not-allowed}
-.login-error,.error{
-  display:none;margin-top:10px;padding:9px;border-radius:8px;
-  background:#fff0f0;border:1px solid #e5aaaa;color:#a52d2d;font-size:12px
-}
-.topbar{display:flex;gap:7px;align-items:center;margin-bottom:10px}
-.search{
-  flex:1;padding:10px;border:1px solid #dfc49f;border-radius:8px;
-  outline:none;background:#fff;font-size:13px
-}
-.logout{
-  border:0;background:#fff;border:1px solid #e0bd8b;color:#a75e0b;
-  border-radius:8px;padding:9px;font-size:11px;cursor:pointer
-}
-.list{display:flex;flex-direction:column;gap:7px}
-.registration{
-  background:#fff;border:1px solid #ecd8bc;border-radius:9px;padding:7px;
-  display:flex;align-items:center;gap:9px;cursor:pointer;
-  box-shadow:0 1px 4px rgba(0,0,0,.05);transition:.15s
-}
-.registration:active{transform:scale(.99)}
-.thumb{
-  width:50px;height:50px;object-fit:cover;flex:none;border-radius:7px;
-  background:#f4e7d3
-}
-.basic{min-width:0;flex:1}
-.name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.place,.regid{font-size:11px;color:#80684c;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.regid{font-size:9px;color:#a06c2e}
-.arrow{font-size:18px;color:#f28c00}
-.make-card{
-  flex:none;border:1px solid #f0a12c;background:#fff8ed;color:#c96b00;
-  border-radius:7px;padding:7px 9px;font-size:10px;font-weight:700;cursor:pointer
-}
-.status{text-align:center;padding:20px;font-size:13px;color:#765532}
-.detail{display:none}
-.back{
-  border:0;background:#f28c00;color:#fff;border-radius:7px;padding:8px 12px;
-  font-size:12px;margin-bottom:10px;cursor:pointer
-}
-.detail-card{margin-top:0}
-.detail-photo{text-align:center;margin-bottom:10px}
-.detail-photo img{
-  width:150px;height:175px;object-fit:cover;border-radius:9px;border:2px solid #f1bd70
-}
-.detail-title{text-align:center;font-size:18px;color:#d86f00;margin-bottom:3px}
-.detail-id{text-align:center;font-size:10px;color:#856747;margin-bottom:10px}
-.row{border-bottom:1px solid #f0e2cf;padding:7px 2px}
-.row:last-child{border-bottom:0}
-.label{font-size:10px;color:#8b6a49;margin-bottom:2px}
-.value{font-size:13px;white-space:pre-wrap;word-break:break-word;color:#422a12}
-.section-title{color:#d86f00;font-size:15px;margin-top:14px;margin-bottom:4px}
-.sync-note{
-  margin:8px 0;padding:8px 10px;border-radius:8px;background:#fff3dc;
-  border:1px solid #efd09d;color:#795324;font-size:11px
-}
-@media(max-width:520px){
-  .registration{gap:6px}
-  .make-card{padding:6px 7px;font-size:9px}
-  .thumb{width:46px;height:46px}
-}
-@media(min-width:700px){
-  .container{padding:18px}
-  .registration:hover{border-color:#efb35b;transform:translateY(-1px)}
-}
-</style>
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#f28c00"
+  >
+
+  <meta
+    name="description"
+    content="गायत्री चेतना केन्द्र पंजीकरण सूची"
+  >
+
+  <link
+    rel="manifest"
+    href="manifest.json"
+  >
+
+  <title>
+    गायत्री चेतना केन्द्र — पंजीकरण
+  </title>
+
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+
+    body{
+      font-family:
+        "Noto Sans Devanagari",
+        "Nirmala UI",
+        "Mangal",
+        "Segoe UI",
+        sans-serif;
+
+      background:#fff8ed;
+      color:#4b2b0b;
+    }
+
+
+    button,
+    input{
+      font-family:inherit;
+    }
+
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .header{
+      background:
+        linear-gradient(
+          135deg,
+          #f28c00,
+          #ffb52e
+        );
+
+      color:#fff;
+
+      padding:12px;
+
+      display:flex;
+
+      align-items:center;
+
+      gap:10px;
+
+      box-shadow:
+        0 2px 8px
+        rgba(0,0,0,.15);
+    }
+
+
+    .header img{
+      width:48px;
+      height:48px;
+
+      object-fit:contain;
+
+      background:#fff;
+
+      border-radius:50%;
+
+      padding:4px;
+
+      flex:none;
+    }
+
+
+    .header-text{
+      flex:1;
+      min-width:0;
+    }
+
+
+    .header-text h1{
+      font-size:18px;
+      line-height:1.3;
+    }
+
+
+    .header-text p{
+      font-size:11px;
+      margin-top:2px;
+    }
+
+
+    /* =========================
+       CONTAINER
+    ========================= */
+
+    .container{
+      max-width:850px;
+      margin:auto;
+      padding:12px;
+    }
+
+
+    /* =========================
+       LOGIN
+    ========================= */
+
+    .login-box{
+      background:#fff;
+
+      border:
+        1px solid #ecd3ae;
+
+      border-radius:12px;
+
+      padding:15px;
+
+      box-shadow:
+        0 2px 8px
+        rgba(0,0,0,.07);
+
+      margin-top:10px;
+    }
+
+
+    .login-title{
+      text-align:center;
+
+      color:#d86f00;
+
+      font-size:20px;
+
+      margin-bottom:5px;
+    }
+
+
+    .login-subtitle{
+      text-align:center;
+
+      color:#80684c;
+
+      font-size:12px;
+
+      margin-bottom:15px;
+    }
+
+
+    .field{
+      margin-bottom:11px;
+    }
+
+
+    .field label{
+      display:block;
+
+      font-size:12px;
+
+      margin-bottom:4px;
+
+      color:#704d2b;
+    }
+
+
+    .field input{
+      width:100%;
+
+      padding:10px;
+
+      border:
+        1px solid #dfc49f;
+
+      border-radius:8px;
+
+      outline:none;
+
+      font-size:14px;
+
+      background:#fffdfa;
+    }
+
+
+    .field input:focus{
+      border-color:#f28c00;
+    }
+
+
+    .button{
+      width:100%;
+
+      border:0;
+
+      border-radius:8px;
+
+      padding:11px;
+
+      background:#f28c00;
+
+      color:#fff;
+
+      font-size:14px;
+
+      cursor:pointer;
+    }
+
+
+    .button:disabled{
+      opacity:.6;
+
+      cursor:not-allowed;
+    }
+
+
+    .login-error,
+    .error{
+      display:none;
+
+      margin-top:10px;
+
+      padding:9px;
+
+      border-radius:8px;
+
+      background:#fff0f0;
+
+      border:
+        1px solid #e5aaaa;
+
+      color:#a52d2d;
+
+      font-size:12px;
+    }
+
+
+    /* =========================
+       LIST TOP BAR
+    ========================= */
+
+    .topbar{
+      display:flex;
+
+      gap:7px;
+
+      align-items:center;
+
+      margin-bottom:10px;
+
+      flex-wrap:wrap;
+    }
+
+
+    .search{
+      flex:1;
+
+      min-width:180px;
+
+      padding:10px;
+
+      border:
+        1px solid #dfc49f;
+
+      border-radius:8px;
+
+      outline:none;
+
+      background:#fff;
+
+      font-size:13px;
+    }
+
+
+    .search:focus{
+      border-color:#f28c00;
+    }
+
+
+    .sync-button{
+      border:0;
+
+      background:#f28c00;
+
+      color:#fff;
+
+      border-radius:8px;
+
+      padding:9px 12px;
+
+      font-size:12px;
+
+      cursor:pointer;
+
+      white-space:nowrap;
+    }
+
+
+    .sync-button:disabled{
+      opacity:.6;
+
+      cursor:not-allowed;
+    }
+
+
+    .logout{
+      border:1px solid #e0bd8b;
+
+      background:#fff;
+
+      color:#a75e0b;
+
+      border-radius:8px;
+
+      padding:9px 10px;
+
+      font-size:11px;
+
+      cursor:pointer;
+
+      white-space:nowrap;
+    }
+
+
+    /* =========================
+       SYNC MESSAGE
+    ========================= */
+
+    .sync-note{
+      margin:8px 0;
+
+      padding:8px 10px;
+
+      border-radius:8px;
+
+      background:#fff3dc;
+
+      border:
+        1px solid #efd09d;
+
+      color:#795324;
+
+      font-size:11px;
+    }
+
+
+    /* =========================
+       LIST
+    ========================= */
+
+    .list{
+      display:flex;
+
+      flex-direction:column;
+
+      gap:7px;
+    }
+
+
+    .registration{
+      background:#fff;
+
+      border:
+        1px solid #ecd8bc;
+
+      border-radius:9px;
+
+      padding:7px;
+
+      display:flex;
+
+      align-items:center;
+
+      gap:9px;
+
+      cursor:pointer;
+
+      box-shadow:
+        0 1px 4px
+        rgba(0,0,0,.05);
+
+      transition:.15s;
+    }
+
+
+    .registration:active{
+      transform:scale(.99);
+    }
+
+
+    .thumb{
+      width:50px;
+      height:50px;
+
+      object-fit:cover;
+
+      flex:none;
+
+      border-radius:7px;
+
+      background:#f4e7d3;
+    }
+
+
+    .no-photo{
+      width:50px;
+      height:50px;
+
+      flex:none;
+
+      border-radius:7px;
+
+      background:#f4e7d3;
+
+      display:flex;
+
+      align-items:center;
+
+      justify-content:center;
+
+      text-align:center;
+
+      font-size:8px;
+
+      color:#8c704f;
+    }
+
+
+    .basic{
+      min-width:0;
+
+      flex:1;
+    }
+
+
+    .name{
+      font-size:14px;
+
+      font-weight:700;
+
+      white-space:nowrap;
+
+      overflow:hidden;
+
+      text-overflow:ellipsis;
+    }
+
+
+    .place,
+    .regid{
+      font-size:11px;
+
+      color:#80684c;
+
+      margin-top:2px;
+
+      white-space:nowrap;
+
+      overflow:hidden;
+
+      text-overflow:ellipsis;
+    }
+
+
+    .regid{
+      font-size:9px;
+
+      color:#a06c2e;
+    }
+
+
+    .make-card{
+      flex:none;
+
+      border:
+        1px solid #f0a12c;
+
+      background:#fff8ed;
+
+      color:#c96b00;
+
+      border-radius:7px;
+
+      padding:7px 9px;
+
+      font-size:10px;
+
+      font-weight:700;
+
+      cursor:pointer;
+    }
+
+
+    .arrow{
+      flex:none;
+
+      font-size:20px;
+
+      color:#f28c00;
+
+      padding:3px;
+    }
+
+
+    .status{
+      text-align:center;
+
+      padding:25px 10px;
+
+      font-size:13px;
+
+      color:#765532;
+
+      background:#fff;
+
+      border-radius:10px;
+
+      border:1px solid #ecd8bc;
+    }
+
+
+    /* =========================
+       DETAIL
+    ========================= */
+
+    .detail{
+      display:none;
+    }
+
+
+    .back{
+      border:0;
+
+      background:#f28c00;
+
+      color:#fff;
+
+      border-radius:7px;
+
+      padding:8px 12px;
+
+      font-size:12px;
+
+      margin-bottom:10px;
+
+      cursor:pointer;
+    }
+
+
+    .detail-card{
+      background:#fff;
+
+      border:
+        1px solid #ecd3ae;
+
+      border-radius:12px;
+
+      padding:15px;
+
+      box-shadow:
+        0 2px 8px
+        rgba(0,0,0,.07);
+    }
+
+
+    .detail-photo{
+      text-align:center;
+
+      margin-bottom:10px;
+    }
+
+
+    .detail-photo img{
+      width:150px;
+      height:175px;
+
+      object-fit:cover;
+
+      border-radius:9px;
+
+      border:
+        2px solid #f1bd70;
+    }
+
+
+    .detail-no-photo{
+      text-align:center;
+
+      padding:30px;
+
+      color:#8b6a49;
+    }
+
+
+    .detail-title{
+      text-align:center;
+
+      font-size:18px;
+
+      color:#d86f00;
+
+      margin-bottom:3px;
+    }
+
+
+    .detail-registration-id{
+      text-align:center;
+
+      font-size:10px;
+
+      color:#856747;
+
+      margin-bottom:10px;
+    }
+
+
+    .detail-row{
+      border-bottom:
+        1px solid #f0e2cf;
+
+      padding:8px 2px;
+    }
+
+
+    .detail-label{
+      font-size:10px;
+
+      color:#8b6a49;
+
+      margin-bottom:2px;
+    }
+
+
+    .detail-value{
+      font-size:13px;
+
+      white-space:pre-wrap;
+
+      word-break:break-word;
+
+      color:#422a12;
+    }
+
+
+    .section-title{
+      color:#d86f00;
+
+      font-size:15px;
+
+      margin-top:14px;
+
+      margin-bottom:4px;
+    }
+
+
+    .main-button{
+      width:100%;
+
+      border:0;
+
+      background:#f28c00;
+
+      color:#fff;
+
+      border-radius:8px;
+
+      padding:11px;
+
+      font-size:13px;
+
+      cursor:pointer;
+    }
+
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media(max-width:520px){
+
+      .registration{
+        gap:6px;
+      }
+
+
+      .make-card{
+        padding:6px 7px;
+
+        font-size:9px;
+      }
+
+
+      .thumb,
+      .no-photo{
+        width:46px;
+        height:46px;
+      }
+
+
+      .sync-button{
+        padding:9px;
+      }
+
+    }
+
+
+    @media(min-width:700px){
+
+      .container{
+        padding:18px;
+      }
+
+
+      .registration:hover{
+        border-color:#efb35b;
+
+        transform:translateY(-1px);
+      }
+
+    }
+
+  </style>
+
 </head>
 
+
 <body>
-<header class="header">
-  <img src="logo.png" alt="Logo" id="siteLogo">
-  <div class="header-text">
-    <h1>गायत्री चेतना केन्द्र चिलबिला, प्रतापगढ़</h1>
-    <p>अखिल विश्व गायत्री परिवार, शान्तिकुञ्ज, हरिद्वार</p>
-  </div>
-</header>
 
-<main class="container">
-<section id="loginView" class="login-box">
-  <h2 class="login-title">पंजीकरण सूची खोलें</h2>
-  <p class="login-subtitle">Private GitHub Repository से डेटा देखने के लिए पहली बार विवरण भरें।</p>
 
-  <div class="field">
-    <label for="username">GitHub Username</label>
-    <input id="username" type="text" autocomplete="username" placeholder="GitHub username">
-  </div>
+  <!-- =========================
+       HEADER
+  ========================== -->
 
-  <div class="field">
-    <label for="repo">Private Repository Name</label>
-    <input id="repo" type="text" placeholder="Issue वाली repository">
-  </div>
+  <header class="header">
 
-  <div class="field">
-    <label for="token">GitHub Token</label>
-    <input id="token" type="password" autocomplete="current-password" placeholder="GitHub token">
-  </div>
+    <img
+      src="logo.png"
+      alt="लोगो"
+      id="siteLogo"
+    >
 
-  <button id="loginButton" class="button">सुरक्षित रूप से खोलें</button>
-  <div id="loginError" class="login-error"></div>
-</section>
+    <div class="header-text">
 
-<section id="listView" style="display:none">
-  <div class="topbar">
-    <input id="search" class="search" type="search" placeholder="नाम, पंजीकरण ID, स्थान, मोबाइल खोजें...">
-    <button id="logout" class="logout">Logout</button>
-  </div>
-  <div id="syncNote" class="sync-note" style="display:none"></div>
-  <div id="list" class="list"></div>
-</section>
+      <h1>
+        गायत्री चेतना केन्द्र चिलबिला, प्रतापगढ़
+      </h1>
 
-<section id="detailView" class="detail">
-  <button id="backButton" class="back">← वापस</button>
-  <div id="detailCard" class="detail-card"></div>
-</section>
-</main>
+      <p>
+        अखिल विश्व गायत्री परिवार, शान्तिकुञ्ज, हरिद्वार
+      </p>
 
-<script src="show-all.js"></script>
+    </div>
+
+  </header>
+
+
+  <main class="container">
+
+
+    <!-- =========================
+         LOGIN
+    ========================== -->
+
+    <section
+      id="loginView"
+      class="login-box"
+    >
+
+      <h2 class="login-title">
+        पंजीकरण सूची खोलें
+      </h2>
+
+      <p class="login-subtitle">
+        निजी GitHub Repository से पंजीकरण डेटा देखने के लिए विवरण भरें।
+      </p>
+
+
+      <div class="field">
+
+        <label for="username">
+          GitHub उपयोगकर्ता नाम
+        </label>
+
+        <input
+          id="username"
+          type="text"
+          autocomplete="username"
+          placeholder="GitHub username"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="repo">
+          निजी Repository का नाम
+        </label>
+
+        <input
+          id="repo"
+          type="text"
+          placeholder="Repository name"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="token">
+          GitHub Token
+        </label>
+
+        <input
+          id="token"
+          type="password"
+          autocomplete="current-password"
+          placeholder="GitHub token"
+        >
+
+      </div>
+
+
+      <button
+        id="loginButton"
+        class="button"
+        type="button"
+      >
+        सुरक्षित रूप से खोलें
+      </button>
+
+
+      <div
+        id="loginError"
+        class="login-error"
+      ></div>
+
+    </section>
+
+
+    <!-- =========================
+         LIST
+    ========================== -->
+
+    <section
+      id="listView"
+      style="display:none"
+    >
+
+      <div class="topbar">
+
+
+        <input
+          id="search"
+          class="search"
+          type="search"
+          placeholder="नाम, पंजीकरण क्रमांक, स्थान, मोबाइल खोजें..."
+        >
+
+
+        <button
+          id="refreshButton"
+          class="sync-button"
+          type="button"
+        >
+          ↻ सिंक
+        </button>
+
+
+        <button
+          id="logoutButton"
+          class="logout"
+          type="button"
+        >
+          बाहर निकलें
+        </button>
+
+
+      </div>
+
+
+      <div
+        id="syncBox"
+        class="sync-note"
+        style="display:none"
+      ></div>
+
+
+      <div
+        id="registrationList"
+        class="list"
+      ></div>
+
+
+    </section>
+
+
+    <!-- =========================
+         DETAIL
+    ========================== -->
+
+    <section
+      id="detailView"
+      class="detail"
+    >
+
+      <button
+        id="backButton"
+        class="back"
+        type="button"
+      >
+        ← वापस
+      </button>
+
+
+      <div
+        id="detailCard"
+        class="detail-card"
+      ></div>
+
+
+    </section>
+
+
+  </main>
+
+
+  <script src="show-all.js"></script>
+
 </body>
+
 </html>
