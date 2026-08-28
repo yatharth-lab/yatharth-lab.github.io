@@ -3,749 +3,934 @@
 
 <head>
 
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1.0"
-  >
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
 
-  <meta
-    name="theme-color"
-    content="#f28c00"
-  >
+<meta
+  name="theme-color"
+  content="#f28c00"
+>
 
-  <meta
-    name="description"
-    content="गायत्री चेतना केन्द्र पंजीकरण सूची"
-  >
+<meta
+  name="description"
+  content="गायत्री चेतना केन्द्र पंजीकरण सूची"
+>
 
-  <link
-    rel="manifest"
-    href="manifest.json"
-  >
+<link
+  rel="manifest"
+  href="manifest.json"
+>
 
-  <title>
-    गायत्री चेतना केन्द्र — पंजीकरण
-  </title>
+<title>गायत्री चेतना केन्द्र — पंजीकरण</title>
 
 
-  <style>
+<style>
 
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-    }
+/* =========================================================
+   RESET
+========================================================= */
 
+*,
+*::before,
+*::after{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
-    body{
-      font-family:
-        "Noto Sans Devanagari",
-        "Nirmala UI",
-        "Mangal",
-        "Segoe UI",
-        sans-serif;
+html,
+body{
+  width:100%;
+  min-height:100%;
+}
 
-      background:#fff8ed;
-      color:#4b2b0b;
-    }
+body{
+  font-family:
+    "Noto Sans Devanagari",
+    "Nirmala UI",
+    "Mangal",
+    "Segoe UI",
+    sans-serif;
 
+  background:#fff8ed;
+  color:#4b2b0b;
 
-    button,
-    input{
-      font-family:inherit;
-    }
+  overflow-x:hidden;
+}
 
+img{
+  max-width:100%;
+}
 
-    /* =========================
-       HEADER
-    ========================= */
+button,
+input{
+  font-family:inherit;
+}
 
-    .header{
-      background:
-        linear-gradient(
-          135deg,
-          #f28c00,
-          #ffb52e
-        );
 
-      color:#fff;
+/* =========================================================
+   HEADER / ORANGE STRIP
+========================================================= */
 
-      padding:12px;
+.header{
+  width:100% !important;
+  min-height:72px;
 
-      display:flex;
+  background:
+    linear-gradient(
+      135deg,
+      #f28c00 0%,
+      #ffb52e 100%
+    ) !important;
 
-      align-items:center;
+  color:#fff !important;
 
-      gap:10px;
+  padding:12px !important;
 
-      box-shadow:
-        0 2px 8px
-        rgba(0,0,0,.15);
-    }
+  display:flex !important;
+  align-items:center !important;
 
+  gap:10px !important;
 
-    .header img{
-      width:48px;
-      height:48px;
+  position:relative;
 
-      object-fit:contain;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.15);
 
-      background:#fff;
+  overflow:hidden;
+}
 
-      border-radius:50%;
 
-      padding:4px;
+/* HEADER LOGO */
 
-      flex:none;
-    }
+.header img{
+  width:48px !important;
+  height:48px !important;
 
+  min-width:48px !important;
+  max-width:48px !important;
 
-    .header-text{
-      flex:1;
-      min-width:0;
-    }
+  min-height:48px !important;
+  max-height:48px !important;
 
+  display:block !important;
 
-    .header-text h1{
-      font-size:18px;
-      line-height:1.3;
-    }
+  object-fit:contain !important;
 
+  background:#fff !important;
 
-    .header-text p{
-      font-size:11px;
-      margin-top:2px;
-    }
+  border-radius:50% !important;
 
+  padding:4px !important;
 
-    /* =========================
-       CONTAINER
-    ========================= */
+  flex:0 0 48px !important;
+}
 
-    .container{
-      max-width:850px;
-      margin:auto;
-      padding:12px;
-    }
 
+/* HEADER TEXT */
 
-    /* =========================
-       LOGIN
-    ========================= */
+.header-text{
+  flex:1 1 auto !important;
 
-    .login-box{
-      background:#fff;
+  min-width:0 !important;
 
-      border:
-        1px solid #ecd3ae;
+  overflow:hidden;
+}
 
-      border-radius:12px;
+.header-text h1{
+  font-size:18px;
 
-      padding:15px;
+  line-height:1.3;
 
-      box-shadow:
-        0 2px 8px
-        rgba(0,0,0,.07);
+  font-weight:700;
 
-      margin-top:10px;
-    }
+  color:#fff;
 
+  white-space:normal;
+}
 
-    .login-title{
-      text-align:center;
+.header-text p{
+  font-size:11px;
 
-      color:#d86f00;
+  line-height:1.4;
 
-      font-size:20px;
+  margin-top:2px;
 
-      margin-bottom:5px;
-    }
+  color:#fff;
+}
 
 
-    .login-subtitle{
-      text-align:center;
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
 
-      color:#80684c;
+.container{
+  width:100%;
 
-      font-size:12px;
+  max-width:850px;
 
-      margin-bottom:15px;
-    }
+  margin:0 auto;
 
+  padding:12px;
+}
 
-    .field{
-      margin-bottom:11px;
-    }
 
+/* =========================================================
+   LOGIN
+========================================================= */
 
-    .field label{
-      display:block;
+.login-box{
+  width:100%;
 
-      font-size:12px;
+  background:#fff;
 
-      margin-bottom:4px;
+  border:
+    1px solid #ecd3ae;
 
-      color:#704d2b;
-    }
+  border-radius:12px;
 
+  padding:15px;
 
-    .field input{
-      width:100%;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.07);
 
-      padding:10px;
+  margin-top:10px;
+}
 
-      border:
-        1px solid #dfc49f;
+.login-title{
+  text-align:center;
 
-      border-radius:8px;
+  color:#d86f00;
 
-      outline:none;
+  font-size:20px;
 
-      font-size:14px;
+  line-height:1.4;
 
-      background:#fffdfa;
-    }
+  margin-bottom:5px;
+}
 
+.login-subtitle{
+  text-align:center;
 
-    .field input:focus{
-      border-color:#f28c00;
-    }
+  color:#80684c;
 
+  font-size:12px;
 
-    .button{
-      width:100%;
+  line-height:1.5;
 
-      border:0;
+  margin-bottom:15px;
+}
 
-      border-radius:8px;
 
-      padding:11px;
+/* =========================================================
+   INPUT
+========================================================= */
 
-      background:#f28c00;
+.field{
+  margin-bottom:11px;
+}
 
-      color:#fff;
+.field label{
+  display:block;
 
-      font-size:14px;
+  font-size:12px;
 
-      cursor:pointer;
-    }
+  margin-bottom:4px;
 
+  color:#704d2b;
+}
 
-    .button:disabled{
-      opacity:.6;
+.field input{
+  width:100%;
 
-      cursor:not-allowed;
-    }
+  padding:10px;
 
+  border:
+    1px solid #dfc49f;
 
-    .login-error,
-    .error{
-      display:none;
+  border-radius:8px;
 
-      margin-top:10px;
+  outline:none;
 
-      padding:9px;
+  font-size:14px;
 
-      border-radius:8px;
+  background:#fffdfa;
 
-      background:#fff0f0;
+  color:#422a12;
+}
 
-      border:
-        1px solid #e5aaaa;
+.field input:focus{
+  border-color:#f28c00;
 
-      color:#a52d2d;
+  box-shadow:
+    0 0 0 2px rgba(242,140,0,.10);
+}
 
-      font-size:12px;
-    }
 
+/* =========================================================
+   MAIN BUTTON
+========================================================= */
 
-    /* =========================
-       LIST TOP BAR
-    ========================= */
+.button{
+  width:100%;
 
-    .topbar{
-      display:flex;
+  border:0;
 
-      gap:7px;
+  border-radius:8px;
 
-      align-items:center;
+  padding:11px;
 
-      margin-bottom:10px;
+  background:#f28c00;
 
-      flex-wrap:wrap;
-    }
+  color:#fff;
 
+  font-size:14px;
 
-    .search{
-      flex:1;
+  cursor:pointer;
 
-      min-width:180px;
+  transition:.15s;
+}
 
-      padding:10px;
+.button:active{
+  transform:scale(.99);
+}
 
-      border:
-        1px solid #dfc49f;
+.button:disabled{
+  opacity:.6;
 
-      border-radius:8px;
+  cursor:not-allowed;
+}
 
-      outline:none;
 
-      background:#fff;
+/* =========================================================
+   ERROR
+========================================================= */
 
-      font-size:13px;
-    }
+.login-error,
+.error{
+  display:none;
 
+  margin-top:10px;
 
-    .search:focus{
-      border-color:#f28c00;
-    }
+  padding:9px;
 
+  border-radius:8px;
 
-    .sync-button{
-      border:0;
+  background:#fff0f0;
 
-      background:#f28c00;
+  border:
+    1px solid #e5aaaa;
 
-      color:#fff;
+  color:#a52d2d;
 
-      border-radius:8px;
+  font-size:12px;
 
-      padding:9px 12px;
+  line-height:1.5;
+}
 
-      font-size:12px;
 
-      cursor:pointer;
+/* =========================================================
+   LIST TOP BAR
+========================================================= */
 
-      white-space:nowrap;
-    }
+.topbar{
+  width:100%;
 
+  display:flex;
 
-    .sync-button:disabled{
-      opacity:.6;
+  gap:7px;
 
-      cursor:not-allowed;
-    }
+  align-items:center;
 
+  margin-bottom:10px;
 
-    .logout{
-      border:1px solid #e0bd8b;
+  flex-wrap:wrap;
+}
 
-      background:#fff;
+.search{
+  flex:1 1 180px;
 
-      color:#a75e0b;
+  min-width:180px;
 
-      border-radius:8px;
+  padding:10px;
 
-      padding:9px 10px;
+  border:
+    1px solid #dfc49f;
 
-      font-size:11px;
+  border-radius:8px;
 
-      cursor:pointer;
+  outline:none;
 
-      white-space:nowrap;
-    }
+  background:#fff;
 
+  color:#422a12;
 
-    /* =========================
-       SYNC MESSAGE
-    ========================= */
+  font-size:13px;
+}
 
-    .sync-note{
-      margin:8px 0;
+.search:focus{
+  border-color:#f28c00;
+}
 
-      padding:8px 10px;
+.sync-button{
+  border:0;
 
-      border-radius:8px;
+  background:#f28c00;
 
-      background:#fff3dc;
+  color:#fff;
 
-      border:
-        1px solid #efd09d;
+  border-radius:8px;
 
-      color:#795324;
+  padding:9px 12px;
 
-      font-size:11px;
-    }
+  font-size:12px;
 
+  cursor:pointer;
 
-    /* =========================
-       LIST
-    ========================= */
+  white-space:nowrap;
+}
 
-    .list{
-      display:flex;
+.sync-button:disabled{
+  opacity:.6;
 
-      flex-direction:column;
+  cursor:not-allowed;
+}
 
-      gap:7px;
-    }
+.logout{
+  border:
+    1px solid #e0bd8b;
 
+  background:#fff;
 
-    .registration{
-      background:#fff;
+  color:#a75e0b;
 
-      border:
-        1px solid #ecd8bc;
+  border-radius:8px;
 
-      border-radius:9px;
+  padding:9px 10px;
 
-      padding:7px;
+  font-size:11px;
 
-      display:flex;
+  cursor:pointer;
 
-      align-items:center;
+  white-space:nowrap;
+}
 
-      gap:9px;
 
-      cursor:pointer;
+/* =========================================================
+   SYNC MESSAGE
+========================================================= */
 
-      box-shadow:
-        0 1px 4px
-        rgba(0,0,0,.05);
+.sync-note{
+  margin:8px 0;
 
-      transition:.15s;
-    }
+  padding:8px 10px;
 
+  border-radius:8px;
 
-    .registration:active{
-      transform:scale(.99);
-    }
+  background:#fff3dc;
 
+  border:
+    1px solid #efd09d;
 
-    .thumb{
-      width:50px;
-      height:50px;
+  color:#795324;
 
-      object-fit:cover;
+  font-size:11px;
 
-      flex:none;
+  line-height:1.5;
+}
 
-      border-radius:7px;
 
-      background:#f4e7d3;
-    }
+/* =========================================================
+   REGISTRATION LIST
+========================================================= */
 
+.list{
+  width:100%;
 
-    .no-photo{
-      width:50px;
-      height:50px;
+  display:flex;
 
-      flex:none;
+  flex-direction:column;
 
-      border-radius:7px;
+  gap:7px;
+}
 
-      background:#f4e7d3;
+.registration{
+  width:100%;
 
-      display:flex;
+  background:#fff;
 
-      align-items:center;
+  border:
+    1px solid #ecd8bc;
 
-      justify-content:center;
+  border-radius:9px;
 
-      text-align:center;
+  padding:7px;
 
-      font-size:8px;
+  display:flex;
 
-      color:#8c704f;
-    }
+  align-items:center;
 
+  gap:9px;
 
-    .basic{
-      min-width:0;
+  cursor:pointer;
 
-      flex:1;
-    }
+  box-shadow:
+    0 1px 4px rgba(0,0,0,.05);
 
+  transition:
+    transform .15s,
+    border-color .15s;
+}
 
-    .name{
-      font-size:14px;
+.registration:active{
+  transform:scale(.99);
+}
 
-      font-weight:700;
 
-      white-space:nowrap;
+/* =========================================================
+   THUMBNAIL
+========================================================= */
 
-      overflow:hidden;
+.thumb{
+  width:50px !important;
+  height:50px !important;
 
-      text-overflow:ellipsis;
-    }
+  min-width:50px !important;
+  max-width:50px !important;
 
+  min-height:50px !important;
+  max-height:50px !important;
 
-    .place,
-    .regid{
-      font-size:11px;
+  display:block !important;
 
-      color:#80684c;
+  object-fit:cover !important;
 
-      margin-top:2px;
+  flex:0 0 50px !important;
 
-      white-space:nowrap;
+  border-radius:7px;
 
-      overflow:hidden;
+  background:#f4e7d3;
 
-      text-overflow:ellipsis;
-    }
+  overflow:hidden;
+}
 
 
-    .regid{
-      font-size:9px;
+/* =========================================================
+   BASIC INFO
+========================================================= */
 
-      color:#a06c2e;
-    }
+.basic{
+  min-width:0;
 
+  flex:1 1 auto;
 
-    .make-card{
-      flex:none;
+  overflow:hidden;
+}
 
-      border:
-        1px solid #f0a12c;
+.name{
+  font-size:14px;
 
-      background:#fff8ed;
+  font-weight:700;
 
-      color:#c96b00;
+  line-height:1.4;
 
-      border-radius:7px;
+  white-space:nowrap;
 
-      padding:7px 9px;
+  overflow:hidden;
 
-      font-size:10px;
+  text-overflow:ellipsis;
 
-      font-weight:700;
+  color:#4b2b0b;
+}
 
-      cursor:pointer;
-    }
+.place{
+  font-size:11px;
 
+  color:#80684c;
 
-    .arrow{
-      flex:none;
+  margin-top:2px;
 
-      font-size:20px;
+  line-height:1.4;
 
-      color:#f28c00;
+  white-space:nowrap;
 
-      padding:3px;
-    }
+  overflow:hidden;
 
+  text-overflow:ellipsis;
+}
 
-    .status{
-      text-align:center;
+.regid{
+  font-size:9px;
 
-      padding:25px 10px;
+  color:#a06c2e;
 
-      font-size:13px;
+  margin-top:2px;
 
-      color:#765532;
+  line-height:1.3;
 
-      background:#fff;
+  white-space:nowrap;
 
-      border-radius:10px;
+  overflow:hidden;
 
-      border:1px solid #ecd8bc;
-    }
+  text-overflow:ellipsis;
+}
 
 
-    /* =========================
-       DETAIL
-    ========================= */
+/* =========================================================
+   ARROW
+========================================================= */
 
-    .detail{
-      display:none;
-    }
+.arrow{
+  flex:0 0 auto;
 
+  font-size:20px;
 
-    .back{
-      border:0;
+  line-height:1;
 
-      background:#f28c00;
+  color:#f28c00;
 
-      color:#fff;
+  padding:3px;
+}
 
-      border-radius:7px;
 
-      padding:8px 12px;
+/* =========================================================
+   STATUS
+========================================================= */
 
-      font-size:12px;
+.status{
+  width:100%;
 
-      margin-bottom:10px;
+  text-align:center;
 
-      cursor:pointer;
-    }
+  padding:25px 10px;
 
+  font-size:13px;
 
-    .detail-card{
-      background:#fff;
+  line-height:1.5;
 
-      border:
-        1px solid #ecd3ae;
+  color:#765532;
 
-      border-radius:12px;
+  background:#fff;
 
-      padding:15px;
+  border-radius:10px;
 
-      box-shadow:
-        0 2px 8px
-        rgba(0,0,0,.07);
-    }
+  border:
+    1px solid #ecd8bc;
+}
 
 
-    .detail-photo{
-      text-align:center;
+/* =========================================================
+   DETAIL
+========================================================= */
 
-      margin-bottom:10px;
-    }
+.detail{
+  display:none;
 
+  width:100%;
+}
 
-    .detail-photo img{
-      width:150px;
-      height:175px;
+.back{
+  border:0;
 
-      object-fit:cover;
+  background:#f28c00;
 
-      border-radius:9px;
+  color:#fff;
 
-      border:
-        2px solid #f1bd70;
-    }
+  border-radius:7px;
 
+  padding:8px 12px;
 
-    .detail-no-photo{
-      text-align:center;
+  font-size:12px;
 
-      padding:30px;
+  margin-bottom:10px;
 
-      color:#8b6a49;
-    }
+  cursor:pointer;
+}
 
+.detail-card{
+  width:100%;
 
-    .detail-title{
-      text-align:center;
+  background:#fff;
 
-      font-size:18px;
+  border:
+    1px solid #ecd3ae;
 
-      color:#d86f00;
+  border-radius:12px;
 
-      margin-bottom:3px;
-    }
+  padding:15px;
 
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.07);
+}
 
-    .detail-registration-id{
-      text-align:center;
 
-      font-size:10px;
+/* =========================================================
+   DETAIL PHOTO
+========================================================= */
 
-      color:#856747;
+.detail-photo{
+  width:100%;
 
-      margin-bottom:10px;
-    }
+  text-align:center;
 
+  margin-bottom:10px;
+}
 
-    .detail-row{
-      border-bottom:
-        1px solid #f0e2cf;
+.detail-photo img{
+  width:150px !important;
+  height:175px !important;
 
-      padding:8px 2px;
-    }
+  min-width:150px !important;
+  max-width:150px !important;
 
+  min-height:175px !important;
+  max-height:175px !important;
 
-    .detail-label{
-      font-size:10px;
+  display:inline-block !important;
 
-      color:#8b6a49;
+  object-fit:contain !important;
 
-      margin-bottom:2px;
-    }
+  background:#f4e7d3;
 
+  border-radius:9px;
 
-    .detail-value{
-      font-size:13px;
+  border:
+    2px solid #f1bd70;
+}
 
-      white-space:pre-wrap;
+.detail-no-photo{
+  text-align:center;
 
-      word-break:break-word;
+  padding:30px;
 
-      color:#422a12;
-    }
+  color:#8b6a49;
+}
 
 
-    .section-title{
-      color:#d86f00;
+/* =========================================================
+   DETAIL TITLE
+========================================================= */
 
-      font-size:15px;
+.detail-title{
+  text-align:center;
 
-      margin-top:14px;
+  font-size:18px;
 
-      margin-bottom:4px;
-    }
+  line-height:1.4;
 
+  color:#d86f00;
 
-    .main-button{
-      width:100%;
+  margin-bottom:3px;
+}
 
-      border:0;
+.detail-registration-id,
+.detail-id{
+  text-align:center;
 
-      background:#f28c00;
+  font-size:10px;
 
-      color:#fff;
+  color:#856747;
 
-      border-radius:8px;
+  margin-bottom:10px;
+}
 
-      padding:11px;
 
-      font-size:13px;
+/* =========================================================
+   DETAIL ROW
+========================================================= */
 
-      cursor:pointer;
-    }
+.detail-row,
+.row{
+  border-bottom:
+    1px solid #f0e2cf;
 
+  padding:8px 2px;
+}
 
-    /* =========================
-       MOBILE
-    ========================= */
+.row:last-child{
+  border-bottom:0;
+}
 
-    @media(max-width:520px){
+.detail-label,
+.label{
+  font-size:10px;
 
-      .registration{
-        gap:6px;
-      }
+  color:#8b6a49;
 
+  margin-bottom:2px;
+}
 
-      .make-card{
-        padding:6px 7px;
+.detail-value,
+.value{
+  font-size:13px;
 
-        font-size:9px;
-      }
+  line-height:1.5;
 
+  white-space:pre-wrap;
 
-      .thumb,
-      .no-photo{
-        width:46px;
-        height:46px;
-      }
+  word-break:break-word;
 
+  color:#422a12;
+}
 
-      .sync-button{
-        padding:9px;
-      }
 
-    }
+/* =========================================================
+   SECTION TITLE
+========================================================= */
 
+.section-title{
+  color:#d86f00;
 
-    @media(min-width:700px){
+  font-size:15px;
 
-      .container{
-        padding:18px;
-      }
+  line-height:1.4;
 
+  margin-top:14px;
 
-      .registration:hover{
-        border-color:#efb35b;
+  margin-bottom:4px;
+}
 
-        transform:translateY(-1px);
-      }
 
-    }
+/* =========================================================
+   MOBILE
+========================================================= */
 
-  </style>
+@media(max-width:520px){
+
+  .header{
+    min-height:68px;
+
+    padding:10px !important;
+
+    gap:8px !important;
+  }
+
+  .header img{
+    width:44px !important;
+    height:44px !important;
+
+    min-width:44px !important;
+    max-width:44px !important;
+
+    min-height:44px !important;
+    max-height:44px !important;
+
+    flex-basis:44px !important;
+  }
+
+  .header-text h1{
+    font-size:15px;
+
+    line-height:1.3;
+  }
+
+  .header-text p{
+    font-size:9px;
+
+    line-height:1.3;
+  }
+
+  .container{
+    padding:10px;
+  }
+
+  .registration{
+    gap:7px;
+  }
+
+  .thumb{
+    width:46px !important;
+    height:46px !important;
+
+    min-width:46px !important;
+    max-width:46px !important;
+
+    min-height:46px !important;
+    max-height:46px !important;
+
+    flex-basis:46px !important;
+  }
+
+  .name{
+    font-size:13px;
+  }
+
+  .place{
+    font-size:10px;
+  }
+
+  .regid{
+    font-size:8px;
+  }
+
+  .arrow{
+    font-size:18px;
+  }
+
+  .sync-button{
+    padding:9px;
+  }
+
+}
+
+
+/* =========================================================
+   TABLET / DESKTOP
+========================================================= */
+
+@media(min-width:700px){
+
+  .container{
+    padding:18px;
+  }
+
+  .registration:hover{
+    border-color:#efb35b;
+
+    transform:translateY(-1px);
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL SCREEN
+========================================================= */
+
+@media(max-width:360px){
+
+  .header-text h1{
+    font-size:14px;
+  }
+
+  .header-text p{
+    font-size:8px;
+  }
+
+  .search{
+    min-width:150px;
+  }
+
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+button:focus-visible,
+input:focus-visible{
+  outline:
+    2px solid #f28c00;
+
+  outline-offset:2px;
+}
+
+</style>
 
 </head>
 
@@ -753,206 +938,210 @@
 <body>
 
 
-  <!-- =========================
-       HEADER
-  ========================== -->
+<!-- =========================================================
+     HEADER
+========================================================= -->
 
-  <header class="header">
+<header class="header">
 
-    <img
-      src="logo.png"
-      alt="लोगो"
-      id="siteLogo"
+  <img
+    src="logo.png"
+    alt="गायत्री चेतना केन्द्र लोगो"
+    id="siteLogo"
+  >
+
+  <div class="header-text">
+
+    <h1>
+      गायत्री चेतना केन्द्र चिलबिला, प्रतापगढ़
+    </h1>
+
+    <p>
+      अखिल विश्व गायत्री परिवार, शान्तिकुञ्ज, हरिद्वार
+    </p>
+
+  </div>
+
+</header>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main class="container">
+
+
+<!-- =========================================================
+     LOGIN VIEW
+========================================================= -->
+
+<section
+  id="loginView"
+  class="login-box"
+>
+
+  <h2 class="login-title">
+    पंजीकरण सूची खोलें
+  </h2>
+
+  <p class="login-subtitle">
+    निजी GitHub Repository से पंजीकरण डेटा देखने के लिए विवरण भरें।
+  </p>
+
+
+  <div class="field">
+
+    <label for="username">
+      GitHub उपयोगकर्ता नाम
+    </label>
+
+    <input
+      id="username"
+      type="text"
+      autocomplete="username"
+      placeholder="GitHub username"
     >
 
-    <div class="header-text">
-
-      <h1>
-        गायत्री चेतना केन्द्र चिलबिला, प्रतापगढ़
-      </h1>
-
-      <p>
-        अखिल विश्व गायत्री परिवार, शान्तिकुञ्ज, हरिद्वार
-      </p>
-
-    </div>
-
-  </header>
+  </div>
 
 
-  <main class="container">
+  <div class="field">
 
+    <label for="repo">
+      निजी Repository का नाम
+    </label>
 
-    <!-- =========================
-         LOGIN
-    ========================== -->
-
-    <section
-      id="loginView"
-      class="login-box"
+    <input
+      id="repo"
+      type="text"
+      placeholder="Repository name"
     >
 
-      <h2 class="login-title">
-        पंजीकरण सूची खोलें
-      </h2>
-
-      <p class="login-subtitle">
-        निजी GitHub Repository से पंजीकरण डेटा देखने के लिए विवरण भरें।
-      </p>
+  </div>
 
 
-      <div class="field">
+  <div class="field">
 
-        <label for="username">
-          GitHub उपयोगकर्ता नाम
-        </label>
+    <label for="token">
+      GitHub Token
+    </label>
 
-        <input
-          id="username"
-          type="text"
-          autocomplete="username"
-          placeholder="GitHub username"
-        >
-
-      </div>
-
-
-      <div class="field">
-
-        <label for="repo">
-          निजी Repository का नाम
-        </label>
-
-        <input
-          id="repo"
-          type="text"
-          placeholder="Repository name"
-        >
-
-      </div>
-
-
-      <div class="field">
-
-        <label for="token">
-          GitHub Token
-        </label>
-
-        <input
-          id="token"
-          type="password"
-          autocomplete="current-password"
-          placeholder="GitHub token"
-        >
-
-      </div>
-
-
-      <button
-        id="loginButton"
-        class="button"
-        type="button"
-      >
-        सुरक्षित रूप से खोलें
-      </button>
-
-
-      <div
-        id="loginError"
-        class="login-error"
-      ></div>
-
-    </section>
-
-
-    <!-- =========================
-         LIST
-    ========================== -->
-
-    <section
-      id="listView"
-      style="display:none"
+    <input
+      id="token"
+      type="password"
+      autocomplete="current-password"
+      placeholder="GitHub token"
     >
 
-      <div class="topbar">
+  </div>
 
 
-        <input
-          id="search"
-          class="search"
-          type="search"
-          placeholder="नाम, पंजीकरण क्रमांक, स्थान, मोबाइल खोजें..."
-        >
+  <button
+    id="loginButton"
+    class="button"
+    type="button"
+  >
+    सुरक्षित रूप से खोलें
+  </button>
 
 
-        <button
-          id="refreshButton"
-          class="sync-button"
-          type="button"
-        >
-          ↻ सिंक
-        </button>
+  <div
+    id="loginError"
+    class="login-error"
+  ></div>
+
+</section>
 
 
-        <button
-          id="logoutButton"
-          class="logout"
-          type="button"
-        >
-          बाहर निकलें
-        </button>
+<!-- =========================================================
+     LIST VIEW
+========================================================= -->
 
+<section
+  id="listView"
+  style="display:none"
+>
 
-      </div>
+  <div class="topbar">
 
-
-      <div
-        id="syncBox"
-        class="sync-note"
-        style="display:none"
-      ></div>
-
-
-      <div
-        id="registrationList"
-        class="list"
-      ></div>
-
-
-    </section>
-
-
-    <!-- =========================
-         DETAIL
-    ========================== -->
-
-    <section
-      id="detailView"
-      class="detail"
+    <input
+      id="search"
+      class="search"
+      type="search"
+      placeholder="नाम, पंजीकरण क्रमांक, स्थान, मोबाइल खोजें..."
     >
 
-      <button
-        id="backButton"
-        class="back"
-        type="button"
-      >
-        ← वापस
-      </button>
+
+    <button
+      id="refreshButton"
+      class="sync-button"
+      type="button"
+    >
+      ↻ सिंक
+    </button>
 
 
-      <div
-        id="detailCard"
-        class="detail-card"
-      ></div>
+    <button
+      id="logoutButton"
+      class="logout"
+      type="button"
+    >
+      बाहर निकलें
+    </button>
+
+  </div>
 
 
-    </section>
+  <div
+    id="syncBox"
+    class="sync-note"
+    style="display:none"
+  ></div>
 
 
-  </main>
+  <div
+    id="registrationList"
+    class="list"
+  ></div>
+
+</section>
 
 
-  <script src="show-all.js"></script>
+<!-- =========================================================
+     DETAIL VIEW
+========================================================= -->
+
+<section
+  id="detailView"
+  class="detail"
+>
+
+  <button
+    id="backButton"
+    class="back"
+    type="button"
+  >
+    ← वापस
+  </button>
+
+
+  <div
+    id="detailCard"
+    class="detail-card"
+  ></div>
+
+</section>
+
+
+</main>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script src="show-all.js"></script>
 
 </body>
 
