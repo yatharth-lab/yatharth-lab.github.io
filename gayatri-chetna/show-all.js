@@ -1,29 +1,20 @@
 /* =========================================================
-   गायत्री चेतना केंद्र
+   गायत्री चेतना केन्द्र
    SHOW ALL SYSTEM
    =========================================================
 
-   DATA
-   ---------------------------------------------------------
-   1. Registration Data -> GitHub Issues
-   2. Photos            -> Private GitHub Repository
-                              gayatri-chetna/images/...
-
    FEATURES
-   ---------------------------------------------------------
-   ✓ GitHub Issue Loading
-   ✓ Registration ID Search
-   ✓ Name Search
-   ✓ Mobile Search
-   ✓ Private Repository Image Loading
-   ✓ Image Path Support
+
+   ✓ GitHub Issues से पंजीकरण
+   ✓ सभी Pages से Issues
+   ✓ Search
+   ✓ Private Repository Photos
    ✓ IndexedDB Offline Data
-   ✓ IndexedDB Offline Images
-   ✓ Offline List
-   ✓ ID Card Generation
-   ✓ Traditional ID Card Design
-   ✓ Hindi ID Card
-   ✓ PNG Download
+   ✓ Offline Photos
+   ✓ Automatic Online Sync
+   ✓ Manual ↻ Sync Button
+   ✓ Detail View
+   ✓ Hindi ID Card PNG
    ✓ Service Worker
 ========================================================= */
 
@@ -57,7 +48,7 @@ let registrations = [];
 
 
 /* =========================================================
-   DOM ELEMENTS
+   DOM
 ========================================================= */
 
 const loginView =
@@ -107,17 +98,17 @@ const detailCard =
 
 
 /* =========================================================
-   BASIC HELPERS
+   HTML ESCAPE
 ========================================================= */
 
-function escapeHTML(value) {
+function escapeHTML(value){
 
   return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 
 }
 
@@ -126,12 +117,12 @@ function escapeHTML(value) {
    SEARCH NORMALIZER
 ========================================================= */
 
-function normalize(value) {
+function normalize(value){
 
   return String(value ?? "")
     .normalize("NFKC")
     .toLocaleLowerCase("hi-IN")
-    .replace(/\s+/g, " ")
+    .replace(/\s+/g," ")
     .trim();
 
 }
@@ -141,9 +132,9 @@ function normalize(value) {
    ERROR
 ========================================================= */
 
-function showError(message) {
+function showError(message){
 
-  if (!loginError)
+  if(!loginError)
     return;
 
   loginError.textContent =
@@ -155,9 +146,9 @@ function showError(message) {
 }
 
 
-function hideError() {
+function hideError(){
 
-  if (!loginError)
+  if(!loginError)
     return;
 
   loginError.textContent =
@@ -173,9 +164,9 @@ function hideError() {
    SYNC MESSAGE
 ========================================================= */
 
-function showSync(message) {
+function showSync(message){
 
-  if (!syncBox)
+  if(!syncBox)
     return;
 
   syncBox.textContent =
@@ -189,9 +180,9 @@ function showSync(message) {
 }
 
 
-function hideSync() {
+function hideSync(){
 
-  if (!syncBox)
+  if(!syncBox)
     return;
 
   syncBox.textContent =
@@ -207,7 +198,7 @@ function hideSync() {
    GITHUB HEADERS
 ========================================================= */
 
-function githubHeaders() {
+function githubHeaders(){
 
   return {
 
@@ -226,18 +217,18 @@ function githubHeaders() {
 
 
 /* =========================================================
-   PRIVATE REPOSITORY CONTENT URL
+   GITHUB CONTENT URL
 ========================================================= */
 
-function githubContentURL(path) {
+function githubContentURL(path){
 
   const cleanPath =
     String(path || "")
       .trim()
-      .replace(/^\/+/, "");
+      .replace(/^\/+/,"");
 
 
-  if (!cleanPath)
+  if(!cleanPath)
     return "";
 
 
@@ -271,9 +262,9 @@ function githubContentURL(path) {
    LOGIN STORAGE
 ========================================================= */
 
-function saveLogin() {
+function saveLogin(){
 
-  if (!githubConfig)
+  if(!githubConfig)
     return;
 
 
@@ -299,44 +290,54 @@ function saveLogin() {
 }
 
 
-function loadLogin() {
+function loadLogin(){
 
-  try {
+  try{
 
-    const data =
+    const raw =
       localStorage.getItem(
         STORAGE_KEY
       );
 
 
-    if (!data)
+    if(!raw)
       return false;
 
 
     const saved =
-      JSON.parse(data);
+      JSON.parse(raw);
 
 
-    if (
+    if(
       !saved.username ||
       !saved.repo ||
       !saved.token
-    ) {
+    ){
 
       return false;
 
     }
 
 
-    githubConfig =
-      saved;
+    githubConfig = {
+
+      username:
+        saved.username,
+
+      repo:
+        saved.repo,
+
+      token:
+        saved.token
+
+    };
 
 
     return true;
 
   }
 
-  catch {
+  catch{
 
     return false;
 
@@ -345,7 +346,7 @@ function loadLogin() {
 }
 
 
-function clearLogin() {
+function clearLogin(){
 
   localStorage.removeItem(
     STORAGE_KEY
@@ -361,10 +362,10 @@ function clearLogin() {
    INDEXED DB
 ========================================================= */
 
-function openDatabase() {
+function openDatabase(){
 
   return new Promise(
-    (resolve, reject) => {
+    (resolve,reject)=>{
 
       const request =
         indexedDB.open(
@@ -374,23 +375,22 @@ function openDatabase() {
 
 
       request.onupgradeneeded =
-        function () {
+        function(){
 
           const db =
             request.result;
 
 
-          if (
-            !db.objectStoreNames
-              .contains(
-                STORE_NAME
-              )
-          ) {
+          if(
+            !db.objectStoreNames.contains(
+              STORE_NAME
+            )
+          ){
 
             db.createObjectStore(
               STORE_NAME,
               {
-                keyPath: "key"
+                keyPath:"key"
               }
             );
 
@@ -400,7 +400,7 @@ function openDatabase() {
 
 
       request.onsuccess =
-        function () {
+        function(){
 
           resolve(
             request.result
@@ -410,7 +410,7 @@ function openDatabase() {
 
 
       request.onerror =
-        function () {
+        function(){
 
           reject(
             request.error
@@ -428,13 +428,13 @@ function openDatabase() {
    SAVE OFFLINE
 ========================================================= */
 
-async function saveOfflineData() {
+async function saveOfflineData(){
 
-  if (!githubConfig)
+  if(!githubConfig)
     return;
 
 
-  try {
+  try{
 
     const db =
       await openDatabase();
@@ -447,7 +447,7 @@ async function saveOfflineData() {
 
 
     await new Promise(
-      (resolve, reject) => {
+      (resolve,reject)=>{
 
         const transaction =
           db.transaction(
@@ -464,7 +464,7 @@ async function saveOfflineData() {
 
         store.put({
 
-          key: key,
+          key:key,
 
           savedAt:
             Date.now(),
@@ -480,7 +480,7 @@ async function saveOfflineData() {
 
 
         transaction.onerror =
-          function () {
+          function(){
 
             reject(
               transaction.error
@@ -496,7 +496,7 @@ async function saveOfflineData() {
 
   }
 
-  catch (error) {
+  catch(error){
 
     console.warn(
       "Offline save error:",
@@ -512,13 +512,13 @@ async function saveOfflineData() {
    LOAD OFFLINE
 ========================================================= */
 
-async function loadOfflineData() {
+async function loadOfflineData(){
 
-  if (!githubConfig)
+  if(!githubConfig)
     return null;
 
 
-  try {
+  try{
 
     const db =
       await openDatabase();
@@ -532,7 +532,7 @@ async function loadOfflineData() {
 
     const result =
       await new Promise(
-        (resolve, reject) => {
+        (resolve,reject)=>{
 
           const transaction =
             db.transaction(
@@ -552,7 +552,7 @@ async function loadOfflineData() {
 
 
           request.onsuccess =
-            function () {
+            function(){
 
               resolve(
                 request.result ||
@@ -563,7 +563,7 @@ async function loadOfflineData() {
 
 
           request.onerror =
-            function () {
+            function(){
 
               reject(
                 request.error
@@ -582,7 +582,7 @@ async function loadOfflineData() {
 
   }
 
-  catch (error) {
+  catch(error){
 
     console.warn(
       "Offline load error:",
@@ -600,16 +600,16 @@ async function loadOfflineData() {
    GET ALL GITHUB ISSUES
 ========================================================= */
 
-async function getAllIssues() {
+async function getAllIssues(){
 
   let allIssues = [];
 
 
-  for (
+  for(
     let page = 1;
     page <= 20;
     page++
-  ) {
+  ){
 
     const url =
       "https://api.github.com/repos/" +
@@ -630,13 +630,14 @@ async function getAllIssues() {
     let response;
 
 
-    try {
+    try{
 
       response =
         await fetch(
           url,
           {
-            method: "GET",
+            method:"GET",
+
             headers:
               githubHeaders()
           }
@@ -644,11 +645,11 @@ async function getAllIssues() {
 
     }
 
-    catch {
+    catch{
 
       const error =
         new Error(
-          "GitHub से connection नहीं हो पाया। Internet check करें।"
+          "GitHub से कनेक्शन नहीं हो पाया। Internet check करें।"
         );
 
       error.status = 0;
@@ -661,50 +662,42 @@ async function getAllIssues() {
     let data = null;
 
 
-    try {
+    try{
 
       data =
         await response.json();
 
     }
 
-    catch {
+    catch{
 
       data = null;
 
     }
 
 
-    if (!response.ok) {
+    if(!response.ok){
 
       let message =
         data?.message ||
         "GitHub request failed";
 
 
-      if (
-        response.status === 401
-      ) {
+      if(response.status === 401){
 
         message =
           "GitHub Token गलत या expired है।";
 
       }
 
-
-      else if (
-        response.status === 403
-      ) {
+      else if(response.status === 403){
 
         message =
-          "Token के पास repository access नहीं है या GitHub rate limit हो गई है।";
+          "Token के पास Repository access नहीं है या GitHub rate limit हो गई है।";
 
       }
 
-
-      else if (
-        response.status === 404
-      ) {
+      else if(response.status === 404){
 
         message =
           "Repository नहीं मिली। Username और Repository check करें।";
@@ -713,9 +706,7 @@ async function getAllIssues() {
 
 
       const error =
-        new Error(
-          message
-        );
+        new Error(message);
 
 
       error.status =
@@ -727,13 +718,8 @@ async function getAllIssues() {
     }
 
 
-    if (
-      !Array.isArray(data)
-    ) {
-
+    if(!Array.isArray(data))
       break;
-
-    }
 
 
     allIssues.push(
@@ -741,21 +727,13 @@ async function getAllIssues() {
     );
 
 
-    if (
-      data.length < 100
-    ) {
-
+    if(data.length < 100)
       break;
-
-    }
 
   }
 
 
-  /*
-    Pull Requests को registration
-    list से हटाना
-  */
+  /* Pull Requests हटाओ */
 
   return allIssues.filter(
     issue =>
@@ -769,10 +747,7 @@ async function getAllIssues() {
    ISSUE FIELD READER
 ========================================================= */
 
-function getField(
-  body,
-  label
-) {
+function getField(body,label){
 
   const safeLabel =
     String(label)
@@ -782,56 +757,84 @@ function getField(
       );
 
 
-  const regex =
-    new RegExp(
+  /*
+    Support:
 
+    **नाम:** Ram
+
+    **नाम:**
+    Ram
+
+    नाम: Ram
+  */
+
+
+  const patterns = [
+
+    new RegExp(
       "\\*\\*" +
       safeLabel +
-      ":\\*\\*\\s*(.*)",
-
+      "\\s*:\\s*\\*\\*\\s*(.*)",
       "i"
+    ),
 
-    );
+    new RegExp(
+      "\\*\\*" +
+      safeLabel +
+      "\\*\\*\\s*:\\s*(.*)",
+      "i"
+    ),
+
+    new RegExp(
+      "^" +
+      safeLabel +
+      "\\s*:\\s*(.*)",
+      "im"
+    )
+
+  ];
 
 
-  const match =
-    String(body || "")
-      .match(regex);
+  for(
+    const regex of patterns
+  ){
+
+    const match =
+      String(body || "")
+        .match(regex);
 
 
-  if (!match)
-    return "";
+    if(match){
+
+      return String(
+        match[1]
+      )
+      .replace(/^`/,"")
+      .replace(/`$/,"")
+      .trim();
+
+    }
+
+  }
 
 
-  return String(
-    match[1]
-  )
-    .replace(/^`/, "")
-    .replace(/`$/, "")
-    .trim();
+  return "";
 
 }
 
 
 /* =========================================================
-   GET IMAGE PATH
-   Supports:
-
-   **Image Path:** `gayatri-chetna/images/abc.jpg`
-
-   and
-
-   **Image Path:** gayatri-chetna/images/abc.jpg
+   IMAGE PATH
 ========================================================= */
 
-function getImagePath(body) {
+function getImagePath(body){
 
   const text =
     String(body || "");
 
 
   /*
-    New format
+    **Image Path:** `path`
   */
 
   let match =
@@ -840,16 +843,12 @@ function getImagePath(body) {
     );
 
 
-  if (match) {
-
-    return match[1]
-      .trim();
-
-  }
+  if(match)
+    return match[1].trim();
 
 
   /*
-    Without backticks
+    **Image Path:** path
   */
 
   match =
@@ -858,29 +857,44 @@ function getImagePath(body) {
     );
 
 
-  if (match) {
+  if(match){
 
     return match[1]
       .trim()
-      .replace(/^`/, "")
-      .replace(/`$/, "");
+      .replace(/^`/,"")
+      .replace(/`$/,"");
 
   }
 
 
   /*
-    Old Image URL support
+    Hindi support
+
+    **फोटो पथ:** path
   */
 
   match =
     text.match(
-      /\*\*Image URL:\*\*\s*(https?:\/\/[^\s]+)/i
+      /\*\*(?:फोटो पथ|फोटो का पथ):\*\*\s*`([^`]+)`/i
     );
 
 
-  if (match) {
+  if(match)
+    return match[1].trim();
 
-    return "";
+
+  match =
+    text.match(
+      /\*\*(?:फोटो पथ|फोटो का पथ):\*\*\s*([^\r\n]+)/i
+    );
+
+
+  if(match){
+
+    return match[1]
+      .trim()
+      .replace(/^`/,"")
+      .replace(/`$/,"");
 
   }
 
@@ -894,7 +908,7 @@ function getImagePath(body) {
    PARSE ISSUE
 ========================================================= */
 
-function parseIssue(issue) {
+function parseIssue(issue){
 
   const body =
     issue.body || "";
@@ -977,9 +991,9 @@ function parseIssue(issue) {
     );
 
 
-  /*
-    अंशदान
-  */
+  /* =========================
+     अंशदान
+  ========================= */
 
   let anshdaan = "";
 
@@ -990,18 +1004,17 @@ function parseIssue(issue) {
     );
 
 
-  if (anshMatch) {
+  if(anshMatch){
 
     anshdaan =
-      anshMatch[1]
-        .trim();
+      anshMatch[1].trim();
 
   }
 
 
-  /*
-    समयदान
-  */
+  /* =========================
+     समयदान
+  ========================= */
 
   let samaydaan = "";
 
@@ -1012,23 +1025,12 @@ function parseIssue(issue) {
     );
 
 
-  if (samayMatch) {
+  if(samayMatch){
 
     samaydaan =
-      samayMatch[1]
-        .trim();
+      samayMatch[1].trim();
 
   }
-
-
-  /*
-    Image Path
-  */
-
-  const imagePath =
-    getImagePath(
-      body
-    );
 
 
   return {
@@ -1075,27 +1077,17 @@ function parseIssue(issue) {
     samaydaan:
       samaydaan,
 
-    /*
-      EXACT IMAGE PATH
-    */
-
     imagePath:
-      imagePath,
-
-    /*
-      Offline Base64 image
-    */
+      getImagePath(body),
 
     image:
       "",
 
     issueURL:
-      issue.html_url ||
-      "",
+      issue.html_url || "",
 
     createdAt:
-      issue.created_at ||
-      ""
+      issue.created_at || ""
 
   };
 
@@ -1103,36 +1095,22 @@ function parseIssue(issue) {
 
 
 /* =========================================================
-   PRIVATE REPOSITORY IMAGE LOADER
-
-   Issue
-      ↓
-   Image Path
-      ↓
-   GitHub Contents API
-      ↓
-   Private Repository
-      ↓
-   Base64
-      ↓
-   IndexedDB
+   PRIVATE IMAGE LOADER
 ========================================================= */
 
-async function loadPrivateImage(
-  imagePath
-) {
+async function loadPrivateImage(imagePath){
 
-  if (
+  if(
     !githubConfig ||
     !imagePath
-  ) {
+  ){
 
     return "";
 
   }
 
 
-  try {
+  try{
 
     const url =
       githubContentURL(
@@ -1140,7 +1118,7 @@ async function loadPrivateImage(
       );
 
 
-    if (!url)
+    if(!url)
       return "";
 
 
@@ -1148,21 +1126,21 @@ async function loadPrivateImage(
       await fetch(
         url,
         {
-          method: "GET",
+          method:"GET",
+
           headers:
             githubHeaders()
         }
       );
 
 
-    if (!response.ok) {
+    if(!response.ok){
 
       console.warn(
         "Private image failed:",
         imagePath,
         response.status
       );
-
 
       return "";
 
@@ -1173,10 +1151,10 @@ async function loadPrivateImage(
       await response.json();
 
 
-    if (
+    if(
       !data ||
       !data.content
-    ) {
+    ){
 
       return "";
 
@@ -1187,61 +1165,31 @@ async function loadPrivateImage(
       String(
         data.content
       )
-      .replace(/\s/g, "");
+      .replace(/\s/g,"");
 
-
-    /*
-      MIME type
-    */
 
     let mime =
       "image/jpeg";
 
 
     const lower =
-      imagePath
-        .toLowerCase();
+      imagePath.toLowerCase();
 
 
-    if (
-      lower.endsWith(".png")
-    ) {
+    if(lower.endsWith(".png"))
+      mime = "image/png";
 
-      mime =
-        "image/png";
+    else if(lower.endsWith(".webp"))
+      mime = "image/webp";
 
-    }
+    else if(lower.endsWith(".gif"))
+      mime = "image/gif";
 
-
-    else if (
-      lower.endsWith(".webp")
-    ) {
-
-      mime =
-        "image/webp";
-
-    }
-
-
-    else if (
-      lower.endsWith(".gif")
-    ) {
-
-      mime =
-        "image/gif";
-
-    }
-
-
-    else if (
+    else if(
       lower.endsWith(".jpg") ||
       lower.endsWith(".jpeg")
-    ) {
-
-      mime =
-        "image/jpeg";
-
-    }
+    )
+      mime = "image/jpeg";
 
 
     return (
@@ -1253,14 +1201,13 @@ async function loadPrivateImage(
 
   }
 
-  catch (error) {
+  catch(error){
 
     console.warn(
       "Private image error:",
       imagePath,
       error
     );
-
 
     return "";
 
@@ -1270,52 +1217,31 @@ async function loadPrivateImage(
 
 
 /* =========================================================
-   LOAD IMAGES
+   LOAD ALL IMAGES
 ========================================================= */
 
-async function loadImages(
-  items
-) {
+async function loadImages(items){
 
   const total =
     items.length;
 
 
-  let loaded =
-    0;
+  let loaded = 0;
 
 
-  for (
+  for(
     const item of items
-  ) {
+  ){
 
     loaded++;
 
 
-    /*
-      Already cached image
-    */
-
-    if (
-      item.image
-    ) {
-
+    if(item.image)
       continue;
 
-    }
 
-
-    /*
-      No image path
-    */
-
-    if (
-      !item.imagePath
-    ) {
-
+    if(!item.imagePath)
       continue;
-
-    }
 
 
     showSync(
@@ -1329,7 +1255,7 @@ async function loadImages(
       );
 
 
-    if (image) {
+    if(image){
 
       item.image =
         image;
@@ -1348,10 +1274,10 @@ async function loadImages(
 
 
 /* =========================================================
-   ONLINE SYNC
+   SYNC FROM GITHUB
 ========================================================= */
 
-async function syncFromGitHub() {
+async function syncFromGitHub(){
 
   showSync(
     "GitHub से पंजीकरण जानकारी लोड हो रही है..."
@@ -1369,7 +1295,7 @@ async function syncFromGitHub() {
 
 
   /*
-    खाली issue remove
+    खाली Issues हटाओ
   */
 
   parsed =
@@ -1386,7 +1312,7 @@ async function syncFromGitHub() {
   */
 
   parsed.sort(
-    (a, b) => {
+    (a,b)=>{
 
       const aTime =
         new Date(
@@ -1407,7 +1333,7 @@ async function syncFromGitHub() {
 
 
   /*
-    Photos
+    Images
   */
 
   parsed =
@@ -1421,10 +1347,7 @@ async function syncFromGitHub() {
 
 
   /*
-    IMPORTANT
-
-    Data + photos दोनों
-    IndexedDB में save होंगे
+    Save offline
   */
 
   await saveOfflineData();
@@ -1436,22 +1359,22 @@ async function syncFromGitHub() {
 
 
 /* =========================================================
-   RENDER REGISTRATION LIST
+   RENDER LIST
 ========================================================= */
 
-function renderList(
-  items
-) {
+function renderList(items){
 
-  if (
+  if(
     !items ||
     !items.length
-  ) {
+  ){
 
     registrationList.innerHTML = `
 
       <div class="status">
+
         कोई पंजीकरण नहीं मिला।
+
       </div>
 
     `;
@@ -1468,31 +1391,29 @@ function renderList(
   items.forEach(
     item => {
 
-      const strip =
+      const card =
         document.createElement(
           "div"
         );
 
 
-      strip.className =
-        "registration-strip";
+      card.className =
+        "registration";
 
 
-      /*
-        PHOTO
-      */
+      /* =========================
+         PHOTO
+      ========================= */
 
       let photoHTML;
 
 
-      if (
-        item.image
-      ) {
+      if(item.image){
 
         photoHTML = `
 
           <img
-            class="photo-thumb"
+            class="thumb"
             src="${escapeHTML(item.image)}"
             alt="पंजीकरण फोटो"
           >
@@ -1501,16 +1422,12 @@ function renderList(
 
       }
 
-      else {
+      else{
 
         photoHTML = `
 
-          <div
-            class="no-photo"
-          >
-            फोटो
-            <br>
-            उपलब्ध नहीं
+          <div class="no-photo">
+            फोटो<br>नहीं
           </div>
 
         `;
@@ -1518,22 +1435,18 @@ function renderList(
       }
 
 
-      /*
-        STRIP
-      */
+      /* =========================
+         CARD
+      ========================= */
 
-      strip.innerHTML = `
+      card.innerHTML = `
 
         ${photoHTML}
 
 
-        <div
-          class="registration-info"
-        >
+        <div class="basic">
 
-          <div
-            class="registration-name"
-          >
+          <div class="name">
             ${escapeHTML(
               item.name ||
               "नाम उपलब्ध नहीं"
@@ -1541,9 +1454,7 @@ function renderList(
           </div>
 
 
-          <div
-            class="registration-place"
-          >
+          <div class="place">
             ${escapeHTML(
               item.city ||
               "स्थान उपलब्ध नहीं"
@@ -1551,9 +1462,7 @@ function renderList(
           </div>
 
 
-          <div
-            class="registration-id"
-          >
+          <div class="regid">
             ${escapeHTML(
               item.id ||
               "पंजीकरण क्रमांक उपलब्ध नहीं"
@@ -1564,10 +1473,10 @@ function renderList(
 
 
         <button
-          class="id-card-button"
+          class="make-card"
           type="button"
         >
-          आईडी कार्ड बनाएं
+          आईडी कार्ड
         </button>
 
 
@@ -1581,45 +1490,39 @@ function renderList(
       `;
 
 
-      /*
-        INFO CLICK
-      */
+      /* =========================
+         WHOLE CARD DETAIL
+      ========================= */
 
-      const info =
-        strip.querySelector(
-          ".registration-info"
-        );
-
-
-      info.addEventListener(
+      card.addEventListener(
         "click",
-        function () {
+        function(){
 
-          showDetail(
-            item
-          );
+          showDetail(item);
 
         }
       );
 
 
-      /*
-        PHOTO CLICK
-      */
+      /* =========================
+         ID BUTTON
+      ========================= */
 
-      const photo =
-        strip.querySelector(
-          ".photo-thumb"
+      const idButton =
+        card.querySelector(
+          ".make-card"
         );
 
 
-      if (photo) {
+      if(idButton){
 
-        photo.addEventListener(
+        idButton.addEventListener(
           "click",
-          function () {
+          async function(event){
 
-            showDetail(
+            event.stopPropagation();
+
+            await downloadIDCard(
               item
             );
 
@@ -1629,55 +1532,8 @@ function renderList(
       }
 
 
-      /*
-        ARROW
-      */
-
-      const arrow =
-        strip.querySelector(
-          ".arrow"
-        );
-
-
-      arrow.addEventListener(
-        "click",
-        function () {
-
-          showDetail(
-            item
-          );
-
-        }
-      );
-
-
-      /*
-        ID CARD BUTTON
-      */
-
-      const idCardButton =
-        strip.querySelector(
-          ".id-card-button"
-        );
-
-
-      idCardButton.addEventListener(
-        "click",
-        async function (event) {
-
-          event.stopPropagation();
-
-
-          await downloadIDCard(
-            item
-          );
-
-        }
-      );
-
-
       registrationList.appendChild(
-        strip
+        card
       );
 
     }
@@ -1690,9 +1546,9 @@ function renderList(
    SEARCH
 ========================================================= */
 
-function performSearch() {
+function performSearch(){
 
-  if (!searchBox)
+  if(!searchBox)
     return;
 
 
@@ -1702,11 +1558,7 @@ function performSearch() {
     );
 
 
-  /*
-    Empty search
-  */
-
-  if (!query) {
+  if(!query){
 
     renderList(
       registrations
@@ -1716,16 +1568,6 @@ function performSearch() {
 
   }
 
-
-  /*
-    Search fields
-
-    ✓ नाम
-    ✓ पंजीकरण क्रमांक
-    ✓ मोबाइल
-    ✓ पिता का नाम
-    ✓ शहर
-  */
 
   const filtered =
     registrations.filter(
@@ -1741,7 +1583,9 @@ function performSearch() {
 
           item.fatherName,
 
-          item.city
+          item.city,
+
+          item.education
 
         ].some(
           value =>
@@ -1763,7 +1607,7 @@ function performSearch() {
 }
 
 
-if (searchBox) {
+if(searchBox){
 
   searchBox.addEventListener(
     "input",
@@ -1780,26 +1624,18 @@ if (searchBox) {
 function detailRow(
   label,
   value
-) {
+){
 
   return `
 
-    <div
-      class="detail-row"
-    >
+    <div class="detail-row">
 
-      <div
-        class="detail-label"
-      >
-        ${escapeHTML(
-          label
-        )}
+      <div class="detail-label">
+        ${escapeHTML(label)}
       </div>
 
 
-      <div
-        class="detail-value"
-      >
+      <div class="detail-value">
         ${escapeHTML(
           value || "—"
         )}
@@ -1816,9 +1652,7 @@ function detailRow(
    DETAIL VIEW
 ========================================================= */
 
-function showDetail(
-  item
-) {
+function showDetail(item){
 
   listView.style.display =
     "none";
@@ -1828,18 +1662,14 @@ function showDetail(
     "block";
 
 
-  let photo;
+  let photoHTML;
 
 
-  if (
-    item.image
-  ) {
+  if(item.image){
 
-    photo = `
+    photoHTML = `
 
-      <div
-        class="detail-photo"
-      >
+      <div class="detail-photo">
 
         <img
           src="${escapeHTML(item.image)}"
@@ -1852,14 +1682,12 @@ function showDetail(
 
   }
 
-  else {
+  else{
 
-    photo = `
+    photoHTML = `
 
-      <div
-        class="detail-no-photo"
-      >
-        फोटो उपलब्ध नहीं
+      <div class="detail-no-photo">
+        फोटो उपलब्ध नहीं है।
       </div>
 
     `;
@@ -1869,26 +1697,26 @@ function showDetail(
 
   detailCard.innerHTML = `
 
-    ${photo}
+    ${photoHTML}
 
 
-    <h2
-      class="detail-title"
-    >
+    <h2 class="detail-title">
+
       ${escapeHTML(
         item.name ||
         "पंजीकरण"
       )}
+
     </h2>
 
 
-    <div
-      class="detail-registration-id"
-    >
+    <div class="detail-registration-id">
+
       ${escapeHTML(
         item.id ||
         ""
       )}
+
     </div>
 
 
@@ -1952,9 +1780,7 @@ function showDetail(
     )}
 
 
-    <h3
-      class="section-title"
-    >
+    <h3 class="section-title">
       दान विवरण
     </h3>
 
@@ -1974,7 +1800,6 @@ function showDetail(
     <button
       id="detailIDCardButton"
       class="main-button"
-      style="margin-top:14px"
       type="button"
     >
       आईडी कार्ड डाउनलोड करें
@@ -1983,21 +1808,19 @@ function showDetail(
   `;
 
 
-  const cardButton =
+  const button =
     document.getElementById(
       "detailIDCardButton"
     );
 
 
-  if (cardButton) {
+  if(button){
 
-    cardButton.addEventListener(
+    button.addEventListener(
       "click",
-      function () {
+      function(){
 
-        downloadIDCard(
-          item
-        );
+        downloadIDCard(item);
 
       }
     );
@@ -2014,14 +1837,14 @@ function showDetail(
 
 
 /* =========================================================
-   BACK BUTTON
+   BACK
 ========================================================= */
 
-if (backButton) {
+if(backButton){
 
   backButton.addEventListener(
     "click",
-    function () {
+    function(){
 
       detailView.style.display =
         "none";
@@ -2046,29 +1869,25 @@ if (backButton) {
    CANVAS IMAGE LOADER
 ========================================================= */
 
-function loadImageForCanvas(
-  source
-) {
+function loadImageForCanvas(source){
 
   return new Promise(
-    (resolve, reject) => {
+    (resolve,reject)=>{
 
       const image =
         new Image();
 
 
       image.onload =
-        function () {
+        function(){
 
-          resolve(
-            image
-          );
+          resolve(image);
 
         };
 
 
       image.onerror =
-        function () {
+        function(){
 
           reject(
             new Error(
@@ -2099,7 +1918,7 @@ function roundedRect(
   width,
   height,
   radius
-) {
+){
 
   const r =
     Math.min(
@@ -2171,7 +1990,7 @@ function drawCoverImage(
   width,
   height,
   radius
-) {
+){
 
   const sourceWidth =
     image.naturalWidth;
@@ -2259,25 +2078,25 @@ function fitText(
   maxWidth,
   startSize,
   minimumSize
-) {
+){
 
   let size =
     startSize;
 
 
-  while (
+  while(
     size > minimumSize
-  ) {
+  ){
 
     ctx.font =
-      `700 ${size}px "Noto Sans Devanagari", "Nirmala UI", Arial, sans-serif`;
+      `700 ${size}px "Noto Sans Devanagari", "Nirmala UI", "Mangal", Arial, sans-serif`;
 
 
-    if (
+    if(
       ctx.measureText(
         text
       ).width <= maxWidth
-    ) {
+    ){
 
       break;
 
@@ -2295,14 +2114,14 @@ function fitText(
 
 
 /* =========================================================
-   TRADITIONAL DECORATION
+   DECORATION
 ========================================================= */
 
 function drawDecoration(
   ctx,
   x,
   y
-) {
+){
 
   ctx.save();
 
@@ -2354,25 +2173,19 @@ function drawDecoration(
    ID CARD
 ========================================================= */
 
-async function downloadIDCard(
-  item
-) {
+async function downloadIDCard(item){
 
-  try {
+  try{
 
     /*
-      अगर image पहले से IndexedDB
-      से उपलब्ध है तो वही इस्तेमाल होगी।
-
-      अगर नहीं है और internet है,
-      तो private repository से लेंगे।
+      अगर फोटो cached नहीं है
     */
 
-    if (
+    if(
       !item.image &&
       item.imagePath &&
       navigator.onLine
-    ) {
+    ){
 
       showSync(
         "आईडी कार्ड के लिए फोटो लोड हो रही है..."
@@ -2385,15 +2198,11 @@ async function downloadIDCard(
         );
 
 
-      if (image) {
+      if(image){
 
         item.image =
           image;
 
-
-        /*
-          Offline में भी save
-        */
 
         await saveOfflineData();
 
@@ -2405,27 +2214,18 @@ async function downloadIDCard(
     }
 
 
-    /*
-      Photo जरूरी है
-    */
-
-    if (
-      !item.image
-    ) {
+    if(!item.image){
 
       throw new Error(
-        "इस पंजीकरण की फोटो उपलब्ध नहीं है। पहले Internet के साथ Sync करें।"
+        "इस पंजीकरण की फोटो उपलब्ध नहीं है। पहले Internet के साथ सिंक करें।"
       );
 
     }
 
 
-    /*
-      Website logo
-
-      show-all.html के साथ
-      logo.png होना चाहिए।
-    */
+    /* =========================
+       LOGO
+    ========================= */
 
     const logo =
       await loadImageForCanvas(
@@ -2433,9 +2233,9 @@ async function downloadIDCard(
       );
 
 
-    /*
-      Registration photo
-    */
+    /* =========================
+       PHOTO
+    ========================= */
 
     const photo =
       await loadImageForCanvas(
@@ -2443,9 +2243,9 @@ async function downloadIDCard(
       );
 
 
-    /* =====================================================
-       CANVAS SIZE
-    ===================================================== */
+    /* =========================
+       CANVAS
+    ========================= */
 
     const canvas =
       document.createElement(
@@ -2467,10 +2267,6 @@ async function downloadIDCard(
       );
 
 
-    /*
-      Hindi font
-    */
-
     const hindiFont =
       '"Noto Sans Devanagari", "Nirmala UI", "Mangal", Arial, sans-serif';
 
@@ -2479,13 +2275,9 @@ async function downloadIDCard(
       `700 32px ${hindiFont}`;
 
 
-    const hindiNormal =
-      `500 28px ${hindiFont}`;
-
-
-    /* =====================================================
-       CARD BACKGROUND
-    ===================================================== */
+    /* =========================
+       BACKGROUND
+    ========================= */
 
     ctx.fillStyle =
       "#fffaf0";
@@ -2499,9 +2291,9 @@ async function downloadIDCard(
     );
 
 
-    /* =====================================================
-       OUTER ORANGE BORDER
-    ===================================================== */
+    /* =========================
+       OUTER BORDER
+    ========================= */
 
     ctx.strokeStyle =
       "#f28c00";
@@ -2524,9 +2316,9 @@ async function downloadIDCard(
     ctx.stroke();
 
 
-    /* =====================================================
-       INNER BROWN BORDER
-    ===================================================== */
+    /* =========================
+       INNER BORDER
+    ========================= */
 
     ctx.strokeStyle =
       "#8b5a20";
@@ -2549,9 +2341,9 @@ async function downloadIDCard(
     ctx.stroke();
 
 
-    /* =====================================================
+    /* =========================
        HEADER
-    ===================================================== */
+    ========================= */
 
     ctx.fillStyle =
       "#f28c00";
@@ -2569,10 +2361,6 @@ async function downloadIDCard(
 
     ctx.fill();
 
-
-    /*
-      Header inner decorative line
-    */
 
     ctx.strokeStyle =
       "#ffe2a8";
@@ -2595,9 +2383,9 @@ async function downloadIDCard(
     ctx.stroke();
 
 
-    /* =====================================================
-       LOGO - TOP LEFT
-    ===================================================== */
+    /* =========================
+       LOGO
+    ========================= */
 
     ctx.save();
 
@@ -2618,7 +2406,7 @@ async function downloadIDCard(
 
 
     ctx.fillStyle =
-      "#ffffff";
+      "#fff";
 
 
     ctx.fillRect(
@@ -2641,12 +2429,8 @@ async function downloadIDCard(
     ctx.restore();
 
 
-    /*
-      Logo ring
-    */
-
     ctx.strokeStyle =
-      "#ffffff";
+      "#fff";
 
 
     ctx.lineWidth =
@@ -2668,12 +2452,12 @@ async function downloadIDCard(
     ctx.stroke();
 
 
-    /* =====================================================
-       HEADER TITLE - FULL HINDI
-    ===================================================== */
+    /* =========================
+       HEADER TEXT
+    ========================= */
 
     const title =
-      "गायत्री चेतना केंद्र चिलबिला प्रतापगढ़";
+      "गायत्री चेतना केन्द्र चिलबिला प्रतापगढ़";
 
 
     const subtitle =
@@ -2687,10 +2471,6 @@ async function downloadIDCard(
     ctx.textBaseline =
       "middle";
 
-
-    /*
-      Title size
-    */
 
     const titleSize =
       fitText(
@@ -2707,7 +2487,7 @@ async function downloadIDCard(
 
 
     ctx.fillStyle =
-      "#ffffff";
+      "#fff";
 
 
     ctx.fillText(
@@ -2716,10 +2496,6 @@ async function downloadIDCard(
       105
     );
 
-
-    /*
-      Subtitle
-    */
 
     const subtitleSize =
       fitText(
@@ -2742,12 +2518,12 @@ async function downloadIDCard(
     );
 
 
-    /* =====================================================
-       MAIN CONTENT WHITE BOX
-    ===================================================== */
+    /* =========================
+       MAIN BOX
+    ========================= */
 
     ctx.fillStyle =
-      "#ffffff";
+      "#fff";
 
 
     roundedRect(
@@ -2762,10 +2538,6 @@ async function downloadIDCard(
 
     ctx.fill();
 
-
-    /*
-      Content border
-    */
 
     ctx.strokeStyle =
       "#edcf9e";
@@ -2788,9 +2560,9 @@ async function downloadIDCard(
     ctx.stroke();
 
 
-    /* =====================================================
-       PHOTO - LEFT
-    ===================================================== */
+    /* =========================
+       PHOTO
+    ========================= */
 
     drawCoverImage(
       ctx,
@@ -2802,10 +2574,6 @@ async function downloadIDCard(
       18
     );
 
-
-    /*
-      Photo border
-    */
 
     ctx.strokeStyle =
       "#f28c00";
@@ -2828,9 +2596,9 @@ async function downloadIDCard(
     ctx.stroke();
 
 
-    /* =====================================================
+    /* =========================
        DETAILS
-    ===================================================== */
+    ========================= */
 
     const detailX =
       500;
@@ -2839,10 +2607,6 @@ async function downloadIDCard(
     const rightX =
       1060;
 
-
-    /*
-      NAME LABEL
-    */
 
     ctx.textAlign =
       "left";
@@ -2863,13 +2627,8 @@ async function downloadIDCard(
     );
 
 
-    /*
-      NAME VALUE
-    */
-
     const name =
-      item.name ||
-      "—";
+      item.name || "—";
 
 
     const nameSize =
@@ -2897,9 +2656,7 @@ async function downloadIDCard(
     );
 
 
-    /*
-      AGE LABEL
-    */
+    /* AGE */
 
     ctx.fillStyle =
       "#8b5a20";
@@ -2916,10 +2673,6 @@ async function downloadIDCard(
     );
 
 
-    /*
-      AGE VALUE
-    */
-
     ctx.fillStyle =
       "#4b2b0b";
 
@@ -2929,16 +2682,13 @@ async function downloadIDCard(
 
 
     ctx.fillText(
-      item.age ||
-      "—",
+      item.age || "—",
       rightX,
       375
     );
 
 
-    /* =====================================================
-       DIVIDER 1
-    ===================================================== */
+    /* DIVIDER */
 
     ctx.strokeStyle =
       "#edcf9e";
@@ -2966,9 +2716,7 @@ async function downloadIDCard(
     ctx.stroke();
 
 
-    /* =====================================================
-       MOBILE
-    ===================================================== */
+    /* MOBILE */
 
     ctx.fillStyle =
       "#8b5a20";
@@ -2994,23 +2742,16 @@ async function downloadIDCard(
 
 
     ctx.fillText(
-      item.mobile ||
-      "—",
+      item.mobile || "—",
       detailX,
       500
     );
 
 
-    /* =====================================================
-       DIVIDER 2
-    ===================================================== */
+    /* DIVIDER */
 
     ctx.strokeStyle =
       "#edcf9e";
-
-
-    ctx.lineWidth =
-      2;
 
 
     ctx.beginPath();
@@ -3031,9 +2772,7 @@ async function downloadIDCard(
     ctx.stroke();
 
 
-    /* =====================================================
-       REGISTRATION ID
-    ===================================================== */
+    /* REGISTRATION ID */
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3051,8 +2790,7 @@ async function downloadIDCard(
 
 
     const registrationID =
-      item.id ||
-      "—";
+      item.id || "—";
 
 
     const idSize =
@@ -3080,9 +2818,7 @@ async function downloadIDCard(
     );
 
 
-    /* =====================================================
-       FOOTER
-    ===================================================== */
+    /* FOOTER */
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3093,15 +2829,13 @@ async function downloadIDCard(
 
 
     ctx.fillText(
-      "गायत्री चेतना केंद्र",
+      "गायत्री चेतना केन्द्र",
       detailX,
       682
     );
 
 
-    /* =====================================================
-       DECORATIVE CORNERS
-    ===================================================== */
+    /* CORNERS */
 
     drawDecoration(
       ctx,
@@ -3131,15 +2865,15 @@ async function downloadIDCard(
     );
 
 
-    /* =====================================================
-       DOWNLOAD FILE NAME
-    ===================================================== */
+    /* =========================
+       DOWNLOAD
+    ========================= */
 
     const safeID =
       String(
         item.id ||
         item.issueNumber ||
-        "pंजीकरण"
+        "पंजीकरण"
       )
       .replace(
         /[^a-zA-Z0-9_-]+/g,
@@ -3147,37 +2881,37 @@ async function downloadIDCard(
       );
 
 
-    const downloadLink =
+    const link =
       document.createElement(
         "a"
       );
 
 
-    downloadLink.download =
+    link.download =
       "गायत्री-आईडी-कार्ड-" +
       safeID +
       ".png";
 
 
-    downloadLink.href =
+    link.href =
       canvas.toDataURL(
         "image/png"
       );
 
 
     document.body.appendChild(
-      downloadLink
+      link
     );
 
 
-    downloadLink.click();
+    link.click();
 
 
-    downloadLink.remove();
+    link.remove();
 
   }
 
-  catch (error) {
+  catch(error){
 
     console.error(
       "ID CARD ERROR:",
@@ -3196,17 +2930,24 @@ async function downloadIDCard(
 
 
 /* =========================================================
-   REFRESH / SYNC
+   MANUAL SYNC BUTTON
 ========================================================= */
 
-if (refreshButton) {
+if(refreshButton){
 
   refreshButton.addEventListener(
     "click",
-    async function () {
+    async function(){
 
-      if (!githubConfig)
+      if(!githubConfig){
+
+        alert(
+          "पहले GitHub से लॉगिन करें।"
+        );
+
         return;
+
+      }
 
 
       refreshButton.disabled =
@@ -3217,7 +2958,7 @@ if (refreshButton) {
         "सिंक हो रहा है...";
 
 
-      try {
+      try{
 
         registrations =
           await syncFromGitHub();
@@ -3227,45 +2968,44 @@ if (refreshButton) {
 
 
         showSync(
-          `सिंक पूरा हुआ • ${registrations.length} पंजीकरण उपलब्ध हैं।`
+          `✓ सिंक पूरा हुआ • ${registrations.length} पंजीकरण उपलब्ध`
         );
 
 
         setTimeout(
           hideSync,
-          2500
+          3000
         );
 
       }
 
-      catch (error) {
+      catch(error){
 
         console.error(
           error
         );
 
 
-        if (
-          registrations.length
-        ) {
+        if(registrations.length){
 
           showSync(
-            "इंटरनेट से नया डेटा नहीं मिला। ऑफलाइन सेव डेटा दिखाया जा रहा है।"
+            "नया डेटा नहीं मिला। सेव किया हुआ डेटा दिखाया जा रहा है।"
           );
 
         }
 
-        else {
+        else{
 
           alert(
-            error.message
+            error.message ||
+            "डेटा लोड नहीं हो पाया।"
           );
 
         }
 
       }
 
-      finally {
+      finally{
 
         refreshButton.disabled =
           false;
@@ -3286,11 +3026,11 @@ if (refreshButton) {
    LOGOUT
 ========================================================= */
 
-if (logoutButton) {
+if(logoutButton){
 
   logoutButton.addEventListener(
     "click",
-    function () {
+    function(){
 
       clearLogin();
 
@@ -3299,71 +3039,40 @@ if (logoutButton) {
         [];
 
 
-      if (registrationList) {
-
-        registrationList.innerHTML =
-          "";
-
-      }
+      registrationList.innerHTML =
+        "";
 
 
-      if (searchBox) {
-
-        searchBox.value =
-          "";
-
-      }
+      searchBox.value =
+        "";
 
 
-      if (listView) {
-
-        listView.style.display =
-          "none";
-
-      }
+      listView.style.display =
+        "none";
 
 
-      if (detailView) {
-
-        detailView.style.display =
-          "none";
-
-      }
+      detailView.style.display =
+        "none";
 
 
-      if (loginView) {
-
-        loginView.style.display =
-          "block";
-
-      }
+      loginView.style.display =
+        "block";
 
 
-      if (usernameInput) {
-
-        usernameInput.value =
-          "";
-
-      }
+      usernameInput.value =
+        "";
 
 
-      if (repoInput) {
-
-        repoInput.value =
-          "";
-
-      }
+      repoInput.value =
+        "";
 
 
-      if (tokenInput) {
-
-        tokenInput.value =
-          "";
-
-      }
+      tokenInput.value =
+        "";
 
 
       hideError();
+
 
       hideSync();
 
@@ -3377,43 +3086,36 @@ if (logoutButton) {
    LOGIN
 ========================================================= */
 
-if (loginButton) {
+if(loginButton){
 
   loginButton.addEventListener(
     "click",
-    async function () {
+    async function(){
 
       hideError();
 
 
       const username =
-        usernameInput
-          ?.value
-          .trim();
+        usernameInput.value.trim();
 
 
       const repo =
-        repoInput
-          ?.value
-          .trim();
+        repoInput.value.trim();
 
 
       const token =
-        tokenInput
-          ?.value
-          .trim();
+        tokenInput.value.trim();
 
 
-      if (
+      if(
         !username ||
         !repo ||
         !token
-      ) {
+      ){
 
         showError(
           "GitHub Username, Repository और Token तीनों भरें।"
         );
-
 
         return;
 
@@ -3439,13 +3141,13 @@ if (loginButton) {
 
 
       loginButton.textContent =
-        "लोड हो रहा है...";
+        "डेटा लोड हो रहा है...";
 
 
-      try {
+      try{
 
         /*
-          Online GitHub sync
+          Online sync
         */
 
         registrations =
@@ -3453,14 +3155,14 @@ if (loginButton) {
 
 
         /*
-          Login save
+          Save login
         */
 
         saveLogin();
 
 
         /*
-          List show
+          Show list
         */
 
         loginView.style.display =
@@ -3481,40 +3183,39 @@ if (loginButton) {
 
 
         showSync(
-          `ऑनलाइन • ${registrations.length} पंजीकरण लोड हुए`
+          `✓ ऑनलाइन • ${registrations.length} पंजीकरण लोड हुए`
         );
 
 
         setTimeout(
           hideSync,
-          2500
+          3000
         );
 
       }
 
-      catch (error) {
+      catch(error){
 
         console.error(
+          "LOGIN ERROR:",
           error
         );
 
 
         /*
-          Internet failed:
-          Offline data try
+          Offline cache
         */
 
         const saved =
           await loadOfflineData();
 
 
-        if (
+        if(
           saved &&
           Array.isArray(
             saved.registrations
-          ) &&
-          saved.registrations.length
-        ) {
+          )
+        ){
 
           registrations =
             saved.registrations;
@@ -3546,7 +3247,7 @@ if (loginButton) {
 
         }
 
-        else {
+        else{
 
           githubConfig =
             null;
@@ -3561,7 +3262,7 @@ if (loginButton) {
 
       }
 
-      finally {
+      finally{
 
         loginButton.disabled =
           false;
@@ -3582,18 +3283,17 @@ if (loginButton) {
    START APPLICATION
 ========================================================= */
 
-async function startApplication() {
+async function startApplication(){
 
-  /*
-    SERVICE WORKER
-  */
+  /* =========================
+     SERVICE WORKER
+  ========================= */
 
-  if (
-    "serviceWorker" in
-    navigator
-  ) {
+  if(
+    "serviceWorker" in navigator
+  ){
 
-    try {
+    try{
 
       await navigator
         .serviceWorker
@@ -3608,7 +3308,7 @@ async function startApplication() {
 
     }
 
-    catch (error) {
+    catch(error){
 
       console.warn(
         "Service Worker error:",
@@ -3620,34 +3320,33 @@ async function startApplication() {
   }
 
 
-  /*
-    SAVED LOGIN
-  */
+  /* =========================
+     SAVED LOGIN
+  ========================= */
 
-  if (
+  if(
     !loadLogin()
-  ) {
+  ){
 
     return;
 
   }
 
 
-  /*
-    FIRST:
-    Offline data तुरंत दिखाओ
-  */
+  /* =========================
+     OFFLINE DATA FIRST
+  ========================= */
 
   const saved =
     await loadOfflineData();
 
 
-  if (
+  if(
     saved &&
     Array.isArray(
       saved.registrations
     )
-  ) {
+  ){
 
     registrations =
       saved.registrations;
@@ -3677,16 +3376,15 @@ async function startApplication() {
   }
 
 
-  /*
-    SECOND:
-    Internet हो तो fresh sync
-  */
+  /* =========================
+     ONLINE FRESH SYNC
+  ========================= */
 
-  if (
+  if(
     navigator.onLine
-  ) {
+  ){
 
-    try {
+    try{
 
       registrations =
         await syncFromGitHub();
@@ -3710,18 +3408,18 @@ async function startApplication() {
 
 
       showSync(
-        `ऑनलाइन सिंक • ${registrations.length} पंजीकरण`
+        `✓ ऑनलाइन सिंक • ${registrations.length} पंजीकरण`
       );
 
 
       setTimeout(
         hideSync,
-        2500
+        3000
       );
 
     }
 
-    catch (error) {
+    catch(error){
 
       console.warn(
         "Startup sync failed:",
@@ -3730,13 +3428,12 @@ async function startApplication() {
 
 
       /*
-        अगर offline data पहले से है,
-        तो उसे रहने दो।
+        Offline data है तो वही चलता रहेगा
       */
 
-      if (
+      if(
         registrations.length === 0
-      ) {
+      ){
 
         loginView.style.display =
           "block";
@@ -3760,18 +3457,18 @@ async function startApplication() {
 
 
 /* =========================================================
-   INTERNET वापस आने पर SYNC
+   INTERNET वापस आने पर AUTO SYNC
 ========================================================= */
 
 window.addEventListener(
   "online",
-  async function () {
+  async function(){
 
-    if (!githubConfig)
+    if(!githubConfig)
       return;
 
 
-    try {
+    try{
 
       showSync(
         "इंटरनेट वापस आ गया। डेटा सिंक हो रहा है..."
@@ -3786,18 +3483,18 @@ window.addEventListener(
 
 
       showSync(
-        `सिंक पूरा • ${registrations.length} पंजीकरण उपलब्ध`
+        `✓ सिंक पूरा • ${registrations.length} पंजीकरण उपलब्ध`
       );
 
 
       setTimeout(
         hideSync,
-        2500
+        3000
       );
 
     }
 
-    catch (error) {
+    catch(error){
 
       console.warn(
         "Online sync error:",
