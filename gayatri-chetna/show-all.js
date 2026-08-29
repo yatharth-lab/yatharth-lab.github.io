@@ -1010,6 +1010,9 @@ function parseIssue(issue){
     image:
       "",
 
+    croppedImage:
+      "",
+
     issueURL:
       issue.html_url || "",
 
@@ -1514,7 +1517,10 @@ function showDetail(item){
       <div class="detail-photo">
 
         <img
-          src="${escapeHTML(item.image)}"
+          src="${escapeHTML(
+            item.croppedImage ||
+            item.image
+          )}"
           alt="पंजीकरण फोटो"
         >
 
@@ -1535,9 +1541,37 @@ function showDetail(item){
   }
 
 
+  let cropButtonHTML =
+    "";
+
+
+  if(item.image){
+
+    cropButtonHTML = `
+
+      <button
+        id="detailCropButton"
+        class="crop-btn"
+        type="button"
+      >
+        ✂️ फोटो क्रॉप करें
+        ${
+          item.croppedImage
+            ? "(दोबारा)"
+            : ""
+        }
+      </button>
+
+    `;
+
+  }
+
+
   detailCard.innerHTML = `
 
     ${photoHTML}
+
+    ${cropButtonHTML}
 
     <h2 class="detail-title">
       ${escapeHTML(
@@ -1646,6 +1680,30 @@ function showDetail(item){
         event.preventDefault();
 
         await downloadIDCard(
+          item
+        );
+
+      }
+    );
+
+  }
+
+
+  const cropButton =
+    document.getElementById(
+      "detailCropButton"
+    );
+
+
+  if(cropButton){
+
+    cropButton.addEventListener(
+      "click",
+      async function(event){
+
+        event.preventDefault();
+
+        await openCropForItem(
           item
         );
 
@@ -3079,6 +3137,156 @@ function cropImage(
 
 
 /* =========================================================
+   PHOTO CROP (DETAIL VIEW)
+
+   IMPORTANT:
+   Crop अब सीधे ID Card बटन से नहीं खुलता।
+   यह केवल Detail View के "फोटो क्रॉप करें" बटन से खुलेगा।
+   Crop करने के बाद परिणाम item.croppedImage में सेव होगा
+   और Offline Storage में भी सेव होगा, ताकि ID Card बनाते
+   समय वही Crop की हुई फोटो इस्तेमाल हो।
+========================================================= */
+
+async function openCropForItem(
+  item
+){
+
+  try{
+
+    if(
+      !item.image &&
+      item.imagePath &&
+      navigator.onLine
+    ){
+
+      showSync(
+        "फोटो लोड हो रही है..."
+      );
+
+      const image =
+        await loadPrivateImage(
+          item.imagePath
+        );
+
+      if(image){
+
+        item.image =
+          image;
+
+        await saveOfflineData();
+
+      }
+
+      hideSync();
+
+    }
+
+
+    if(!item.image){
+
+      alert(
+        "इस पंजीकरण की फोटो उपलब्ध नहीं है। पहले Internet के साथ सिंक करें।"
+      );
+
+      return;
+
+    }
+
+
+    let cropData;
+
+    try{
+
+      cropData =
+        await showCropModal(
+          item.image
+        );
+
+    }catch(cropError){
+
+      /*
+        User ने Crop रद्द किया।
+        कुछ नहीं बदलेगा।
+      */
+
+      return;
+
+    }
+
+
+    showSync(
+      "फोटो Crop की जा रही है..."
+    );
+
+
+    const originalPhoto =
+      await loadImageForCanvas(
+        item.image
+      );
+
+    const croppedDataURL =
+      await cropImage(
+        originalPhoto,
+        cropData
+      );
+
+
+    item.croppedImage =
+      croppedDataURL;
+
+    await saveOfflineData();
+
+
+    hideSync();
+
+    showSync(
+      "✓ फोटो Crop सेव हो गई"
+    );
+
+    setTimeout(
+      hideSync,
+      2000
+    );
+
+
+    /*
+      अगर Detail View इसी item के लिए
+      खुला है तो फोटो preview update करो।
+    */
+
+    if(
+      detailView &&
+      detailView.style.display !==
+        "none"
+    ){
+
+      showDetail(
+        item
+      );
+
+    }
+
+
+  }catch(error){
+
+    console.error(
+      "CROP ERROR:",
+      error
+    );
+
+    hideSync();
+
+    alert(
+      error?.message ||
+      "फोटो Crop नहीं हो पाई।"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
    ID CARD
 ========================================================= */
 
@@ -3145,94 +3353,20 @@ async function downloadIDCard(
 
 
     /* -----------------------------------------
-       CROP
-       
+       PHOTO
+
        IMPORTANT:
-       यहाँ Crop mandatory है।
-       Cancel/error होने पर download नहीं होगा।
-    ----------------------------------------- */
+       अगर Detail View से पहले फोटो Crop की
+       जा चुकी है (item.croppedImage), तो वही
+       फोटो इस्तेमाल होगी। वरना Original फोटो
+       को अपने आप बीच से Cover-Fit किया जाएगा।
 
-    showSync(
-      "फोटो Crop करें..."
-    );
-
-
-    let cropData;
-
-    try{
-
-      cropData =
-        await showCropModal(
-          item.image
-        );
-
-    }catch(cropError){
-
-      hideSync();
-
-      if(
-        cropError &&
-        cropError.message ===
-        "क्रॉप रद्द किया गया"
-      ){
-
-        return;
-
-      }
-
-      throw cropError;
-
-    }
-
-
-    /*
-      Crop confirm हो चुका है।
-      अब ही आगे बढ़ेंगे।
-    */
-
-    if(
-      !cropData ||
-      cropData.width <= 0 ||
-      cropData.height <= 0
-    ){
-
-      hideSync();
-
-      throw new Error(
-        "Crop पूरा नहीं हुआ।"
-      );
-
-    }
-
-
-    /* -----------------------------------------
-       ORIGINAL PHOTO LOAD
-    ----------------------------------------- */
-
-    showSync(
-      "फोटो तैयार हो रही है..."
-    );
-
-    const originalPhoto =
-      await loadImageForCanvas(
-        item.image
-      );
-
-
-    /* -----------------------------------------
-       ACTUAL CROP
+       यहाँ अब कोई Crop Modal नहीं खुलेगा।
     ----------------------------------------- */
 
     const photoSource =
-      await cropImage(
-        originalPhoto,
-        cropData
-      );
-
-
-    /* -----------------------------------------
-       CROPPED PHOTO LOAD
-    ----------------------------------------- */
+      item.croppedImage ||
+      item.image;
 
     const photo =
       await loadImageForCanvas(
@@ -3653,6 +3787,34 @@ async function downloadIDCard(
     );
 
 
+    /* REGISTRATION ID (छोटा, आयु के नीचे) */
+
+    const regIdSmallText =
+      "पंजीकरण क्रमांक: " +
+      (item.id || "—");
+
+    const regIdSmallSize =
+      fitText(
+        ctx,
+        regIdSmallText,
+        220,
+        18,
+        11
+      );
+
+    ctx.font =
+      `600 ${regIdSmallSize}px ${hindiFont}`;
+
+    ctx.fillStyle =
+      "#8b5a20";
+
+    ctx.fillText(
+      regIdSmallText,
+      rightX,
+      404
+    );
+
+
     /* DIVIDER */
 
     ctx.strokeStyle =
@@ -3665,12 +3827,12 @@ async function downloadIDCard(
 
     ctx.moveTo(
       detailX,
-      410
+      425
     );
 
     ctx.lineTo(
       1285,
-      410
+      425
     );
 
     ctx.stroke();
@@ -3688,7 +3850,7 @@ async function downloadIDCard(
     ctx.fillText(
       "मोबाइल नंबर",
       detailX,
-      455
+      470
     );
 
 
@@ -3702,7 +3864,7 @@ async function downloadIDCard(
     ctx.fillText(
       item.mobile || "—",
       detailX,
-      500
+      515
     );
 
 
@@ -3715,18 +3877,18 @@ async function downloadIDCard(
 
     ctx.moveTo(
       detailX,
-      530
+      545
     );
 
     ctx.lineTo(
       1285,
-      530
+      545
     );
 
     ctx.stroke();
 
 
-    /* REGISTRATION ID */
+    /* ADDRESS (पता) */
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3736,20 +3898,20 @@ async function downloadIDCard(
 
 
     ctx.fillText(
-      "पंजीकरण क्रमांक",
+      "पता",
       detailX,
-      575
+      590
     );
 
 
-    const registrationID =
-      item.id || "—";
+    const address =
+      item.city || "—";
 
 
-    const idSize =
+    const addressSize =
       fitText(
         ctx,
-        registrationID,
+        address,
         760,
         34,
         18
@@ -3760,13 +3922,13 @@ async function downloadIDCard(
       "#4b2b0b";
 
     ctx.font =
-      `700 ${idSize}px ${hindiFont}`;
+      `700 ${addressSize}px ${hindiFont}`;
 
 
     ctx.fillText(
-      registrationID,
+      address,
       detailX,
-      620
+      635
     );
 
 
@@ -3782,7 +3944,7 @@ async function downloadIDCard(
     ctx.fillText(
       "गायत्री चेतना केन्द्र",
       detailX,
-      682
+      697
     );
 
 
@@ -3817,10 +3979,6 @@ async function downloadIDCard(
 
     /* -----------------------------------------
        DOWNLOAD
-       
-       IMPORTANT:
-       यहाँ तक तभी पहुँचा जाएगा जब
-       Crop successfully confirm हुआ हो।
     ----------------------------------------- */
 
     const safeID =
@@ -3884,17 +4042,6 @@ async function downloadIDCard(
     );
 
     hideSync();
-
-
-    if(
-      error &&
-      error.message ===
-      "क्रॉप रद्द किया गया"
-    ){
-
-      return;
-
-    }
 
 
     alert(
