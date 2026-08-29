@@ -6,7 +6,6 @@
    FEATURES
 
    ✓ GitHub Issues से पंजीकरण
-   ✓ सभी Pages से Issues
    ✓ Search
    ✓ Private Repository Photos
    ✓ IndexedDB Offline Data
@@ -20,6 +19,13 @@
    ✓ Mobile Touch Crop
    ✓ Desktop Mouse Crop
    ✓ Service Worker
+
+   IMPORTANT
+
+   ID CARD PHOTO:
+   325 × 375
+   Ratio = 13 : 15
+
 ========================================================= */
 
 
@@ -27,7 +33,8 @@
    CONFIG
 ========================================================= */
 
-const STORAGE_KEY = "gck_show_all_login";
+const STORAGE_KEY =
+  "gck_show_all_login";
 
 const DB_NAME =
   "gayatri_chetna_offline_db";
@@ -40,16 +47,6 @@ const STORE_NAME =
 const GITHUB_API_VERSION =
   "2022-11-28";
 
-
-/*
-  IMPORTANT
-
-  ID card photo:
-  width  = 325
-  height = 375
-
-  इसलिए crop ratio भी बिल्कुल यही रहेगा।
-*/
 
 const PHOTO_WIDTH = 325;
 const PHOTO_HEIGHT = 375;
@@ -118,46 +115,6 @@ const detailCard =
 
 
 /* =========================================================
-   CROP STATE
-========================================================= */
-
-const cropState = {
-
-  imageElement:null,
-
-  naturalWidth:0,
-
-  naturalHeight:0,
-
-  displayWidth:0,
-
-  displayHeight:0,
-
-  x:0,
-
-  y:0,
-
-  width:0,
-
-  height:0,
-
-  startPointerX:0,
-
-  startPointerY:0,
-
-  startX:0,
-
-  startY:0,
-
-  dragging:false,
-
-  resolve:null,
-
-  reject:null
-};
-
-
-/* =========================================================
    HTML ESCAPE
 ========================================================= */
 
@@ -169,6 +126,7 @@ function escapeHTML(value){
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#039;");
+
 }
 
 
@@ -183,6 +141,7 @@ function normalize(value){
     .toLocaleLowerCase("hi-IN")
     .replace(/\s+/g," ")
     .trim();
+
 }
 
 
@@ -192,25 +151,31 @@ function normalize(value){
 
 function showError(message){
 
-  if(!loginError) return;
+  if(!loginError){
+    return;
+  }
 
   loginError.textContent =
     message || "";
 
   loginError.style.display =
     "block";
+
 }
 
 
 function hideError(){
 
-  if(!loginError) return;
+  if(!loginError){
+    return;
+  }
 
   loginError.textContent =
     "";
 
   loginError.style.display =
     "none";
+
 }
 
 
@@ -220,25 +185,31 @@ function hideError(){
 
 function showSync(message){
 
-  if(!syncBox) return;
+  if(!syncBox){
+    return;
+  }
 
   syncBox.textContent =
     message || "";
 
   syncBox.style.display =
     message ? "block" : "none";
+
 }
 
 
 function hideSync(){
 
-  if(!syncBox) return;
+  if(!syncBox){
+    return;
+  }
 
   syncBox.textContent =
     "";
 
   syncBox.style.display =
     "none";
+
 }
 
 
@@ -247,6 +218,12 @@ function hideSync(){
 ========================================================= */
 
 function githubHeaders(){
+
+  if(!githubConfig){
+    throw new Error(
+      "GitHub configuration उपलब्ध नहीं है।"
+    );
+  }
 
   return {
 
@@ -260,6 +237,7 @@ function githubHeaders(){
       GITHUB_API_VERSION
 
   };
+
 }
 
 
@@ -281,8 +259,9 @@ function githubContentURL(path){
   const encodedPath =
     cleanPath
       .split("/")
-      .map(part =>
-        encodeURIComponent(part)
+      .map(
+        part =>
+          encodeURIComponent(part)
       )
       .join("/");
 
@@ -298,6 +277,7 @@ function githubContentURL(path){
     "/contents/" +
     encodedPath
   );
+
 }
 
 
@@ -307,7 +287,9 @@ function githubContentURL(path){
 
 function saveLogin(){
 
-  if(!githubConfig) return;
+  if(!githubConfig){
+    return;
+  }
 
   localStorage.setItem(
 
@@ -327,6 +309,7 @@ function saveLogin(){
     })
 
   );
+
 }
 
 
@@ -353,6 +336,7 @@ function loadLogin(){
     ){
 
       return false;
+
     }
 
     githubConfig = {
@@ -370,11 +354,17 @@ function loadLogin(){
 
     return true;
 
-  }catch{
+  }catch(error){
+
+    console.warn(
+      "Login load error:",
+      error
+    );
 
     return false;
 
   }
+
 }
 
 
@@ -385,6 +375,7 @@ function clearLogin(){
   );
 
   githubConfig = null;
+
 }
 
 
@@ -396,6 +387,20 @@ function openDatabase(){
 
   return new Promise(
     (resolve,reject)=>{
+
+      if(
+        !window.indexedDB
+      ){
+
+        reject(
+          new Error(
+            "इस browser में IndexedDB उपलब्ध नहीं है।"
+          )
+        );
+
+        return;
+
+      }
 
       const request =
         indexedDB.open(
@@ -410,8 +415,9 @@ function openDatabase(){
             request.result;
 
           if(
-            !db.objectStoreNames
-              .contains(STORE_NAME)
+            !db.objectStoreNames.contains(
+              STORE_NAME
+            )
           ){
 
             db.createObjectStore(
@@ -445,11 +451,12 @@ function openDatabase(){
 
     }
   );
+
 }
 
 
 /* =========================================================
-   SAVE OFFLINE
+   SAVE OFFLINE DATA
 ========================================================= */
 
 async function saveOfflineData(){
@@ -519,11 +526,12 @@ async function saveOfflineData(){
     );
 
   }
+
 }
 
 
 /* =========================================================
-   LOAD OFFLINE
+   LOAD OFFLINE DATA
 ========================================================= */
 
 async function loadOfflineData(){
@@ -596,6 +604,7 @@ async function loadOfflineData(){
     return null;
 
   }
+
 }
 
 
@@ -642,16 +651,17 @@ async function getAllIssues(){
           }
         );
 
-    }catch{
+    }catch(error){
 
-      const error =
+      const err =
         new Error(
           "GitHub से कनेक्शन नहीं हो पाया। Internet check करें।"
         );
 
-      error.status = 0;
+      err.status = 0;
 
-      throw error;
+      throw err;
+
     }
 
     let data = null;
@@ -678,16 +688,12 @@ async function getAllIssues(){
         message =
           "GitHub Token गलत या expired है।";
 
-      }else if(
-        response.status === 403
-      ){
+      }else if(response.status === 403){
 
         message =
           "Token के पास Repository access नहीं है या GitHub rate limit हो गई है।";
 
-      }else if(
-        response.status === 404
-      ){
+      }else if(response.status === 404){
 
         message =
           "Repository नहीं मिली। Username और Repository check करें।";
@@ -701,6 +707,7 @@ async function getAllIssues(){
         response.status;
 
       throw error;
+
     }
 
     if(!Array.isArray(data)){
@@ -719,6 +726,7 @@ async function getAllIssues(){
     issue =>
       !issue.pull_request
   );
+
 }
 
 
@@ -782,6 +790,7 @@ function getField(body,label){
   }
 
   return "";
+
 }
 
 
@@ -841,6 +850,7 @@ function getImagePath(body){
   }
 
   return "";
+
 }
 
 
@@ -1007,6 +1017,7 @@ function parseIssue(issue){
       issue.created_at || ""
 
   };
+
 }
 
 
@@ -1057,6 +1068,7 @@ async function loadPrivateImage(
       );
 
       return "";
+
     }
 
     const data =
@@ -1068,6 +1080,7 @@ async function loadPrivateImage(
     ){
 
       return "";
+
     }
 
     const base64 =
@@ -1080,34 +1093,20 @@ async function loadPrivateImage(
     const lower =
       imagePath.toLowerCase();
 
-    if(
-      lower.endsWith(".png")
-    ){
+    if(lower.endsWith(".png")){
 
       mime =
         "image/png";
 
-    }else if(
-      lower.endsWith(".webp")
-    ){
+    }else if(lower.endsWith(".webp")){
 
       mime =
         "image/webp";
 
-    }else if(
-      lower.endsWith(".gif")
-    ){
+    }else if(lower.endsWith(".gif")){
 
       mime =
         "image/gif";
-
-    }else if(
-      lower.endsWith(".jpg") ||
-      lower.endsWith(".jpeg")
-    ){
-
-      mime =
-        "image/jpeg";
 
     }
 
@@ -1129,6 +1128,7 @@ async function loadPrivateImage(
     return "";
 
   }
+
 }
 
 
@@ -1178,6 +1178,7 @@ async function loadImages(items){
   hideSync();
 
   return items;
+
 }
 
 
@@ -1236,6 +1237,7 @@ async function syncFromGitHub(){
   await saveOfflineData();
 
   return registrations;
+
 }
 
 
@@ -1257,6 +1259,7 @@ function renderList(items){
     `;
 
     return;
+
   }
 
   registrationList.innerHTML =
@@ -1327,14 +1330,12 @@ function renderList(items){
 
         </div>
 
-
         <button
           class="make-card"
           type="button"
         >
           आईडी कार्ड
         </button>
-
 
         <div
           class="arrow"
@@ -1368,6 +1369,8 @@ function renderList(items){
           "click",
           async function(event){
 
+            event.preventDefault();
+
             event.stopPropagation();
 
             await downloadIDCard(
@@ -1386,6 +1389,7 @@ function renderList(items){
 
     }
   );
+
 }
 
 
@@ -1411,6 +1415,7 @@ function performSearch(){
     );
 
     return;
+
   }
 
   const filtered =
@@ -1438,6 +1443,7 @@ function performSearch(){
   renderList(
     filtered
   );
+
 }
 
 
@@ -1477,6 +1483,7 @@ function detailRow(
     </div>
 
   `;
+
 }
 
 
@@ -1485,6 +1492,10 @@ function detailRow(
 ========================================================= */
 
 function showDetail(item){
+
+  if(!listView || !detailView){
+    return;
+  }
 
   listView.style.display =
     "none";
@@ -1630,9 +1641,11 @@ function showDetail(item){
 
     button.addEventListener(
       "click",
-      function(){
+      async function(event){
 
-        downloadIDCard(
+        event.preventDefault();
+
+        await downloadIDCard(
           item
         );
 
@@ -1646,6 +1659,7 @@ function showDetail(item){
     0,
     0
   );
+
 }
 
 
@@ -1713,6 +1727,7 @@ function loadImageForCanvas(
 
     }
   );
+
 }
 
 
@@ -1776,6 +1791,7 @@ function roundedRect(
   );
 
   ctx.closePath();
+
 }
 
 
@@ -1833,7 +1849,6 @@ function drawCoverImage(
 
   ctx.clip();
 
-
   ctx.drawImage(
 
     image,
@@ -1850,8 +1865,8 @@ function drawCoverImage(
 
   );
 
-
   ctx.restore();
+
 }
 
 
@@ -1891,6 +1906,7 @@ function fitText(
   }
 
   return size;
+
 }
 
 
@@ -1909,8 +1925,8 @@ function drawDecoration(
   ctx.strokeStyle =
     "#f28c00";
 
-  ctx.lineWidth = 3;
-
+  ctx.lineWidth =
+    3;
 
   ctx.beginPath();
 
@@ -1924,7 +1940,6 @@ function drawDecoration(
 
   ctx.stroke();
 
-
   ctx.beginPath();
 
   ctx.arc(
@@ -1937,9 +1952,46 @@ function drawDecoration(
 
   ctx.stroke();
 
-
   ctx.restore();
+
 }
+
+
+/* =========================================================
+   CROP STATE
+========================================================= */
+
+const cropState = {
+
+  imageElement:null,
+
+  naturalWidth:0,
+
+  naturalHeight:0,
+
+  displayWidth:0,
+
+  displayHeight:0,
+
+  x:0,
+
+  y:0,
+
+  width:0,
+
+  height:0,
+
+  startPointerX:0,
+
+  startPointerY:0,
+
+  startX:0,
+
+  startY:0,
+
+  dragging:false
+
+};
 
 
 /* =========================================================
@@ -1982,7 +2034,6 @@ function createCropModal(){
         फोटो को अपनी पसंद के अनुसार ऊपर, नीचे या दाएँ-बाएँ खिसकाएँ
       </div>
 
-
       <div class="crop-workspace">
 
         <div class="crop-image-wrap">
@@ -2000,7 +2051,6 @@ function createCropModal(){
           >
 
             <div class="crop-shade"></div>
-
 
             <div
               id="cropSelection"
@@ -2024,7 +2074,6 @@ function createCropModal(){
 
       </div>
 
-
       <div class="crop-info">
 
         Crop Ratio:
@@ -2039,7 +2088,6 @@ function createCropModal(){
         ID Card Photo के बराबर
 
       </div>
-
 
       <div class="crop-buttons">
 
@@ -2074,34 +2122,30 @@ function createCropModal(){
   return {
 
     modal:
-
       modal,
 
     image:
-
-      document.getElementById(
-        "cropImage"
+      modal.querySelector(
+        "#cropImage"
       ),
 
     selection:
-
-      document.getElementById(
-        "cropSelection"
+      modal.querySelector(
+        "#cropSelection"
       ),
 
     cancel:
-
-      document.getElementById(
-        "cropCancelButton"
+      modal.querySelector(
+        "#cropCancelButton"
       ),
 
     confirm:
-
-      document.getElementById(
-        "cropConfirmButton"
+      modal.querySelector(
+        "#cropConfirmButton"
       )
 
   };
+
 }
 
 
@@ -2119,7 +2163,8 @@ function calculateCropSize(){
 
 
   /*
-    पहले width के आधार पर बनाओ।
+    Maximum crop size.
+    Ratio हमेशा 13:15 रहेगा।
   */
 
   let width =
@@ -2129,13 +2174,9 @@ function calculateCropSize(){
     width / CROP_RATIO;
 
 
-  /*
-    अगर height image से बाहर जाती है,
-    तो height के आधार पर calculate करो।
-  */
-
   if(
-    height > imageHeight * 0.82
+    height >
+    imageHeight * 0.82
   ){
 
     height =
@@ -2146,11 +2187,6 @@ function calculateCropSize(){
 
   }
 
-
-  /*
-    Safety:
-    crop image से कभी बड़ा नहीं होगा।
-  */
 
   width =
     Math.min(
@@ -2166,7 +2202,7 @@ function calculateCropSize(){
 
 
   /*
-    अंतिम ratio correction
+    Final exact ratio
   */
 
   if(
@@ -2189,6 +2225,7 @@ function calculateCropSize(){
     width,
     height
   };
+
 }
 
 
@@ -2207,23 +2244,23 @@ function updateCropSelection(){
     return;
   }
 
-
   selection.style.left =
-    cropState.x + "px";
+    `${cropState.x}px`;
 
   selection.style.top =
-    cropState.y + "px";
+    `${cropState.y}px`;
 
   selection.style.width =
-    cropState.width + "px";
+    `${cropState.width}px`;
 
   selection.style.height =
-    cropState.height + "px";
+    `${cropState.height}px`;
+
 }
 
 
 /* =========================================================
-   KEEP CROP INSIDE IMAGE
+   CLAMP CROP
 ========================================================= */
 
 function clampCropPosition(){
@@ -2242,7 +2279,6 @@ function clampCropPosition(){
       cropState.height
     );
 
-
   cropState.x =
     Math.max(
       0,
@@ -2252,7 +2288,6 @@ function clampCropPosition(){
       )
     );
 
-
   cropState.y =
     Math.max(
       0,
@@ -2261,121 +2296,6 @@ function clampCropPosition(){
         cropState.y
       )
     );
-}
-
-
-/* =========================================================
-   POINTER DOWN
-========================================================= */
-
-function cropPointerDown(
-  event
-){
-
-  /*
-    सिर्फ crop box drag होगा।
-  */
-
-  event.preventDefault();
-
-  const pointer =
-    getPointerPosition(
-      event
-    );
-
-  cropState.dragging =
-    true;
-
-  cropState.startPointerX =
-    pointer.x;
-
-  cropState.startPointerY =
-    pointer.y;
-
-  cropState.startX =
-    cropState.x;
-
-  cropState.startY =
-    cropState.y;
-
-
-  const selection =
-    document.getElementById(
-      "cropSelection"
-    );
-
-  if(selection){
-
-    try{
-
-      selection.setPointerCapture(
-        event.pointerId
-      );
-
-    }catch{}
-
-  }
-}
-
-
-/* =========================================================
-   POINTER MOVE
-========================================================= */
-
-function cropPointerMove(
-  event
-){
-
-  if(
-    !cropState.dragging
-  ){
-
-    return;
-
-  }
-
-
-  event.preventDefault();
-
-
-  const pointer =
-    getPointerPosition(
-      event
-    );
-
-
-  const dx =
-    pointer.x -
-    cropState.startPointerX;
-
-  const dy =
-    pointer.y -
-    cropState.startPointerY;
-
-
-  cropState.x =
-    cropState.startX +
-    dx;
-
-  cropState.y =
-    cropState.startY +
-    dy;
-
-
-  clampCropPosition();
-
-  updateCropSelection();
-}
-
-
-/* =========================================================
-   POINTER UP
-========================================================= */
-
-function cropPointerUp(){
-
-  cropState.dragging =
-    false;
 
 }
 
@@ -2384,14 +2304,9 @@ function cropPointerUp(){
    POINTER POSITION
 ========================================================= */
 
-function getPointerPosition(
+function getCropPointerPosition(
   event
 ){
-
-  /*
-    Pointer coordinates को
-    image wrapper के relative coordinates में convert करते हैं।
-  */
 
   const image =
     cropState.imageElement;
@@ -2399,8 +2314,8 @@ function getPointerPosition(
   if(!image){
 
     return {
-      x:event.clientX,
-      y:event.clientY
+      x:0,
+      y:0
     };
 
   }
@@ -2421,6 +2336,152 @@ function getPointerPosition(
       rect.top
 
   };
+
+}
+
+
+/* =========================================================
+   POINTER DOWN
+========================================================= */
+
+function cropPointerDown(
+  event
+){
+
+  event.preventDefault();
+
+  const pointer =
+    getCropPointerPosition(
+      event
+    );
+
+  cropState.dragging =
+    true;
+
+  cropState.startPointerX =
+    pointer.x;
+
+  cropState.startPointerY =
+    pointer.y;
+
+  cropState.startX =
+    cropState.x;
+
+  cropState.startY =
+    cropState.y;
+
+
+  try{
+
+    event.currentTarget.setPointerCapture(
+      event.pointerId
+    );
+
+  }catch{}
+
+}
+
+
+/* =========================================================
+   POINTER MOVE
+========================================================= */
+
+function cropPointerMove(
+  event
+){
+
+  if(!cropState.dragging){
+    return;
+  }
+
+  event.preventDefault();
+
+  const pointer =
+    getCropPointerPosition(
+      event
+    );
+
+  const dx =
+    pointer.x -
+    cropState.startPointerX;
+
+  const dy =
+    pointer.y -
+    cropState.startPointerY;
+
+  cropState.x =
+    cropState.startX +
+    dx;
+
+  cropState.y =
+    cropState.startY +
+    dy;
+
+  clampCropPosition();
+
+  updateCropSelection();
+
+}
+
+
+/* =========================================================
+   POINTER UP
+========================================================= */
+
+function cropPointerUp(
+  event
+){
+
+  cropState.dragging =
+    false;
+
+  try{
+
+    if(
+      event.currentTarget.hasPointerCapture(
+        event.pointerId
+      )
+    ){
+
+      event.currentTarget.releasePointerCapture(
+        event.pointerId
+      );
+
+    }
+
+  }catch{}
+
+}
+
+
+/* =========================================================
+   SETUP CROP POINTER
+========================================================= */
+
+function setupCropPointerEvents(
+  selection
+){
+
+  selection.addEventListener(
+    "pointerdown",
+    cropPointerDown
+  );
+
+  selection.addEventListener(
+    "pointermove",
+    cropPointerMove
+  );
+
+  selection.addEventListener(
+    "pointerup",
+    cropPointerUp
+  );
+
+  selection.addEventListener(
+    "pointercancel",
+    cropPointerUp
+  );
+
 }
 
 
@@ -2430,37 +2491,11 @@ function getPointerPosition(
 
 function cleanupCrop(){
 
-  const selection =
-    document.getElementById(
-      "cropSelection"
-    );
-
-  if(selection){
-
-    selection.removeEventListener(
-      "pointerdown",
-      cropPointerDown
-    );
-
-    selection.removeEventListener(
-      "pointermove",
-      cropPointerMove
-    );
-
-    selection.removeEventListener(
-      "pointerup",
-      cropPointerUp
-    );
-
-    selection.removeEventListener(
-      "pointercancel",
-      cropPointerUp
-    );
-
-  }
-
   cropState.dragging =
     false;
+
+  cropState.imageElement =
+    null;
 
 }
 
@@ -2496,28 +2531,230 @@ function showCropModal(
         ui.confirm;
 
 
-      cropState.resolve =
-        resolve;
-
-      cropState.reject =
-        reject;
-
-      cropState.dragging =
+      let finished =
         false;
 
 
+      function finishCancel(){
+
+        if(finished){
+          return;
+        }
+
+        finished =
+          true;
+
+        cleanupCrop();
+
+        modal.remove();
+
+        reject(
+          new Error(
+            "क्रॉप रद्द किया गया"
+          )
+        );
+
+      }
+
+
+      function finishConfirm(){
+
+        if(finished){
+          return;
+        }
+
+
+        try{
+
+          if(
+            !cropState.imageElement ||
+            !cropState.naturalWidth ||
+            !cropState.naturalHeight
+          ){
+
+            throw new Error(
+              "फोटो अभी तैयार नहीं है।"
+            );
+
+          }
+
+
+          const scaleX =
+            cropState.naturalWidth /
+            cropState.displayWidth;
+
+          const scaleY =
+            cropState.naturalHeight /
+            cropState.displayHeight;
+
+
+          let x =
+            cropState.x *
+            scaleX;
+
+          let y =
+            cropState.y *
+            scaleY;
+
+          let width =
+            cropState.width *
+            scaleX;
+
+          let height =
+            cropState.height *
+            scaleY;
+
+
+          /*
+            Exact 13:15 ratio
+          */
+
+          const ratio =
+            CROP_RATIO;
+
+
+          height =
+            width / ratio;
+
+
+          /*
+            Boundary correction
+          */
+
+          if(
+            x + width >
+            cropState.naturalWidth
+          ){
+
+            width =
+              cropState.naturalWidth -
+              x;
+
+            height =
+              width / ratio;
+
+          }
+
+
+          if(
+            y + height >
+            cropState.naturalHeight
+          ){
+
+            height =
+              cropState.naturalHeight -
+              y;
+
+            width =
+              height * ratio;
+
+          }
+
+
+          /*
+            Final boundary correction
+          */
+
+          if(
+            x + width >
+            cropState.naturalWidth
+          ){
+
+            width =
+              cropState.naturalWidth -
+              x;
+
+            height =
+              width / ratio;
+
+          }
+
+
+          if(
+            y + height >
+            cropState.naturalHeight
+          ){
+
+            height =
+              cropState.naturalHeight -
+              y;
+
+            width =
+              height * ratio;
+
+          }
+
+
+          if(
+            width <= 1 ||
+            height <= 1
+          ){
+
+            throw new Error(
+              "Crop area सही नहीं है।"
+            );
+
+          }
+
+
+          finished =
+            true;
+
+          cleanupCrop();
+
+          modal.remove();
+
+
+          /*
+            IMPORTANT:
+            केवल यहाँ resolve होगा।
+            इसके बाद ही ID Card बनेगा।
+          */
+
+          resolve({
+
+            x,
+            y,
+            width,
+            height
+
+          });
+
+
+        }catch(error){
+
+          console.error(
+            "Crop confirm error:",
+            error
+          );
+
+          alert(
+            error.message ||
+            "Crop पूरा नहीं हो पाया।"
+          );
+
+        }
+
+      }
+
+
       /*
-        Image loading error
+        Image error
       */
 
       image.onerror =
         function(){
 
-          modal.classList.remove(
-            "open"
-          );
+          if(finished){
+            return;
+          }
+
+          finished =
+            true;
 
           cleanupCrop();
+
+          modal.remove();
 
           reject(
             new Error(
@@ -2529,98 +2766,128 @@ function showCropModal(
 
 
       /*
-        Image successfully loaded
+        Image load
       */
 
       image.onload =
         function(){
 
+          /*
+            Browser layout को settle होने दो।
+          */
+
           requestAnimationFrame(
             function(){
 
-              const rect =
-                image.getBoundingClientRect();
+              requestAnimationFrame(
+                function(){
+
+                  if(finished){
+                    return;
+                  }
 
 
-              /*
-                Browser में displayed image
-                का exact size लेते हैं।
-              */
-
-              cropState.imageElement =
-                image;
-
-              cropState.naturalWidth =
-                image.naturalWidth;
-
-              cropState.naturalHeight =
-                image.naturalHeight;
-
-              cropState.displayWidth =
-                rect.width;
-
-              cropState.displayHeight =
-                rect.height;
+                  const rect =
+                    image.getBoundingClientRect();
 
 
-              if(
-                !cropState.displayWidth ||
-                !cropState.displayHeight
-              ){
+                  let width =
+                    rect.width;
 
-                cleanupCrop();
-
-                modal.classList.remove(
-                  "open"
-                );
-
-                reject(
-                  new Error(
-                    "फोटो का आकार निर्धारित नहीं हो पाया।"
-                  )
-                );
-
-                return;
-
-              }
+                  let height =
+                    rect.height;
 
 
-              const cropSize =
-                calculateCropSize();
+                  /*
+                    अगर browser ने dimensions
+                    zero दिए तो natural size से
+                    fallback।
+                  */
+
+                  if(
+                    width <= 0 ||
+                    height <= 0
+                  ){
+
+                    width =
+                      image.naturalWidth;
+
+                    height =
+                      image.naturalHeight;
+
+                  }
 
 
-              cropState.width =
-                cropSize.width;
+                  if(
+                    width <= 0 ||
+                    height <= 0
+                  ){
 
-              cropState.height =
-                cropSize.height;
+                    finishCancel();
 
+                    alert(
+                      "फोटो का आकार निर्धारित नहीं हो पाया।"
+                    );
 
-              /*
-                Crop box को center में रखो।
-              */
+                    return;
 
-              cropState.x =
-                (
-                  cropState.displayWidth -
-                  cropState.width
-                ) / 2;
+                  }
 
 
-              cropState.y =
-                (
-                  cropState.displayHeight -
-                  cropState.height
-                ) / 2;
+                  cropState.imageElement =
+                    image;
+
+                  cropState.naturalWidth =
+                    image.naturalWidth;
+
+                  cropState.naturalHeight =
+                    image.naturalHeight;
+
+                  cropState.displayWidth =
+                    width;
+
+                  cropState.displayHeight =
+                    height;
 
 
-              clampCropPosition();
+                  const cropSize =
+                    calculateCropSize();
 
-              updateCropSelection();
+
+                  cropState.width =
+                    cropSize.width;
+
+                  cropState.height =
+                    cropSize.height;
 
 
-              modal.classList.add(
-                "open"
+                  cropState.x =
+                    (
+                      width -
+                      cropState.width
+                    ) / 2;
+
+                  cropState.y =
+                    (
+                      height -
+                      cropState.height
+                    ) / 2;
+
+
+                  clampCropPosition();
+
+                  updateCropSelection();
+
+
+                  /*
+                    Modal अब दिखाई देगा।
+                  */
+
+                  modal.classList.add(
+                    "open"
+                  );
+
+                }
               );
 
             }
@@ -2630,242 +2897,84 @@ function showCropModal(
 
 
       /*
-        Important:
-        Image source set करने के बाद
-        browser natural dimensions load करेगा।
+        Pointer events
+      */
+
+      setupCropPointerEvents(
+        selection
+      );
+
+
+      /*
+        Cancel
+      */
+
+      cancel.addEventListener(
+        "click",
+        function(event){
+
+          event.preventDefault();
+
+          finishCancel();
+
+        }
+      );
+
+
+      /*
+        Confirm
+      */
+
+      confirm.addEventListener(
+        "click",
+        function(event){
+
+          event.preventDefault();
+
+          finishConfirm();
+
+        }
+      );
+
+
+      /*
+        ESC = Cancel
+      */
+
+      function escapeHandler(event){
+
+        if(
+          event.key === "Escape"
+        ){
+
+          finishCancel();
+
+          document.removeEventListener(
+            "keydown",
+            escapeHandler
+          );
+
+        }
+
+      }
+
+
+      document.addEventListener(
+        "keydown",
+        escapeHandler
+      );
+
+
+      /*
+        Start image loading
       */
 
       image.src =
         imageSource;
 
-
-      /* -----------------------------------------
-         POINTER EVENTS
-      ----------------------------------------- */
-
-      selection.addEventListener(
-        "pointerdown",
-        cropPointerDown
-      );
-
-      selection.addEventListener(
-        "pointermove",
-        cropPointerMove
-      );
-
-      selection.addEventListener(
-        "pointerup",
-        cropPointerUp
-      );
-
-      selection.addEventListener(
-        "pointercancel",
-        cropPointerUp
-      );
-
-
-      /* -----------------------------------------
-         CANCEL
-      ----------------------------------------- */
-
-      cancel.onclick =
-        function(){
-
-          cleanupCrop();
-
-          modal.classList.remove(
-            "open"
-          );
-
-          reject(
-            new Error(
-              "क्रॉप रद्द किया गया"
-            )
-          );
-
-        };
-
-
-      /* -----------------------------------------
-         CONFIRM
-      ----------------------------------------- */
-
-      confirm.onclick =
-        function(){
-
-          try{
-
-            /*
-              Display coordinates से
-              natural image coordinates में convert।
-            */
-
-            const scaleX =
-              cropState.naturalWidth /
-              cropState.displayWidth;
-
-            const scaleY =
-              cropState.naturalHeight /
-              cropState.displayHeight;
-
-
-            let x =
-              cropState.x *
-              scaleX;
-
-            let y =
-              cropState.y *
-              scaleY;
-
-            let width =
-              cropState.width *
-              scaleX;
-
-            let height =
-              cropState.height *
-              scaleY;
-
-
-            /*
-              Natural image boundaries।
-            */
-
-            x =
-              Math.max(
-                0,
-                Math.min(
-                  cropState.naturalWidth -
-                  width,
-                  x
-                )
-              );
-
-
-            y =
-              Math.max(
-                0,
-                Math.min(
-                  cropState.naturalHeight -
-                  height,
-                  y
-                )
-              );
-
-
-            /*
-              Ratio को अंतिम बार exact बनाओ।
-            */
-
-            const exactRatio =
-              PHOTO_WIDTH /
-              PHOTO_HEIGHT;
-
-
-            if(
-              Math.abs(
-                width / height -
-                exactRatio
-              ) > 0.001
-            ){
-
-              height =
-                width /
-                exactRatio;
-
-            }
-
-
-            /*
-              अगर height सीमा से बाहर हो गई,
-              width को उसके हिसाब से adjust करो।
-            */
-
-            if(
-              y + height >
-              cropState.naturalHeight
-            ){
-
-              height =
-                cropState.naturalHeight -
-                y;
-
-              width =
-                height *
-                exactRatio;
-
-            }
-
-
-            if(
-              x + width >
-              cropState.naturalWidth
-            ){
-
-              width =
-                cropState.naturalWidth -
-                x;
-
-              height =
-                width /
-                exactRatio;
-
-            }
-
-
-            /*
-              Validity check
-            */
-
-            if(
-              width <= 0 ||
-              height <= 0
-            ){
-
-              throw new Error(
-                "Crop area सही नहीं है।"
-              );
-
-            }
-
-
-            cleanupCrop();
-
-            modal.classList.remove(
-              "open"
-            );
-
-
-            resolve({
-
-              x:x,
-
-              y:y,
-
-              width:width,
-
-              height:height
-
-            });
-
-
-          }catch(error){
-
-            console.error(
-              "CROP CONFIRM ERROR:",
-              error
-            );
-
-            alert(
-              error.message ||
-              "Crop पूरा नहीं हो पाया।"
-            );
-
-          }
-
-        };
-
     }
   );
+
 }
 
 
@@ -2888,14 +2997,6 @@ function cropImage(
             "canvas"
           );
 
-
-        /*
-          Final crop को ID card ratio
-          के exact 325:375 में बनाते हैं।
-
-          इससे output हमेशा वही ratio रखेगा।
-        */
-
         canvas.width =
           PHOTO_WIDTH;
 
@@ -2908,7 +3009,6 @@ function cropImage(
             "2d"
           );
 
-
         if(!ctx){
 
           throw new Error(
@@ -2917,10 +3017,6 @@ function cropImage(
 
         }
 
-
-        /*
-          High quality smoothing
-        */
 
         ctx.imageSmoothingEnabled =
           true;
@@ -2978,6 +3074,7 @@ function cropImage(
 
     }
   );
+
 }
 
 
@@ -2992,8 +3089,7 @@ async function downloadIDCard(
   try{
 
     /*
-      अगर photo cached नहीं है,
-      पहले private GitHub photo load करो।
+      पहले photo उपलब्ध कराओ।
     */
 
     if(
@@ -3006,12 +3102,10 @@ async function downloadIDCard(
         "आईडी कार्ड के लिए फोटो लोड हो रही है..."
       );
 
-
       const image =
         await loadPrivateImage(
           item.imagePath
         );
-
 
       if(image){
 
@@ -3021,7 +3115,6 @@ async function downloadIDCard(
         await saveOfflineData();
 
       }
-
 
       hideSync();
 
@@ -3041,6 +3134,10 @@ async function downloadIDCard(
        LOGO
     ----------------------------------------- */
 
+    showSync(
+      "आईडी कार्ड तैयार किया जा रहा है..."
+    );
+
     const logo =
       await loadImageForCanvas(
         "./logo.png"
@@ -3049,52 +3146,29 @@ async function downloadIDCard(
 
     /* -----------------------------------------
        CROP
+       
+       IMPORTANT:
+       यहाँ Crop mandatory है।
+       Cancel/error होने पर download नहीं होगा।
     ----------------------------------------- */
 
-    let photoSource =
-      item.image;
+    showSync(
+      "फोटो Crop करें..."
+    );
 
+
+    let cropData;
 
     try{
 
-      showSync(
-        "फोटो Crop करें..."
-      );
-
-
-      const cropData =
+      cropData =
         await showCropModal(
-          photoSource
+          item.image
         );
-
-
-      showSync(
-        "फोटो तैयार हो रही है..."
-      );
-
-
-      const originalPhoto =
-        await loadImageForCanvas(
-          photoSource
-        );
-
-
-      photoSource =
-        await cropImage(
-          originalPhoto,
-          cropData
-        );
-
-
-      hideSync();
-
 
     }catch(cropError){
 
-      /*
-        User ने cancel किया है
-        तो ID card generation stop।
-      */
+      hideSync();
 
       if(
         cropError &&
@@ -3102,40 +3176,62 @@ async function downloadIDCard(
         "क्रॉप रद्द किया गया"
       ){
 
-        hideSync();
-
         return;
 
       }
 
+      throw cropError;
 
-      /*
-        किसी unexpected crop error पर
-        original photo से ID card बनाना
-        allowed है, लेकिन user को
-        hidden failure नहीं होगा।
-      */
+    }
 
-      console.warn(
-        "Crop error:",
-        cropError
-      );
+
+    /*
+      Crop confirm हो चुका है।
+      अब ही आगे बढ़ेंगे।
+    */
+
+    if(
+      !cropData ||
+      cropData.width <= 0 ||
+      cropData.height <= 0
+    ){
 
       hideSync();
 
-      /*
-        केवल unexpected error में
-        original image इस्तेमाल करें।
-      */
-
-      photoSource =
-        item.image;
+      throw new Error(
+        "Crop पूरा नहीं हुआ।"
+      );
 
     }
 
 
     /* -----------------------------------------
-       PHOTO
+       ORIGINAL PHOTO LOAD
+    ----------------------------------------- */
+
+    showSync(
+      "फोटो तैयार हो रही है..."
+    );
+
+    const originalPhoto =
+      await loadImageForCanvas(
+        item.image
+      );
+
+
+    /* -----------------------------------------
+       ACTUAL CROP
+    ----------------------------------------- */
+
+    const photoSource =
+      await cropImage(
+        originalPhoto,
+        cropData
+      );
+
+
+    /* -----------------------------------------
+       CROPPED PHOTO LOAD
     ----------------------------------------- */
 
     const photo =
@@ -3164,7 +3260,6 @@ async function downloadIDCard(
       canvas.getContext(
         "2d"
       );
-
 
     if(!ctx){
 
@@ -3296,7 +3391,6 @@ async function downloadIDCard(
 
     ctx.clip();
 
-
     ctx.fillStyle =
       "#fff";
 
@@ -3307,7 +3401,6 @@ async function downloadIDCard(
       150
     );
 
-
     ctx.drawImage(
       logo,
       60,
@@ -3315,7 +3408,6 @@ async function downloadIDCard(
       150,
       150
     );
-
 
     ctx.restore();
 
@@ -3440,10 +3532,9 @@ async function downloadIDCard(
 
 
     /* -----------------------------------------
-       PHOTO
+       CROPPED PHOTO
        
-       EXACT SAME RATIO
-       325 × 375
+       EXACT 325 × 375
     ----------------------------------------- */
 
     drawCoverImage(
@@ -3726,6 +3817,10 @@ async function downloadIDCard(
 
     /* -----------------------------------------
        DOWNLOAD
+       
+       IMPORTANT:
+       यहाँ तक तभी पहुँचा जाएगा जब
+       Crop successfully confirm हुआ हो।
     ----------------------------------------- */
 
     const safeID =
@@ -3765,9 +3860,10 @@ async function downloadIDCard(
 
     link.click();
 
-
     link.remove();
 
+
+    hideSync();
 
     showSync(
       "✓ आईडी कार्ड डाउनलोड हो गया"
@@ -3787,21 +3883,24 @@ async function downloadIDCard(
       error
     );
 
-
     hideSync();
 
 
     if(
-      error.message !==
+      error &&
+      error.message ===
       "क्रॉप रद्द किया गया"
     ){
 
-      alert(
-        error.message ||
-        "आईडी कार्ड नहीं बन पाया।"
-      );
+      return;
 
     }
+
+
+    alert(
+      error?.message ||
+      "आईडी कार्ड नहीं बन पाया।"
+    );
 
   }
 
@@ -3880,7 +3979,6 @@ if(refreshButton){
 
         }
 
-
       }finally{
 
         refreshButton.disabled =
@@ -3912,31 +4010,65 @@ if(logoutButton){
       registrations =
         [];
 
-      registrationList.innerHTML =
-        "";
 
-      searchBox.value =
-        "";
+      if(registrationList){
 
+        registrationList.innerHTML =
+          "";
 
-      listView.style.display =
-        "none";
-
-      detailView.style.display =
-        "none";
-
-      loginView.style.display =
-        "block";
+      }
 
 
-      usernameInput.value =
-        "";
+      if(searchBox){
 
-      repoInput.value =
-        "";
+        searchBox.value =
+          "";
 
-      tokenInput.value =
-        "";
+      }
+
+
+      if(listView){
+
+        listView.style.display =
+          "none";
+
+      }
+
+      if(detailView){
+
+        detailView.style.display =
+          "none";
+
+      }
+
+      if(loginView){
+
+        loginView.style.display =
+          "block";
+
+      }
+
+
+      if(usernameInput){
+
+        usernameInput.value =
+          "";
+
+      }
+
+      if(repoInput){
+
+        repoInput.value =
+          "";
+
+      }
+
+      if(tokenInput){
+
+        tokenInput.value =
+          "";
+
+      }
 
 
       hideError();
