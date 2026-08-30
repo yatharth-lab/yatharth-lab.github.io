@@ -1,0 +1,24 @@
+{
+  "name": "पंजीकरण सूची",
+  "short_name": "पंजीकरण सूची",
+  "description": "गायत्री चेतना केन्द्र चिलबिला प्रतापगढ़ - पंजीकरण सूची",
+  "start_url": "./show-all.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff8ed",
+  "theme_color": "#f28c00",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
