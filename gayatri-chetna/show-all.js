@@ -3332,13 +3332,14 @@ async function downloadIDCard(
     /* -----------------------------------------
        CANVAS
 
-       Height बढ़ाई गई है ताकि Registration ID
-       के लिए एक अलग, बड़ा row आराम से fit हो जाए
-       (Age के नीचे, Mobile के ऊपर)।
+       2-column layout:
+       Row 1 → नाम (left)   + आयु (right)
+       Row 2 → पंजीकरण क्रमांक (full width, बड़ा साइज़)
+       Row 3 → मोबाइल नंबर (left) + पता (right)
     ----------------------------------------- */
 
     const CARD_WIDTH = 1400;
-    const CARD_HEIGHT = 960;
+    const CARD_HEIGHT = 820;
 
     const canvasEl =
       document.createElement(
@@ -3671,9 +3672,11 @@ async function downloadIDCard(
     /* -----------------------------------------
        DETAILS
 
-       Row order (top to bottom):
-       नाम → आयु → पंजीकरण क्रमांक (बड़ा साइज़) →
-       मोबाइल नंबर → पता
+       2-COLUMN LAYOUT:
+
+       Row 1 → नाम (बाईं तरफ)          + आयु (दाईं तरफ)
+       Row 2 → पंजीकरण क्रमांक (पूरी चौड़ाई, बड़ा साइज़)
+       Row 3 → मोबाइल नंबर (बाईं तरफ)   + पता (दाईं तरफ)
     ----------------------------------------- */
 
     const detailX =
@@ -3682,7 +3685,7 @@ async function downloadIDCard(
     const detailRightEdge =
       1285;
 
-    const ROW_HEIGHT = 115;
+    const ROW_GAP = 145;
 
     let rowTop = 330;
 
@@ -3714,13 +3717,12 @@ async function downloadIDCard(
     }
 
 
+    /* =========================================================
+       ROW 1 — नाम (left) + आयु (right)
+    ========================================================= */
+
     ctx.textAlign =
       "left";
-
-
-    /* =========================================================
-       नाम
-    ========================================================= */
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3743,7 +3745,7 @@ async function downloadIDCard(
       fitText(
         ctx,
         name,
-        detailRightEdge - detailX,
+        560,
         39,
         21
       );
@@ -3763,39 +3765,45 @@ async function downloadIDCard(
     );
 
 
-    drawDivider(
-      rowTop + 80
-    );
-
-
-    /* =========================================================
-       आयु
-    ========================================================= */
-
-    rowTop += ROW_HEIGHT;
+    ctx.textAlign =
+      "right";
 
     ctx.fillStyle =
       "#8b5a20";
 
     ctx.font =
-      hindiBold;
+      `600 22px ${hindiFont}`;
 
     ctx.fillText(
       "आयु",
-      detailX,
+      detailRightEdge,
       rowTop
     );
+
+
+    const ageValue =
+      item.age || "—";
+
+
+    const ageSize =
+      fitText(
+        ctx,
+        ageValue,
+        220,
+        36,
+        20
+      );
 
 
     ctx.fillStyle =
       "#4b2b0b";
 
     ctx.font =
-      `700 34px ${hindiFont}`;
+      `700 ${ageSize}px ${hindiFont}`;
 
     ctx.fillText(
-      item.age || "—",
-      detailX,
+      ageValue,
+      detailRightEdge,
       rowTop + 45
     );
 
@@ -3806,14 +3814,13 @@ async function downloadIDCard(
 
 
     /* =========================================================
-       पंजीकरण क्रमांक
-
-       आयु के नीचे, मोबाइल नंबर के ऊपर।
-       Size जान-बूझकर बड़ी रखी गई है ताकि
-       Registration ID साफ़ पढ़ी जा सके।
+       ROW 2 — पंजीकरण क्रमांक (पूरी चौड़ाई, बड़ा साइज़)
     ========================================================= */
 
-    rowTop += ROW_HEIGHT;
+    rowTop += ROW_GAP;
+
+    ctx.textAlign =
+      "left";
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3861,10 +3868,13 @@ async function downloadIDCard(
 
 
     /* =========================================================
-       मोबाइल नंबर
+       ROW 3 — मोबाइल नंबर (left) + पता (right)
     ========================================================= */
 
-    rowTop += ROW_HEIGHT;
+    rowTop += ROW_GAP;
+
+    ctx.textAlign =
+      "left";
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3879,39 +3889,45 @@ async function downloadIDCard(
     );
 
 
+    const mobileValue =
+      item.mobile || "—";
+
+
+    const mobileSize =
+      fitText(
+        ctx,
+        mobileValue,
+        560,
+        34,
+        20
+      );
+
+
     ctx.fillStyle =
       "#4b2b0b";
 
     ctx.font =
-      `700 34px ${hindiFont}`;
+      `700 ${mobileSize}px ${hindiFont}`;
 
     ctx.fillText(
-      item.mobile || "—",
+      mobileValue,
       detailX,
       rowTop + 45
     );
 
 
-    drawDivider(
-      rowTop + 80
-    );
-
-
-    /* =========================================================
-       पता
-    ========================================================= */
-
-    rowTop += ROW_HEIGHT;
+    ctx.textAlign =
+      "right";
 
     ctx.fillStyle =
       "#8b5a20";
 
     ctx.font =
-      hindiBold;
+      `600 22px ${hindiFont}`;
 
     ctx.fillText(
       "पता",
-      detailX,
+      detailRightEdge,
       rowTop
     );
 
@@ -3924,9 +3940,9 @@ async function downloadIDCard(
       fitText(
         ctx,
         address,
-        detailRightEdge - detailX,
-        34,
-        18
+        480,
+        32,
+        16
       );
 
 
@@ -3938,9 +3954,13 @@ async function downloadIDCard(
 
     ctx.fillText(
       address,
-      detailX,
+      detailRightEdge,
       rowTop + 45
     );
+
+
+    ctx.textAlign =
+      "left";
 
 
     /* =========================================================
