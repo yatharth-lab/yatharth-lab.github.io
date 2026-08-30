@@ -2202,7 +2202,7 @@ function createCropModal(){
 
 
 /* =========================================================
-   CALCULATE CROP SIZE
+   CALCULATE CROP SIZE - FIXED: Exact 13:15 ratio
 ========================================================= */
 
 function calculateCropSize(){
@@ -2213,76 +2213,33 @@ function calculateCropSize(){
   const imageHeight =
     cropState.displayHeight;
 
+  // Start with 75% of image width
+  let width = imageWidth * 0.75;
+  let height = width / CROP_RATIO;
 
-  /*
-    Maximum crop size.
-    Ratio हमेशा 13:15 रहेगा।
-  */
-
-  let width =
-    imageWidth * 0.75;
-
-  let height =
-    width / CROP_RATIO;
-
-
-  if(
-    height >
-    imageHeight * 0.85
-  ){
-
-    height =
-      imageHeight * 0.85;
-
-    width =
-      height * CROP_RATIO;
-
+  // If height exceeds 85% of image height, use height-based sizing
+  if (height > imageHeight * 0.85) {
+    height = imageHeight * 0.85;
+    width = height * CROP_RATIO;
   }
 
+  // Ensure crop doesn't exceed image bounds
+  width = Math.min(width, imageWidth);
+  height = Math.min(height, imageHeight);
 
-  width =
-    Math.min(
-      width,
-      imageWidth
-    );
-
-  height =
-    Math.min(
-      height,
-      imageHeight
-    );
-
-
-  /*
-    Final exact ratio
-  */
-
-  if(
-    width / height >
-    CROP_RATIO
-  ){
-
-    width =
-      height * CROP_RATIO;
-
-  }else{
-
-    height =
-      width / CROP_RATIO;
-
+  // Final exact ratio enforcement
+  if (width / height > CROP_RATIO) {
+    width = height * CROP_RATIO;
+  } else {
+    height = width / CROP_RATIO;
   }
 
-
-  return {
-    width,
-    height
-  };
-
+  return { width, height };
 }
 
 
 /* =========================================================
-   UPDATE CROP SELECTION
+   UPDATE CROP SELECTION - FIXED: Accurate positioning
 ========================================================= */
 
 function updateCropSelection(){
@@ -2565,7 +2522,7 @@ function cleanupCrop(){
 
 
 /* =========================================================
-   SHOW CROP MODAL
+   SHOW CROP MODAL - FIXED: Accurate crop selection
 ========================================================= */
 
 function showCropModal(
@@ -2671,14 +2628,14 @@ function showCropModal(
 
 
           /*
-            Exact 13:15 ratio
+            Exact 13:15 ratio - ENSURE this is maintained
           */
 
           const ratio =
             CROP_RATIO;
 
 
-          // Ensure exact ratio
+          // Ensure exact ratio - ALWAYS maintain 13:15
           if (width / height > ratio) {
             width = height * ratio;
           } else {
@@ -2686,65 +2643,65 @@ function showCropModal(
           }
 
 
-          /*
-            Boundary correction
-          */
-
-          if (
-            x + width >
-            cropState.naturalWidth
-          ) {
-            width =
-              cropState.naturalWidth -
-              x;
-            height =
-              width / ratio;
+          // Boundary correction - keep crop INSIDE image
+          if (x + width > cropState.naturalWidth) {
+            width = cropState.naturalWidth - x;
+            height = width / ratio;
           }
 
-          if (
-            y + height >
-            cropState.naturalHeight
-          ) {
-            height =
-              cropState.naturalHeight -
-              y;
-            width =
-              height * ratio;
+          if (y + height > cropState.naturalHeight) {
+            height = cropState.naturalHeight - y;
+            width = height * ratio;
           }
 
-          // Re-check boundaries after ratio adjustment
-          if (
-            x + width >
-            cropState.naturalWidth
-          ) {
-            width =
-              cropState.naturalWidth -
-              x;
-            height =
-              width / ratio;
+          // Second pass to ensure ratio after boundary adjustments
+          if (width / height > ratio) {
+            width = height * ratio;
+          } else {
+            height = width / ratio;
           }
 
-          if (
-            y + height >
-            cropState.naturalHeight
-          ) {
-            height =
-              cropState.naturalHeight -
-              y;
-            width =
-              height * ratio;
+          // Final boundary check
+          if (x + width > cropState.naturalWidth) {
+            width = cropState.naturalWidth - x;
+            height = width / ratio;
           }
 
-          // Final check
-          if (
-            width <= 2 ||
-            height <= 2 ||
-            x < 0 ||
-            y < 0
-          ) {
-            throw new Error(
-              "Crop area सही नहीं है।"
-            );
+          if (y + height > cropState.naturalHeight) {
+            height = cropState.naturalHeight - y;
+            width = height * ratio;
+          }
+
+          // Third pass - final ratio enforcement
+          if (width / height > ratio) {
+            width = height * ratio;
+          } else {
+            height = width / ratio;
+          }
+
+          // Final validation
+          if (width <= 2 || height <= 2 || x < 0 || y < 0) {
+            throw new Error("Crop area सही नहीं है।");
+          }
+
+          // Ensure we never crop outside image bounds
+          if (x + width > cropState.naturalWidth) {
+            width = cropState.naturalWidth - x;
+            height = width / ratio;
+          }
+
+          if (y + height > cropState.naturalHeight) {
+            height = cropState.naturalHeight - y;
+            width = height * ratio;
+          }
+
+          // One final ratio check
+          if (Math.abs((width / height) - ratio) > 0.01) {
+            if (width / height > ratio) {
+              width = height * ratio;
+            } else {
+              height = width / ratio;
+            }
           }
 
 
@@ -2755,12 +2712,6 @@ function showCropModal(
 
           modal.remove();
 
-
-          /*
-            IMPORTANT:
-            केवल यहाँ resolve होगा।
-            इसके बाद ही ID Card बनेगा।
-          */
 
           resolve({
 
@@ -3290,7 +3241,7 @@ async function openCropForItem(
 
 
 /* =========================================================
-   ID CARD
+   ID CARD - FIXED: Registration ID on right side below Age
 ========================================================= */
 
 async function downloadIDCard(
@@ -3718,7 +3669,9 @@ async function downloadIDCard(
       "left";
 
 
-    /* NAME */
+    /* =========================================================
+       NAME - Left side
+    ========================================================= */
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3761,7 +3714,36 @@ async function downloadIDCard(
     );
 
 
-    /* AGE */
+    /* DIVIDER 1 */
+    ctx.strokeStyle =
+      "#edcf9e";
+
+    ctx.lineWidth =
+      2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      detailX,
+      420
+    );
+
+    ctx.lineTo(
+      1285,
+      420
+    );
+
+    ctx.stroke();
+
+
+    /* =========================================================
+       AGE - Left side
+       REGISTRATION ID - Right side (same row)
+    ========================================================= */
+
+    // AGE (Left)
+    ctx.textAlign =
+      "left";
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3771,8 +3753,8 @@ async function downloadIDCard(
 
     ctx.fillText(
       "आयु",
-      rightX,
-      330
+      detailX,
+      465
     );
 
 
@@ -3782,47 +3764,59 @@ async function downloadIDCard(
     ctx.font =
       `700 34px ${hindiFont}`;
 
-
     ctx.fillText(
       item.age || "—",
-      rightX,
-      375
+      detailX,
+      510
     );
 
 
-    /* FIX 1: REGISTRATION ID - properly sized, same format,
-       positioned below age in the same section */
+    // REGISTRATION ID (Right - same row as Age)
+    ctx.textAlign =
+      "right";
 
+    // Heading - छोटा
     ctx.fillStyle =
       "#8b5a20";
 
     ctx.font =
-      `600 18px ${hindiFont}`;
-
-    ctx.textAlign =
-      "right";
+      `600 20px ${hindiFont}`;
 
     ctx.fillText(
-      "पंजीकरण क्रमांक:",
-      rightX - 10,
-      418
+      "पंजीकरण क्रमांक",
+      rightX,
+      453
     );
 
-
+    // Value - BADA (Age jitna)
     ctx.fillStyle =
       "#4b2b0b";
 
+    const regId =
+      item.id || "—";
+
+    const regIdSize =
+      fitText(
+        ctx,
+        regId,
+        350,
+        34,
+        16
+      );
+
     ctx.font =
-      `700 18px ${hindiFont}`;
+      `700 ${regIdSize}px ${hindiFont}`;
 
     ctx.fillText(
-      item.id || "—",
+      regId,
       rightX,
-      418
+      500
     );
 
 
-    /* DIVIDER */
+    /* DIVIDER 2 */
+    ctx.textAlign =
+      "left";
 
     ctx.strokeStyle =
       "#edcf9e";
@@ -3834,21 +3828,20 @@ async function downloadIDCard(
 
     ctx.moveTo(
       detailX,
-      440
+      545
     );
 
     ctx.lineTo(
       1285,
-      440
+      545
     );
 
     ctx.stroke();
 
 
-    /* MOBILE */
-
-    ctx.textAlign =
-      "left";
+    /* =========================================================
+       MOBILE - Left side
+    ========================================================= */
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3856,11 +3849,10 @@ async function downloadIDCard(
     ctx.font =
       hindiBold;
 
-
     ctx.fillText(
       "मोबाइल नंबर",
       detailX,
-      480
+      580
     );
 
 
@@ -3870,35 +3862,38 @@ async function downloadIDCard(
     ctx.font =
       `700 34px ${hindiFont}`;
 
-
     ctx.fillText(
       item.mobile || "—",
       detailX,
-      525
+      625
     );
 
 
-    /* DIVIDER */
-
+    /* DIVIDER 3 */
     ctx.strokeStyle =
       "#edcf9e";
+
+    ctx.lineWidth =
+      2;
 
     ctx.beginPath();
 
     ctx.moveTo(
       detailX,
-      555
+      660
     );
 
     ctx.lineTo(
       1285,
-      555
+      660
     );
 
     ctx.stroke();
 
 
-    /* ADDRESS (पता) */
+    /* =========================================================
+       ADDRESS - Left side
+    ========================================================= */
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3906,11 +3901,10 @@ async function downloadIDCard(
     ctx.font =
       hindiBold;
 
-
     ctx.fillText(
       "पता",
       detailX,
-      595
+      695
     );
 
 
@@ -3934,15 +3928,16 @@ async function downloadIDCard(
     ctx.font =
       `700 ${addressSize}px ${hindiFont}`;
 
-
     ctx.fillText(
       address,
       detailX,
-      640
+      740
     );
 
 
-    /* FIX 2: FOOTER - moved to right side */
+    /* =========================================================
+       FOOTER - Right side
+    ========================================================= */
 
     ctx.textAlign =
       "right";
@@ -3953,11 +3948,10 @@ async function downloadIDCard(
     ctx.font =
       `600 18px ${hindiFont}`;
 
-
     ctx.fillText(
       "गायत्री चेतना केन्द्र",
       1285,
-      700
+      790
     );
 
 
