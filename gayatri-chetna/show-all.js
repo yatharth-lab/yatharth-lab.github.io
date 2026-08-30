@@ -2089,7 +2089,7 @@ function createCropModal(){
       </div>
 
       <div class="crop-subtitle">
-        फोटो को अपनी पसंद के अनुसार ऊपर, नीचे या दाएँ-बाएँ खिसकाएँ
+        फोटो को खींचकर सही क्षेत्र चुनें — 325×375 (13:15)
       </div>
 
       <div class="crop-workspace">
@@ -2115,6 +2115,9 @@ function createCropModal(){
               class="crop-selection"
             >
 
+              <div class="crosshair-h"></div>
+              <div class="crosshair-v"></div>
+
               <div class="crop-corners">
 
                 <span class="tl"></span>
@@ -2134,16 +2137,7 @@ function createCropModal(){
 
       <div class="crop-info">
 
-        Crop Ratio:
-        <strong>325 × 375</strong>
-
-        &nbsp;•&nbsp;
-
-        <strong>13 : 15</strong>
-
-        &nbsp;•&nbsp;
-
-        ID Card Photo के बराबर
+        <strong>325 × 375</strong> &nbsp;•&nbsp; <strong>13 : 15</strong> &nbsp;•&nbsp; आईडी कार्ड फोटो अनुपात
 
       </div>
 
@@ -2154,7 +2148,7 @@ function createCropModal(){
           class="crop-cancel"
           type="button"
         >
-          रद्द करें
+          ✕ रद्द करें
         </button>
 
         <button
@@ -2162,7 +2156,7 @@ function createCropModal(){
           class="crop-confirm"
           type="button"
         >
-          ✓ Crop करके ID Card बनाएँ
+          ✓ क्रॉप करें
         </button>
 
       </div>
@@ -2226,7 +2220,7 @@ function calculateCropSize(){
   */
 
   let width =
-    imageWidth * 0.72;
+    imageWidth * 0.75;
 
   let height =
     width / CROP_RATIO;
@@ -2234,11 +2228,11 @@ function calculateCropSize(){
 
   if(
     height >
-    imageHeight * 0.82
+    imageHeight * 0.85
   ){
 
     height =
-      imageHeight * 0.82;
+      imageHeight * 0.85;
 
     width =
       height * CROP_RATIO;
@@ -2301,6 +2295,18 @@ function updateCropSelection(){
   if(!selection){
     return;
   }
+
+  // Ensure selection stays within bounds
+  const maxX =
+    Math.max(0, cropState.displayWidth - cropState.width);
+  const maxY =
+    Math.max(0, cropState.displayHeight - cropState.height);
+
+  cropState.x =
+    Math.max(0, Math.min(maxX, cropState.x));
+
+  cropState.y =
+    Math.max(0, Math.min(maxY, cropState.y));
 
   selection.style.left =
     `${cropState.x}px`;
@@ -2637,6 +2643,7 @@ function showCropModal(
           }
 
 
+          // Calculate accurate crop coordinates
           const scaleX =
             cropState.naturalWidth /
             cropState.displayWidth;
@@ -2671,87 +2678,73 @@ function showCropModal(
             CROP_RATIO;
 
 
-          height =
-            width / ratio;
+          // Ensure exact ratio
+          if (width / height > ratio) {
+            width = height * ratio;
+          } else {
+            height = width / ratio;
+          }
 
 
           /*
             Boundary correction
           */
 
-          if(
+          if (
             x + width >
             cropState.naturalWidth
-          ){
-
+          ) {
             width =
               cropState.naturalWidth -
               x;
-
             height =
               width / ratio;
-
           }
 
-
-          if(
+          if (
             y + height >
             cropState.naturalHeight
-          ){
-
+          ) {
             height =
               cropState.naturalHeight -
               y;
-
             width =
               height * ratio;
-
           }
 
-
-          /*
-            Final boundary correction
-          */
-
-          if(
+          // Re-check boundaries after ratio adjustment
+          if (
             x + width >
             cropState.naturalWidth
-          ){
-
+          ) {
             width =
               cropState.naturalWidth -
               x;
-
             height =
               width / ratio;
-
           }
 
-
-          if(
+          if (
             y + height >
             cropState.naturalHeight
-          ){
-
+          ) {
             height =
               cropState.naturalHeight -
               y;
-
             width =
               height * ratio;
-
           }
 
-
-          if(
-            width <= 1 ||
-            height <= 1
-          ){
-
+          // Final check
+          if (
+            width <= 2 ||
+            height <= 2 ||
+            x < 0 ||
+            y < 0
+          ) {
             throw new Error(
               "Crop area सही नहीं है।"
             );
-
           }
 
 
@@ -2932,7 +2925,17 @@ function showCropModal(
                     ) / 2;
 
 
-                  clampCropPosition();
+                  // Ensure crop is within bounds
+                  const maxX =
+                    Math.max(0, width - cropState.width);
+                  const maxY =
+                    Math.max(0, height - cropState.height);
+
+                  cropState.x =
+                    Math.max(0, Math.min(maxX, cropState.x));
+
+                  cropState.y =
+                    Math.max(0, Math.min(maxY, cropState.y));
 
                   updateCropSelection();
 
@@ -3787,31 +3790,35 @@ async function downloadIDCard(
     );
 
 
-    /* REGISTRATION ID (छोटा, आयु के नीचे) */
-
-    const regIdSmallText =
-      "पंजीकरण क्रमांक: " +
-      (item.id || "—");
-
-    const regIdSmallSize =
-      fitText(
-        ctx,
-        regIdSmallText,
-        220,
-        18,
-        11
-      );
-
-    ctx.font =
-      `600 ${regIdSmallSize}px ${hindiFont}`;
+    /* FIX 1: REGISTRATION ID - properly sized, same format,
+       positioned below age in the same section */
 
     ctx.fillStyle =
       "#8b5a20";
 
+    ctx.font =
+      `600 18px ${hindiFont}`;
+
+    ctx.textAlign =
+      "right";
+
     ctx.fillText(
-      regIdSmallText,
+      "पंजीकरण क्रमांक:",
+      rightX - 10,
+      418
+    );
+
+
+    ctx.fillStyle =
+      "#4b2b0b";
+
+    ctx.font =
+      `700 18px ${hindiFont}`;
+
+    ctx.fillText(
+      item.id || "—",
       rightX,
-      404
+      418
     );
 
 
@@ -3827,18 +3834,21 @@ async function downloadIDCard(
 
     ctx.moveTo(
       detailX,
-      425
+      440
     );
 
     ctx.lineTo(
       1285,
-      425
+      440
     );
 
     ctx.stroke();
 
 
     /* MOBILE */
+
+    ctx.textAlign =
+      "left";
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3850,7 +3860,7 @@ async function downloadIDCard(
     ctx.fillText(
       "मोबाइल नंबर",
       detailX,
-      470
+      480
     );
 
 
@@ -3864,7 +3874,7 @@ async function downloadIDCard(
     ctx.fillText(
       item.mobile || "—",
       detailX,
-      515
+      525
     );
 
 
@@ -3877,12 +3887,12 @@ async function downloadIDCard(
 
     ctx.moveTo(
       detailX,
-      545
+      555
     );
 
     ctx.lineTo(
       1285,
-      545
+      555
     );
 
     ctx.stroke();
@@ -3900,7 +3910,7 @@ async function downloadIDCard(
     ctx.fillText(
       "पता",
       detailX,
-      590
+      595
     );
 
 
@@ -3928,11 +3938,14 @@ async function downloadIDCard(
     ctx.fillText(
       address,
       detailX,
-      635
+      640
     );
 
 
-    /* FOOTER */
+    /* FIX 2: FOOTER - moved to right side */
+
+    ctx.textAlign =
+      "right";
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3943,8 +3956,8 @@ async function downloadIDCard(
 
     ctx.fillText(
       "गायत्री चेतना केन्द्र",
-      detailX,
-      697
+      1285,
+      700
     );
 
 
