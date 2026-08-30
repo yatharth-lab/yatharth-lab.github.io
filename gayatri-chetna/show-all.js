@@ -3241,7 +3241,8 @@ async function openCropForItem(
 
 
 /* =========================================================
-   ID CARD - FIXED: Registration ID on right side below Age
+   ID CARD - Registration ID row: below Age, above Mobile,
+   larger font size, full-width left-aligned like other rows
 ========================================================= */
 
 async function downloadIDCard(
@@ -3330,22 +3331,29 @@ async function downloadIDCard(
 
     /* -----------------------------------------
        CANVAS
+
+       Height बढ़ाई गई है ताकि Registration ID
+       के लिए एक अलग, बड़ा row आराम से fit हो जाए
+       (Age के नीचे, Mobile के ऊपर)।
     ----------------------------------------- */
 
-    const canvas =
+    const CARD_WIDTH = 1400;
+    const CARD_HEIGHT = 960;
+
+    const canvasEl =
       document.createElement(
         "canvas"
       );
 
-    canvas.width =
-      1400;
+    canvasEl.width =
+      CARD_WIDTH;
 
-    canvas.height =
-      820;
+    canvasEl.height =
+      CARD_HEIGHT;
 
 
     const ctx =
-      canvas.getContext(
+      canvasEl.getContext(
         "2d"
       );
 
@@ -3375,8 +3383,8 @@ async function downloadIDCard(
     ctx.fillRect(
       0,
       0,
-      canvas.width,
-      canvas.height
+      canvasEl.width,
+      canvasEl.height
     );
 
 
@@ -3394,8 +3402,8 @@ async function downloadIDCard(
       ctx,
       12,
       12,
-      1376,
-      796,
+      CARD_WIDTH - 24,
+      CARD_HEIGHT - 24,
       34
     );
 
@@ -3416,8 +3424,8 @@ async function downloadIDCard(
       ctx,
       30,
       30,
-      1340,
-      760,
+      CARD_WIDTH - 60,
+      CARD_HEIGHT - 60,
       27
     );
 
@@ -3586,15 +3594,21 @@ async function downloadIDCard(
        MAIN BOX
     ----------------------------------------- */
 
+    const BOX_X = 65;
+    const BOX_Y = 260;
+    const BOX_WIDTH = 1270;
+    const BOX_HEIGHT =
+      CARD_HEIGHT - BOX_Y - 85;
+
     ctx.fillStyle =
       "#fff";
 
     roundedRect(
       ctx,
-      65,
-      260,
-      1270,
-      475,
+      BOX_X,
+      BOX_Y,
+      BOX_WIDTH,
+      BOX_HEIGHT,
       25
     );
 
@@ -3609,10 +3623,10 @@ async function downloadIDCard(
 
     roundedRect(
       ctx,
-      65,
-      260,
-      1270,
-      475,
+      BOX_X,
+      BOX_Y,
+      BOX_WIDTH,
+      BOX_HEIGHT,
       25
     );
 
@@ -3621,7 +3635,7 @@ async function downloadIDCard(
 
     /* -----------------------------------------
        CROPPED PHOTO
-       
+
        EXACT 325 × 375
     ----------------------------------------- */
 
@@ -3656,13 +3670,48 @@ async function downloadIDCard(
 
     /* -----------------------------------------
        DETAILS
+
+       Row order (top to bottom):
+       नाम → आयु → पंजीकरण क्रमांक (बड़ा साइज़) →
+       मोबाइल नंबर → पता
     ----------------------------------------- */
 
     const detailX =
       500;
 
-    const rightX =
-      1060;
+    const detailRightEdge =
+      1285;
+
+    const ROW_HEIGHT = 115;
+
+    let rowTop = 330;
+
+
+    function drawDivider(
+      afterY
+    ){
+
+      ctx.strokeStyle =
+        "#edcf9e";
+
+      ctx.lineWidth =
+        2;
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        detailX,
+        afterY
+      );
+
+      ctx.lineTo(
+        detailRightEdge,
+        afterY
+      );
+
+      ctx.stroke();
+
+    }
 
 
     ctx.textAlign =
@@ -3670,7 +3719,7 @@ async function downloadIDCard(
 
 
     /* =========================================================
-       NAME - Left side
+       नाम
     ========================================================= */
 
     ctx.fillStyle =
@@ -3682,7 +3731,7 @@ async function downloadIDCard(
     ctx.fillText(
       "नाम",
       detailX,
-      330
+      rowTop
     );
 
 
@@ -3694,7 +3743,7 @@ async function downloadIDCard(
       fitText(
         ctx,
         name,
-        500,
+        detailRightEdge - detailX,
         39,
         21
       );
@@ -3710,40 +3759,20 @@ async function downloadIDCard(
     ctx.fillText(
       name,
       detailX,
-      375
+      rowTop + 45
     );
 
 
-    /* DIVIDER 1 */
-    ctx.strokeStyle =
-      "#edcf9e";
-
-    ctx.lineWidth =
-      2;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      detailX,
-      420
+    drawDivider(
+      rowTop + 80
     );
-
-    ctx.lineTo(
-      1285,
-      420
-    );
-
-    ctx.stroke();
 
 
     /* =========================================================
-       AGE - Left side
-       REGISTRATION ID - Right side (same row)
+       आयु
     ========================================================= */
 
-    // AGE (Left)
-    ctx.textAlign =
-      "left";
+    rowTop += ROW_HEIGHT;
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3754,7 +3783,7 @@ async function downloadIDCard(
     ctx.fillText(
       "आयु",
       detailX,
-      465
+      rowTop
     );
 
 
@@ -3767,81 +3796,75 @@ async function downloadIDCard(
     ctx.fillText(
       item.age || "—",
       detailX,
-      510
+      rowTop + 45
     );
 
 
-    // REGISTRATION ID (Right - same row as Age)
-    ctx.textAlign =
-      "right";
+    drawDivider(
+      rowTop + 80
+    );
 
-    // Heading - छोटा
+
+    /* =========================================================
+       पंजीकरण क्रमांक
+
+       आयु के नीचे, मोबाइल नंबर के ऊपर।
+       Size जान-बूझकर बड़ी रखी गई है ताकि
+       Registration ID साफ़ पढ़ी जा सके।
+    ========================================================= */
+
+    rowTop += ROW_HEIGHT;
+
     ctx.fillStyle =
       "#8b5a20";
 
     ctx.font =
-      `600 20px ${hindiFont}`;
+      hindiBold;
 
     ctx.fillText(
       "पंजीकरण क्रमांक",
-      rightX,
-      453
+      detailX,
+      rowTop
     );
 
-    // Value - BADA (Age jitna)
-    ctx.fillStyle =
-      "#4b2b0b";
 
     const regId =
       item.id || "—";
+
 
     const regIdSize =
       fitText(
         ctx,
         regId,
-        350,
-        34,
-        16
+        detailRightEdge - detailX,
+        46,
+        24
       );
+
+
+    ctx.fillStyle =
+      "#4b2b0b";
 
     ctx.font =
       `700 ${regIdSize}px ${hindiFont}`;
 
     ctx.fillText(
       regId,
-      rightX,
-      500
-    );
-
-
-    /* DIVIDER 2 */
-    ctx.textAlign =
-      "left";
-
-    ctx.strokeStyle =
-      "#edcf9e";
-
-    ctx.lineWidth =
-      2;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
       detailX,
-      545
+      rowTop + 48
     );
 
-    ctx.lineTo(
-      1285,
-      545
-    );
 
-    ctx.stroke();
+    drawDivider(
+      rowTop + 85
+    );
 
 
     /* =========================================================
-       MOBILE - Left side
+       मोबाइल नंबर
     ========================================================= */
+
+    rowTop += ROW_HEIGHT;
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3852,7 +3875,7 @@ async function downloadIDCard(
     ctx.fillText(
       "मोबाइल नंबर",
       detailX,
-      580
+      rowTop
     );
 
 
@@ -3865,35 +3888,20 @@ async function downloadIDCard(
     ctx.fillText(
       item.mobile || "—",
       detailX,
-      625
+      rowTop + 45
     );
 
 
-    /* DIVIDER 3 */
-    ctx.strokeStyle =
-      "#edcf9e";
-
-    ctx.lineWidth =
-      2;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      detailX,
-      660
+    drawDivider(
+      rowTop + 80
     );
-
-    ctx.lineTo(
-      1285,
-      660
-    );
-
-    ctx.stroke();
 
 
     /* =========================================================
-       ADDRESS - Left side
+       पता
     ========================================================= */
+
+    rowTop += ROW_HEIGHT;
 
     ctx.fillStyle =
       "#8b5a20";
@@ -3904,7 +3912,7 @@ async function downloadIDCard(
     ctx.fillText(
       "पता",
       detailX,
-      695
+      rowTop
     );
 
 
@@ -3916,7 +3924,7 @@ async function downloadIDCard(
       fitText(
         ctx,
         address,
-        760,
+        detailRightEdge - detailX,
         34,
         18
       );
@@ -3931,7 +3939,7 @@ async function downloadIDCard(
     ctx.fillText(
       address,
       detailX,
-      740
+      rowTop + 45
     );
 
 
@@ -3950,8 +3958,8 @@ async function downloadIDCard(
 
     ctx.fillText(
       "गायत्री चेतना केन्द्र",
-      1285,
-      790
+      detailRightEdge,
+      BOX_Y + BOX_HEIGHT + 55
     );
 
 
@@ -3974,13 +3982,13 @@ async function downloadIDCard(
     drawDecoration(
       ctx,
       80,
-      725
+      BOX_Y + BOX_HEIGHT - 10
     );
 
     drawDecoration(
       ctx,
       1320,
-      725
+      BOX_Y + BOX_HEIGHT - 10
     );
 
 
@@ -4013,7 +4021,7 @@ async function downloadIDCard(
 
 
     link.href =
-      canvas.toDataURL(
+      canvasEl.toDataURL(
         "image/png"
       );
 
